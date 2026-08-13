@@ -1,0 +1,17 @@
+{
+  "Training": {
+    "images": 650,
+    "teeth": 2883,
+    "missing_bone": 0
+  },
+  "Validation": {
+    "images": 150,
+    "teeth": 655,
+    "missing_bone": 0
+  },
+  "Testing": {
+    "images": 200,
+    "teeth": 864,
+    "missing_bone": 0
+  }
+}

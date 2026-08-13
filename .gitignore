@@ -1,0 +1,30 @@
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# Download on target machine (Zenodo / Ultralytics / pip)
+data/DenPAR/
+data/*.zip
+*.pt
+
+# Clone separately if needed
+official_repo/
+
+# Training outputs — retrain or resume locally
+runs/
+
+# Local IDE (skills are under .cursor/skills/ — included if present)
+.cursor/projects/
+.cursor/*.json
+
+# Papers (keep locally)
+*.pdf
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,0 +1,8 @@
+path: data/processed/yolo_detection
+train: train/images
+val: val/images
+test: test/images
+
+names:
+  0: single
+  1: double

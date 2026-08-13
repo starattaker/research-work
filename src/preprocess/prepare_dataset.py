@@ -1,0 +1,332 @@
+"""Convert DenPAR raw annotations into training-ready formats."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import shutil
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Iterable
+
+import cv2
+import numpy as np
+from tqdm import tqdm
+
+SPLITS = ("Training", "Validation", "Testing")
+SPLIT_ALIASES = {"Training": "train", "Validation": "val", "Testing": "test"}
+
+
+@dataclass
+class ToothRecord:
+    bbox: list[float]
+    label: int  # 1=single root, 2=double root
+    cej: list[list[float]]
+    intersection: list[list[float]]
+    apex: list[list[float]]
+
+
+def point_in_bbox(x: float, y: float, bbox: list[float], margin: float = 8.0) -> bool:
+    x1, y1, x2, y2 = bbox
+    return (x1 - margin) <= x <= (x2 + margin) and (y1 - margin) <= y <= (y2 + margin)
+
+
+def bbox_center(bbox: list[float]) -> tuple[float, float]:
+    x1, y1, x2, y2 = bbox
+    return (x1 + x2) / 2.0, (y1 + y2) / 2.0
+
+
+def dist2(p1: Iterable[float], p2: Iterable[float]) -> float:
+    return float((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
+
+
+def load_mask_contour(mask_path: Path) -> np.ndarray | None:
+    mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
+    if mask is None:
+        return None
+    contours, _ = cv2.findContours((mask > 0).astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    if not contours:
+        return None
+    return max(contours, key=cv2.contourArea).reshape(-1, 2)
+
+
+def nearest_contour_point(contour: np.ndarray, target: tuple[float, float]) -> list[float]:
+    pts = contour.astype(np.float32)
+    d = ((pts[:, 0] - target[0]) ** 2 + (pts[:, 1] - target[1]) ** 2)
+    idx = int(np.argmin(d))
+    return [float(pts[idx, 0]), float(pts[idx, 1])]
+
+
+def line_contour_intersection(contour: np.ndarray, line_pts: list[list[float]]) -> list[float] | None:
+    if len(line_pts) < 2 or contour is None or len(contour) < 3:
+        return None
+
+    best = None
+    best_d = float("inf")
+    for i in range(len(line_pts) - 1):
+        p1 = np.array(line_pts[i], dtype=np.float32)
+        p2 = np.array(line_pts[i + 1], dtype=np.float32)
+        for j in range(len(contour)):
+            q1 = contour[j].astype(np.float32)
+            q2 = contour[(j + 1) % len(contour)].astype(np.float32)
+            inter = segment_intersection(p1, p2, q1, q2)
+            if inter is not None:
+                d = dist2(inter, line_pts[len(line_pts) // 2])
+                if d < best_d:
+                    best_d = d
+                    best = inter
+    if best is not None:
+        return [float(best[0]), float(best[1])]
+
+    mid = line_pts[len(line_pts) // 2]
+    return nearest_contour_point(contour, (mid[0], mid[1]))
+
+
+def segment_intersection(p1, p2, q1, q2, eps: float = 1e-6):
+    r = p2 - p1
+    s = q2 - q1
+    rxs = np.cross(r, s)
+    qmp = q1 - p1
+    if abs(rxs) < eps:
+        return None
+    t = np.cross(qmp, s) / rxs
+    u = np.cross(qmp, r) / rxs
+    if 0.0 <= t <= 1.0 and 0.0 <= u <= 1.0:
+        return p1 + t * r
+    return None
+
+
+def assign_points_to_teeth(points: list[list[float]], bboxes: list[list[float]]) -> list[list[list[float]]]:
+    assigned: list[list[list[float]]] = [[] for _ in bboxes]
+    for pt in points:
+        candidates = [i for i, bb in enumerate(bboxes) if point_in_bbox(pt[0], pt[1], bb)]
+        if not candidates:
+            i = int(np.argmin([dist2(pt, bbox_center(bb)) for bb in bboxes]))
+        else:
+            i = min(candidates, key=lambda idx: dist2(pt, bbox_center(bboxes[idx])))
+        assigned[i].append(pt)
+    return assigned
+
+
+def pad_keypoints(points: list[list[float]], count: int = 2) -> list[list[float]]:
+    out = [p[:2] for p in sorted(points, key=lambda p: p[0])[:count]]
+    while len(out) < count:
+        out.append([0.0, 0.0])
+    return out
+
+
+def keypoints_with_visibility(points: list[list[float]], count: int = 2) -> list[list[float]]:
+    padded = pad_keypoints(points, count)
+    result = []
+    for pt in padded:
+        vis = 2 if pt != [0.0, 0.0] else 0
+        result.append([pt[0], pt[1], vis])
+    return result
+
+
+def infer_root_label(apex_points: list[list[float]]) -> int:
+    visible = [p for p in apex_points if p != [0.0, 0.0]]
+    return 2 if len(visible) >= 2 else 1
+
+
+def adjacent_teeth_for_bone_line(bboxes: list[list[float]], line_pts: list[list[float]]) -> tuple[int, int] | None:
+    if len(bboxes) < 2:
+        return None
+    cx = float(np.mean([p[0] for p in line_pts]))
+    order = sorted(range(len(bboxes)), key=lambda i: bbox_center(bboxes[i])[0])
+    for left_idx, right_idx in zip(order[:-1], order[1:]):
+        left_c = bbox_center(bboxes[left_idx])[0]
+        right_c = bbox_center(bboxes[right_idx])[0]
+        if left_c <= cx <= right_c:
+            return left_idx, right_idx
+    nearest = int(np.argmin([dist2((cx, np.mean([p[1] for p in line_pts])), bbox_center(bb)) for bb in bboxes]))
+    if nearest == 0:
+        return 0, 1
+    if nearest == len(bboxes) - 1:
+        return len(bboxes) - 2, len(bboxes) - 1
+    return nearest - 1, nearest
+
+
+def compute_intersections(
+    bboxes: list[list[float]],
+    bone_lines: list[list[list[float]]],
+    mask_paths: list[Path],
+) -> list[list[list[float]]]:
+    intersections: list[list[list[float]]] = [[] for _ in bboxes]
+    contours = [load_mask_contour(p) for p in mask_paths]
+
+    for line in bone_lines:
+        pair = adjacent_teeth_for_bone_line(bboxes, line)
+        if pair is None:
+            continue
+        left_i, right_i = pair
+        for tooth_i in (left_i, right_i):
+            if contours[tooth_i] is None:
+                continue
+            pt = line_contour_intersection(contours[tooth_i], line)
+            if pt is not None:
+                intersections[tooth_i].append(pt)
+    return intersections
+
+
+def build_tooth_records(
+    kp_json: dict,
+    bone_json: dict | None,
+    mask_dir: Path | None,
+) -> list[ToothRecord]:
+    bboxes = kp_json["bboxes"]
+    cej_assign = assign_points_to_teeth(kp_json.get("CEJ_Points", []), bboxes)
+    apex_assign = assign_points_to_teeth(kp_json.get("Apex_Points", []), bboxes)
+
+    intersections = [[] for _ in bboxes]
+    if bone_json and mask_dir and mask_dir.exists():
+        mask_paths = sorted(mask_dir.glob("*.png"))
+        if len(mask_paths) == len(bboxes):
+            intersections = compute_intersections(bboxes, bone_json.get("Bone_Lines", []), mask_paths)
+
+    records: list[ToothRecord] = []
+    for i, bbox in enumerate(bboxes):
+        apex = pad_keypoints(apex_assign[i], 2)
+        record = ToothRecord(
+            bbox=[float(v) for v in bbox],
+            label=infer_root_label(apex),
+            cej=pad_keypoints(cej_assign[i], 2),
+            intersection=pad_keypoints(intersections[i], 2),
+            apex=apex,
+        )
+        records.append(record)
+    return records
+
+
+def to_keypoint_json(records: list[ToothRecord], keypoint_type: str) -> dict:
+    bboxes = [r.bbox for r in records]
+    labels = [r.label for r in records]
+    keypoints = []
+    for r in records:
+        if keypoint_type == "cej":
+            pts = keypoints_with_visibility(r.cej, 2)
+        elif keypoint_type == "intersection":
+            pts = keypoints_with_visibility(r.intersection, 2)
+        elif keypoint_type == "apex":
+            pts = keypoints_with_visibility(r.apex, 2)
+        else:
+            raise ValueError(f"Unknown keypoint type: {keypoint_type}")
+        keypoints.append(pts)
+    return {"bboxes": bboxes, "labels": labels, "keypoints": keypoints}
+
+
+def bbox_to_yolo_line(bbox: list[float], label: int, img_w: int, img_h: int) -> str:
+    x1, y1, x2, y2 = bbox
+    cx = ((x1 + x2) / 2.0) / img_w
+    cy = ((y1 + y2) / 2.0) / img_h
+    w = (x2 - x1) / img_w
+    h = (y2 - y1) / img_h
+    cls = 0 if label == 1 else 1
+    return f"{cls} {cx:.6f} {cy:.6f} {w:.6f} {h:.6f}"
+
+
+def process_split(raw_root: Path, processed_root: Path, split: str) -> dict:
+    split_alias = SPLIT_ALIASES[split]
+    images_dir = raw_root / split / "Images"
+    kp_dir = raw_root / split / "Key Points Annotations"
+    bone_dir = raw_root / split / "Bone Level Annotations"
+    mask_root = raw_root / split / "Masks (Tooth-wise)"
+
+    yolo_images = processed_root / "yolo_detection" / split_alias / "images"
+    yolo_labels = processed_root / "yolo_detection" / split_alias / "labels"
+    yolo_images.mkdir(parents=True, exist_ok=True)
+    yolo_labels.mkdir(parents=True, exist_ok=True)
+
+    stats = {"images": 0, "teeth": 0, "missing_bone": 0}
+
+    for kp_path in tqdm(sorted(kp_dir.glob("*.json")), desc=f"Preprocess {split_alias}"):
+        stem = kp_path.stem
+        image_name = f"{stem}.jpg"
+        src_image = images_dir / image_name
+        if not src_image.exists():
+            continue
+
+        img = cv2.imread(str(src_image))
+        if img is None:
+            continue
+        h, w = img.shape[:2]
+
+        kp_json = json.loads(kp_path.read_text(encoding="utf-8"))
+        bone_path = bone_dir / kp_path.name
+        bone_json = json.loads(bone_path.read_text(encoding="utf-8")) if bone_path.exists() else None
+        if bone_json is None:
+            stats["missing_bone"] += 1
+
+        records = build_tooth_records(kp_json, bone_json, mask_root / stem)
+        if not records:
+            continue
+
+        dst_image = yolo_images / image_name
+        if not dst_image.exists():
+            shutil.copy2(src_image, dst_image)
+
+        yolo_lines = [bbox_to_yolo_line(r.bbox, r.label, w, h) for r in records]
+        (yolo_labels / f"{stem}.txt").write_text("\n".join(yolo_lines) + "\n", encoding="utf-8")
+
+        for kpt_type in ("cej", "intersection", "apex"):
+            out_dir = processed_root / "keypoints" / kpt_type / split_alias
+            (out_dir / "images").mkdir(parents=True, exist_ok=True)
+            (out_dir / "annotations").mkdir(parents=True, exist_ok=True)
+            dst_img = out_dir / "images" / image_name
+            if not dst_img.exists():
+                shutil.copy2(src_image, dst_img)
+            ann = to_keypoint_json(records, kpt_type)
+            (out_dir / "annotations" / f"{stem}.json").write_text(
+                json.dumps(ann, indent=2), encoding="utf-8"
+            )
+
+        stats["images"] += 1
+        stats["teeth"] += len(records)
+
+    return stats
+
+
+def write_yolo_data_yaml(processed_root: Path) -> None:
+    yaml_path = processed_root / "yolo_detection" / "data.yaml"
+    content = f"""path: {processed_root.as_posix()}/yolo_detection
+train: train/images
+val: val/images
+test: test/images
+
+names:
+  0: single
+  1: double
+"""
+    yaml_path.write_text(content, encoding="utf-8")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Preprocess DenPAR dataset")
+    parser.add_argument(
+        "--raw-root",
+        type=Path,
+        default=Path("data/DenPAR/Dataset"),
+        help="Path to extracted DenPAR Dataset folder",
+    )
+    parser.add_argument(
+        "--output-root",
+        type=Path,
+        default=Path("data/processed"),
+        help="Output directory for processed data",
+    )
+    args = parser.parse_args()
+
+    args.output_root.mkdir(parents=True, exist_ok=True)
+    summary = {}
+    for split in SPLITS:
+        summary[split] = process_split(args.raw_root, args.output_root, split)
+
+    write_yolo_data_yaml(args.output_root)
+    summary_path = args.output_root / "preprocess_summary.json"
+    summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    print(json.dumps(summary, indent=2))
+    print(f"Wrote summary to {summary_path}")
+
+
+if __name__ == "__main__":
+    main()
