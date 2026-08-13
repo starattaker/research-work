@@ -14,6 +14,8 @@ import numpy as np
 import torch
 from torch.utils.tensorboard import SummaryWriter
 
+from src.keypoint.inference_utils import filter_keypoint_output
+
 
 def _finite(value: float) -> float:
     if value != value or abs(value) == float("inf"):
@@ -89,6 +91,7 @@ class KeypointTrainingViz:
                 for img, tgt, out in zip(images, targets, outputs):
                     if shown >= max_images:
                         break
+                    out = filter_keypoint_output(out)
                     canvas = draw_keypoint_predictions(img, tgt, out)
                     self.writer.add_image(tag, canvas, epoch, dataformats="HWC")
                     shown += 1

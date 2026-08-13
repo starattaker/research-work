@@ -1,0 +1,98 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{cite}
+
+\title{Replication Progress: AI-Assisted Alveolar Bone Loss Severity Detection on DenPAR}
+
+\author{
+\IEEEauthorblockN{Oralvis SeekRight Team}
+\IEEEauthorblockA{DenPAR severity-only replication\\
+Paper: Sci Rep 2026, DOI \href{https://doi.org/10.1038/s41598-026-38061-1}{10.1038/s41598-026-38061-1}}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We report incremental progress replicating a panoramic radiograph pipeline for alveolar bone-loss \emph{severity} estimation: YOLOv8x tooth detection, three Keypoint R-CNN models (CEJ, bone-line intersection, apex), and planned ICC evaluation. We document preprocessing ablations (8\,px bbox margin vs.\ strict bbox vs.\ mask-based cleaning), hardware-limited training on a 12\,GB GPU, and visual QA tooling. Pattern classification and segmentation are out of scope.
+\end{abstract}
+
+\section{Introduction}
+The target publication combines tooth detection, anatomical keypoints, and severity scoring. Our replication restricts scope to detection, keypoints, and intraclass correlation (ICC) against expert severity labels. DenPAR provides boxes, CEJ/apex clicks, bone lines, and tooth masks; \emph{intersection keypoints} and single/double root labels are derived by us.
+
+\section{Dataset and Preprocessing Ablation}
+DenPAR contains 1{,}000 images (650/150/200 train/val/test) and 4{,}402 annotated teeth. Bounding boxes are unchanged across ablations; assignment rules for apex/CEJ differ:
+
+\begin{table}[t]
+\centering
+\caption{Preprocessing label statistics (full dataset).}
+\label{tab:preproc}
+\begin{tabular}{lrrrrr}
+\toprule
+Strategy & Single & Double & 0 apex & 1 apex & $\geq$2 apex \\
+\midrule
+v1 (8\,px margin)    & 3332 & 1070 & 1134 & 2198 & 1070 \\
+v2 (strict bbox)     & 3181 & 1221 & 1292 & 1889 & 1221 \\
+v3 (mask + 4\,px)    & \multicolumn{5}{c}{\textit{pending re-run}} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Strict bbox (v2) increases teeth with \textbf{zero assigned apex} from 25.8\% to 29.4\% because many expert apex clicks lie just outside DenPAR boxes. Version~v3 assigns points on segmentation masks with a 4\,px grace region to recover near-boundary clicks without expanding boxes.
+
+\section{Tooth Detection (YOLOv8x)}
+Training followed paper hyperparameters (Adam, lr $10^{-4}$, cosine schedule, 200 epochs max, patience 25). On a Pop!\_OS workstation (RTX $\sim$12\,GB), batch size 4 was used.
+
+\begin{table}[t]
+\centering
+\caption{YOLO test metrics vs.\ paper.}
+\label{tab:yolo}
+\begin{tabular}{lrr}
+\toprule
+Metric & Ours & Paper \\
+\midrule
+mAP@0.5      & 0.873 & 0.963 \\
+mAP@0.5:0.95 & 0.794 & 0.907 \\
+Precision    & 0.850 & 0.892 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Early stopping selected epoch 42 (run stopped at 67). The double-root class remains weaker (test mAP@0.5 = 0.827 vs.\ single 0.919). Visual QA (\texttt{test\_yolo\_detection.py}) confirmed acceptable box placement despite the mAP gap.
+
+\section{Keypoint R-CNN}
+Three ResNet-50-FPN Keypoint R-CNN models (2 keypoints per tooth, CLAHE augmentation) are trained sequentially. CEJ completed with test OKS $=0.820$ (paper target 0.954); best checkpoint at epoch 5 after early stopping at 35.
+
+\textbf{Training uses ground-truth boxes} from preprocessed JSON, not YOLO outputs. Visual overlays may show many red boxes because raw inference emits $\sim$30 proposals per image; we filter with score threshold 0.5 and NMS IoU 0.6 for QA (paper inference setting).
+
+\section{Experiment Tracking}
+To avoid overwriting artifacts on a shared training machine:
+\begin{itemize}
+  \item Processed data: \texttt{data/processed\_v\{1,2,3\}/}
+  \item Weights: \texttt{runs/keypoints/v\{1,2,3\}\_\{cej,intersection,apex\}/best.pt}
+  \item Metrics: \texttt{metrics.json}, \texttt{history.json}, TensorBoard logs per folder
+\end{itemize}
+Reusing the same \texttt{--output-dir} overwrites \texttt{best.pt} when validation improves.
+
+\section{Tooling}
+We added TensorBoard logging, loss-curve plots, and standalone visual testers for YOLO and Keypoint R-CNN. Preprocessing comparison is automated via \texttt{scripts/compare\_preprocessing.py}.
+
+\section{Next Steps}
+\begin{enumerate}
+  \item Finish intersection and apex training on v1 labels.
+  \item Re-preprocess v2/v3; train keypoints into separate run folders.
+  \item Build end-to-end inference (YOLO $\rightarrow$ keypoints $\rightarrow$ NMS 0.6 $\rightarrow$ severity ICC).
+\end{enumerate}
+
+\section*{Acknowledgment}
+Compute provided on a collaborator RTX workstation; documentation maintained in \texttt{research\_log/}.
+
+\bibliographystyle{IEEEtran}
+\begin{thebibliography}{1}
+\bibitem{paper2026}
+Authors, ``AI-assisted radiographic analysis in detecting alveolar bone-loss severity and patterns,'' \emph{Scientific Reports}, 2026.
+\end{thebibliography}
+
+\end{document}

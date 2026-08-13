@@ -23,6 +23,7 @@ from src.keypoint.dataset import KeypointDataset
 from src.keypoint.model import get_keypoint_model
 from src.keypoint.train import build_transforms
 from src.keypoint.train_utils import keypoint_similarity
+from src.keypoint.inference_utils import filter_keypoint_output
 from src.keypoint.training_viz import draw_keypoint_predictions
 from torchvision.ops import box_iou
 
@@ -99,6 +100,13 @@ def main():
         help="Default: research_log/figures/keypoint_inference/{type}",
     )
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
+    parser.add_argument("--score-thresh", type=float, default=0.5)
+    parser.add_argument("--nms-thresh", type=float, default=0.6, help="Paper inference NMS IoU")
+    parser.add_argument(
+        "--show-raw",
+        action="store_true",
+        help="Show all raw model outputs (many overlapping boxes)",
+    )
     args = parser.parse_args()
 
     data_root = args.data_root or Path("data/processed/keypoints") / args.keypoint_type
@@ -144,6 +152,10 @@ def main():
             image, target = dataset[idx]
             stem = dataset.image_files[idx].stem
             output = model([image.to(device)])[0]
+            if not args.show_raw:
+                output = filter_keypoint_output(
+                    output, args.score_thresh, args.nms_thresh
+                )
             target_dev = {k: v.to(device) for k, v in target.items()}
 
             oks = image_oks(target_dev, output, device)

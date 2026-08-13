@@ -8,12 +8,15 @@ Paper: *AI-assisted radiographic analysis in detecting alveolar bone-loss severi
 |------|-----|--------|
 | Environment | [01_environment.md](01_environment.md) | Done |
 | Dataset | [02_dataset.md](02_dataset.md) | Done |
-| Preprocessing | [03_preprocessing.md](03_preprocessing.md) | Done |
+| Preprocessing | [03_preprocessing.md](03_preprocessing.md) | Done (v3 implemented) |
 | Hyperparameters | [04_hyperparameters.md](04_hyperparameters.md) | Done |
-| Detection training | [05_detection_training.md](05_detection_training.md) | **In progress** |
-| Keypoint training | *(pending)* | Not started |
+| Detection training | [05_detection_training.md](05_detection_training.md) | Done (test mAP50 **0.873**) |
+| Keypoint training | [06_keypoint_training.md](06_keypoint_training.md) | CEJ done; intersection/apex pending |
+| Preproc comparison | [preprocessing_comparison.md](preprocessing_comparison.md) | Run `compare_preprocessing.py` |
 | Severity / ICC | *(pending)* | Not started |
 
 **Resume here:** [CHECKPOINT.md](CHECKPOINT.md)
 
-**Skill:** say **"Make a checkpoint"** to sync this log after changes (`.cursor/skills/make-a-checkpoint/`).
+**LaTeX progress paper:** [../paper/replication_progress.tex](../paper/replication_progress.tex)
+
+**Skill:** say **"Make a checkpoint"** to sync this log after changes.

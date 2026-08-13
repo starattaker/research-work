@@ -1,0 +1,72 @@
+[
+  {
+    "image": "270",
+    "teeth": 4,
+    "bone_lines": 4,
+    "intersection_points": 8,
+    "teeth_with_intersection": 4
+  },
+  {
+    "image": "1227",
+    "teeth": 5,
+    "bone_lines": 4,
+    "intersection_points": 8,
+    "teeth_with_intersection": 4
+  },
+  {
+    "image": "431",
+    "teeth": 4,
+    "bone_lines": 2,
+    "intersection_points": 4,
+    "teeth_with_intersection": 3
+  },
+  {
+    "image": "808",
+    "teeth": 5,
+    "bone_lines": 2,
+    "intersection_points": 4,
+    "teeth_with_intersection": 3
+  },
+  {
+    "image": "1065",
+    "teeth": 3,
+    "bone_lines": 2,
+    "intersection_points": 4,
+    "teeth_with_intersection": 3
+  },
+  {
+    "image": "1082",
+    "teeth": 5,
+    "bone_lines": 5,
+    "intersection_points": 10,
+    "teeth_with_intersection": 4
+  },
+  {
+    "image": "622",
+    "teeth": 6,
+    "bone_lines": 3,
+    "intersection_points": 6,
+    "teeth_with_intersection": 4
+  },
+  {
+    "image": "1112",
+    "teeth": 6,
+    "bone_lines": 4,
+    "intersection_points": 8,
+    "teeth_with_intersection": 5
+  },
+  {
+    "image": "361",
+    "teeth": 7,
+    "bone_lines": 3,
+    "intersection_points": 6,
+    "teeth_with_intersection": 4
+  },
+  {
+    "image": "682",
+    "teeth": 5,
+    "bone_lines": 3,
+    "intersection_points": 6,
+    "teeth_with_intersection": 5
+  }
+]

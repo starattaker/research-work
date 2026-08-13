@@ -26,7 +26,7 @@ class ToothRecord:
     apex: list[list[float]]
 
 
-def point_in_bbox(x: float, y: float, bbox: list[float], margin: float = 8.0) -> bool:
+def point_in_bbox(x: float, y: float, bbox: list[float], margin: float = 0.0) -> bool:
     x1, y1, x2, y2 = bbox
     return (x1 - margin) <= x <= (x2 + margin) and (y1 - margin) <= y <= (y2 + margin)
 
@@ -57,12 +57,28 @@ def nearest_contour_point(contour: np.ndarray, target: tuple[float, float]) -> l
     return [float(pts[idx, 0]), float(pts[idx, 1])]
 
 
-def line_contour_intersection(contour: np.ndarray, line_pts: list[list[float]]) -> list[float] | None:
-    if len(line_pts) < 2 or contour is None or len(contour) < 3:
+def ray_segment_intersection(origin, direction, q1, q2, eps: float = 1e-6):
+    """Ray origin + t*direction (t >= 0) vs segment q1-q2."""
+    o = np.array(origin, dtype=np.float64)
+    d = np.array(direction, dtype=np.float64)
+    d_norm = np.linalg.norm(d)
+    if d_norm < eps:
         return None
+    d = d / d_norm
+    s = q2 - q1
+    qmp = q1 - o
+    rxs = np.cross(d, s)
+    if abs(rxs) < eps:
+        return None
+    t = np.cross(qmp, s) / rxs
+    u = np.cross(qmp, d) / rxs
+    if t >= -eps and 0.0 - eps <= u <= 1.0 + eps:
+        return o + max(t, 0.0) * d
+    return None
 
-    best = None
-    best_d = float("inf")
+
+def _polyline_contour_hits(contour: np.ndarray, line_pts: list[list[float]]) -> list[np.ndarray]:
+    hits: list[np.ndarray] = []
     for i in range(len(line_pts) - 1):
         p1 = np.array(line_pts[i], dtype=np.float32)
         p2 = np.array(line_pts[i + 1], dtype=np.float32)
@@ -71,15 +87,54 @@ def line_contour_intersection(contour: np.ndarray, line_pts: list[list[float]]) 
             q2 = contour[(j + 1) % len(contour)].astype(np.float32)
             inter = segment_intersection(p1, p2, q1, q2)
             if inter is not None:
-                d = dist2(inter, line_pts[len(line_pts) // 2])
-                if d < best_d:
-                    best_d = d
-                    best = inter
-    if best is not None:
+                hits.append(inter)
+    return hits
+
+
+def _endpoint_towards_tooth(line_pts: list[list[float]], tooth_bbox: list[float]) -> tuple[list[float], np.ndarray]:
+    """Bone-line endpoint on the tooth side + outward extension direction."""
+    center = np.array(bbox_center(tooth_bbox), dtype=np.float64)
+    p0 = np.array(line_pts[0], dtype=np.float64)
+    p1 = np.array(line_pts[-1], dtype=np.float64)
+    if np.linalg.norm(p0 - center) <= np.linalg.norm(p1 - center):
+        anchor = p0
+        inward = p0 - np.array(line_pts[1], dtype=np.float64)
+    else:
+        anchor = p1
+        inward = p1 - np.array(line_pts[-2], dtype=np.float64)
+    if np.linalg.norm(inward) < 1e-8:
+        inward = center - anchor
+    return [float(anchor[0]), float(anchor[1])], inward
+
+
+def line_contour_intersection(
+    contour: np.ndarray,
+    line_pts: list[list[float]],
+    tooth_bbox: list[float],
+) -> list[float] | None:
+    if len(line_pts) < 2 or contour is None or len(contour) < 3:
+        return None
+
+    hits = _polyline_contour_hits(contour, line_pts)
+    if hits:
+        mid = line_pts[len(line_pts) // 2]
+        best = min(hits, key=lambda p: dist2(p, mid))
         return [float(best[0]), float(best[1])]
 
-    mid = line_pts[len(line_pts) // 2]
-    return nearest_contour_point(contour, (mid[0], mid[1]))
+    anchor, direction = _endpoint_towards_tooth(line_pts, tooth_bbox)
+    extended_hits: list[np.ndarray] = []
+    for j in range(len(contour)):
+        q1 = contour[j].astype(np.float32)
+        q2 = contour[(j + 1) % len(contour)].astype(np.float32)
+        inter = ray_segment_intersection(anchor, direction, q1, q2)
+        if inter is not None:
+            extended_hits.append(inter)
+
+    if extended_hits:
+        best = min(extended_hits, key=lambda p: dist2(p, anchor))
+        return [float(best[0]), float(best[1])]
+
+    return nearest_contour_point(contour, (anchor[0], anchor[1]))
 
 
 def segment_intersection(p1, p2, q1, q2, eps: float = 1e-6):
@@ -96,16 +151,122 @@ def segment_intersection(p1, p2, q1, q2, eps: float = 1e-6):
     return None
 
 
-def assign_points_to_teeth(points: list[list[float]], bboxes: list[list[float]]) -> list[list[list[float]]]:
+def assign_points_to_teeth(
+    points: list[list[float]],
+    bboxes: list[list[float]],
+    margin: float = 0.0,
+) -> list[list[list[float]]]:
     assigned: list[list[list[float]]] = [[] for _ in bboxes]
     for pt in points:
-        candidates = [i for i, bb in enumerate(bboxes) if point_in_bbox(pt[0], pt[1], bb)]
+        candidates = [
+            i for i, bb in enumerate(bboxes) if point_in_bbox(pt[0], pt[1], bb, margin=margin)
+        ]
         if not candidates:
             i = int(np.argmin([dist2(pt, bbox_center(bb)) for bb in bboxes]))
         else:
             i = min(candidates, key=lambda idx: dist2(pt, bbox_center(bboxes[idx])))
         assigned[i].append(pt)
     return assigned
+
+
+def load_tooth_mask(mask_path: Path) -> np.ndarray | None:
+    mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
+    if mask is None:
+        return None
+    return (mask > 0).astype(np.uint8)
+
+
+def distance_to_mask(px: float, py: float, mask: np.ndarray) -> float:
+    """Distance from point to nearest foreground pixel in mask."""
+    h, w = mask.shape
+    xi = int(round(px))
+    yi = int(round(py))
+    if 0 <= xi < w and 0 <= yi < h and mask[yi, xi] > 0:
+        return 0.0
+    inv = (mask == 0).astype(np.uint8)
+    dist = cv2.distanceTransform(inv, cv2.DIST_L2, 3)
+    if 0 <= xi < w and 0 <= yi < h:
+        return float(dist[yi, xi])
+    # Off-image: approximate from border
+    xi = min(max(xi, 0), w - 1)
+    yi = min(max(yi, 0), h - 1)
+    return float(dist[yi, xi])
+
+
+def assign_points_to_teeth_mask(
+    points: list[list[float]],
+    bboxes: list[list[float]],
+    mask_paths: list[Path],
+    grace_px: float = 4.0,
+) -> list[list[list[float]]]:
+    """v3: mask containment, then nearest mask within grace_px, else drop."""
+    masks = [load_tooth_mask(p) for p in mask_paths]
+    assigned: list[list[list[float]]] = [[] for _ in bboxes]
+    for pt in points:
+        on_mask = [
+            i
+            for i, m in enumerate(masks)
+            if m is not None and distance_to_mask(pt[0], pt[1], m) == 0.0
+        ]
+        if len(on_mask) == 1:
+            assigned[on_mask[0]].append(pt)
+            continue
+        if len(on_mask) > 1:
+            i = min(on_mask, key=lambda idx: dist2(pt, bbox_center(bboxes[idx])))
+            assigned[i].append(pt)
+            continue
+
+        candidates: list[tuple[float, int]] = []
+        for i, m in enumerate(masks):
+            if m is None:
+                continue
+            d = distance_to_mask(pt[0], pt[1], m)
+            candidates.append((d, i))
+        if not candidates:
+            i = int(np.argmin([dist2(pt, bbox_center(bb)) for bb in bboxes]))
+            assigned[i].append(pt)
+            continue
+        best_d, best_i = min(candidates, key=lambda x: x[0])
+        if best_d <= grace_px:
+            assigned[best_i].append(pt)
+    return assigned
+
+
+def line_contour_intersection_midpoint_fallback(
+    contour: np.ndarray,
+    line_pts: list[list[float]],
+    tooth_bbox: list[float],
+) -> list[float] | None:
+    """v1 intersection fallback: nearest contour point to line midpoint."""
+    if len(line_pts) < 2 or contour is None or len(contour) < 3:
+        return None
+    hits = _polyline_contour_hits(contour, line_pts)
+    if hits:
+        mid = line_pts[len(line_pts) // 2]
+        best = min(hits, key=lambda p: dist2(p, mid))
+        return [float(best[0]), float(best[1])]
+    mid = line_pts[len(line_pts) // 2]
+    return nearest_contour_point(contour, (mid[0], mid[1]))
+
+
+def compute_intersections_v1(
+    bboxes: list[list[float]],
+    bone_lines: list[list[list[float]]],
+    mask_paths: list[Path],
+) -> list[list[list[float]]]:
+    intersections: list[list[list[float]]] = [[] for _ in bboxes]
+    contours = [load_mask_contour(p) for p in mask_paths]
+    for line in bone_lines:
+        pair = adjacent_teeth_for_bone_line(bboxes, line)
+        if pair is None:
+            continue
+        for tooth_i in pair:
+            if contours[tooth_i] is None:
+                continue
+            pt = line_contour_intersection_midpoint_fallback(contours[tooth_i], line, bboxes[tooth_i])
+            if pt is not None:
+                intersections[tooth_i].append(pt)
+    return intersections
 
 
 def pad_keypoints(points: list[list[float]], count: int = 2) -> list[list[float]]:
@@ -163,7 +324,7 @@ def compute_intersections(
         for tooth_i in (left_i, right_i):
             if contours[tooth_i] is None:
                 continue
-            pt = line_contour_intersection(contours[tooth_i], line)
+            pt = line_contour_intersection(contours[tooth_i], line, bboxes[tooth_i])
             if pt is not None:
                 intersections[tooth_i].append(pt)
     return intersections
@@ -173,16 +334,36 @@ def build_tooth_records(
     kp_json: dict,
     bone_json: dict | None,
     mask_dir: Path | None,
+    strategy: str = "v2",
+    bbox_margin: float = 0.0,
+    grace_px: float = 4.0,
 ) -> list[ToothRecord]:
     bboxes = kp_json["bboxes"]
-    cej_assign = assign_points_to_teeth(kp_json.get("CEJ_Points", []), bboxes)
-    apex_assign = assign_points_to_teeth(kp_json.get("Apex_Points", []), bboxes)
+    mask_paths = sorted(mask_dir.glob("*.png")) if mask_dir and mask_dir.exists() else []
+    use_masks = len(mask_paths) == len(bboxes)
+
+    if strategy == "v3" and use_masks:
+        cej_assign = assign_points_to_teeth_mask(
+            kp_json.get("CEJ_Points", []), bboxes, mask_paths, grace_px=grace_px
+        )
+        apex_assign = assign_points_to_teeth_mask(
+            kp_json.get("Apex_Points", []), bboxes, mask_paths, grace_px=grace_px
+        )
+    else:
+        margin = 8.0 if strategy == "v1" else bbox_margin
+        cej_assign = assign_points_to_teeth(kp_json.get("CEJ_Points", []), bboxes, margin=margin)
+        apex_assign = assign_points_to_teeth(kp_json.get("Apex_Points", []), bboxes, margin=margin)
 
     intersections = [[] for _ in bboxes]
-    if bone_json and mask_dir and mask_dir.exists():
-        mask_paths = sorted(mask_dir.glob("*.png"))
-        if len(mask_paths) == len(bboxes):
-            intersections = compute_intersections(bboxes, bone_json.get("Bone_Lines", []), mask_paths)
+    if bone_json and use_masks:
+        if strategy == "v1":
+            intersections = compute_intersections_v1(
+                bboxes, bone_json.get("Bone_Lines", []), mask_paths
+            )
+        else:
+            intersections = compute_intersections(
+                bboxes, bone_json.get("Bone_Lines", []), mask_paths
+            )
 
     records: list[ToothRecord] = []
     for i, bbox in enumerate(bboxes):
@@ -225,7 +406,13 @@ def bbox_to_yolo_line(bbox: list[float], label: int, img_w: int, img_h: int) -> 
     return f"{cls} {cx:.6f} {cy:.6f} {w:.6f} {h:.6f}"
 
 
-def process_split(raw_root: Path, processed_root: Path, split: str) -> dict:
+def process_split(
+    raw_root: Path,
+    processed_root: Path,
+    split: str,
+    strategy: str = "v2",
+    grace_px: float = 4.0,
+) -> dict:
     split_alias = SPLIT_ALIASES[split]
     images_dir = raw_root / split / "Images"
     kp_dir = raw_root / split / "Key Points Annotations"
@@ -257,7 +444,9 @@ def process_split(raw_root: Path, processed_root: Path, split: str) -> dict:
         if bone_json is None:
             stats["missing_bone"] += 1
 
-        records = build_tooth_records(kp_json, bone_json, mask_root / stem)
+        records = build_tooth_records(
+            kp_json, bone_json, mask_root / stem, strategy=strategy, grace_px=grace_px
+        )
         if not records:
             continue
 
@@ -314,12 +503,21 @@ def main() -> None:
         default=Path("data/processed"),
         help="Output directory for processed data",
     )
+    parser.add_argument(
+        "--strategy",
+        choices=["v1", "v2", "v3"],
+        default="v2",
+        help="v1=8px margin, v2=strict bbox, v3=mask+4px grace",
+    )
+    parser.add_argument("--grace-px", type=float, default=4.0)
     args = parser.parse_args()
 
     args.output_root.mkdir(parents=True, exist_ok=True)
     summary = {}
     for split in SPLITS:
-        summary[split] = process_split(args.raw_root, args.output_root, split)
+        summary[split] = process_split(
+            args.raw_root, args.output_root, split, args.strategy, args.grace_px
+        )
 
     write_yolo_data_yaml(args.output_root)
     summary_path = args.output_root / "preprocess_summary.json"

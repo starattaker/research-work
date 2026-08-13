@@ -46,10 +46,10 @@ Our training run (`runs/.../args.yaml`) confirms:
 | Classes | 3 (background + single + double) |
 | Optimizer | Adam, `lr=0.0001`, `weight_decay=1e-6` |
 | LR scheduler | StepLR(`step_size=4`, `gamma=0.6`) |
-| Train batch | **4** (paper: 8; reduced for 16 GB VRAM) |
+| Train batch | **2** (paper: 8; **12 GB VRAM OOM at batch 4** on friend RTX ~12 GB, 2026-08-14) |
 | Val/test batch | 2 |
 | Epochs | 200 |
-| Early stopping patience | 10 (validation loss) |
+| Early stopping patience | 30 (validation loss; paper) |
 | Augmentation | CLAHE `clip_limit=40`, `tile_grid_size=(8,8)`, p=1.0 |
 
 **Scripts:** `scripts/train_keypoints.py`, `src/keypoint/train.py`
