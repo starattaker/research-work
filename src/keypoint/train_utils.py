@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import torch
+from torchvision.ops import box_iou
+
+from src.keypoint.debug_log import dbg_log
 
 
 def train_one_epoch(model, loader, optimizer, device) -> float:
@@ -57,11 +60,41 @@ def evaluate_oks(model, loader, device) -> float:
             targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
             outputs = model(images)
             for out, tgt in zip(outputs, targets):
-                n = len(tgt["area"])
+                gt_boxes = tgt["boxes"]
+                n = len(gt_boxes)
                 if n == 0:
                     continue
+
+                pred_boxes = out["boxes"]
+                pred_keypoints = out["keypoints"]
+                if len(pred_boxes) == 0:
+                    # #region agent log
+                    dbg_log(
+                        "H2",
+                        "train_utils.py:evaluate_oks",
+                        "skipped image: zero predictions",
+                        {"gt_objects": n},
+                    )
+                    # #endregion
+                    continue
+
+                if len(pred_boxes) < n:
+                    # #region agent log
+                    dbg_log(
+                        "H2",
+                        "train_utils.py:evaluate_oks",
+                        "pred/gt count mismatch; using IoU matching",
+                        {"gt_objects": n, "pred_objects": len(pred_boxes)},
+                    )
+                    # #endregion
+
+                ious = box_iou(gt_boxes, pred_boxes.to(gt_boxes.device))
+                matched = []
+                for gt_idx in range(n):
+                    matched.append(pred_keypoints[int(ious[gt_idx].argmax().item())])
+                pred = torch.stack(matched).reshape(-1, 3)
                 gt = tgt["keypoints"].reshape(-1, 3)
-                pred = out["keypoints"][:n].reshape(-1, 3)
+
                 sigmas = torch.ones(len(gt), device=device) / len(gt)
                 oks = keypoint_similarity(
                     gt.unsqueeze(0), pred.unsqueeze(0), sigmas, tgt["area"].to(device)
