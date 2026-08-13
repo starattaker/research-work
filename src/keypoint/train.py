@@ -16,6 +16,7 @@ from torchvision.transforms import functional as F
 from src.keypoint.dataset import KeypointDataset
 from src.keypoint.debug_log import dbg_log
 from src.keypoint.model import get_keypoint_model
+from src.keypoint.training_viz import KeypointTrainingViz, load_history
 from src.keypoint.train_utils import evaluate_oks, train_one_epoch, validate_one_epoch
 
 
@@ -164,6 +165,18 @@ def main():
         action="store_true",
         help="Skip training; load best.pt and write metrics.json",
     )
+    parser.add_argument(
+        "--tensorboard",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Log scalars and sample images to output-dir/tensorboard (default: on)",
+    )
+    parser.add_argument(
+        "--sample-every",
+        type=int,
+        default=10,
+        help="Log validation prediction images to TensorBoard every N epochs (0=disable)",
+    )
     args = parser.parse_args()
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -187,10 +200,20 @@ def main():
         results = build_results(
             model, train_loader, val_loader, test_loader, device, args.keypoint_type, history
         )
-        history_path.write_text(json.dumps(results, indent=2), encoding="utf-8")
+        metrics_path = args.output_dir / "metrics.json"
+        metrics_path.write_text(json.dumps(results, indent=2), encoding="utf-8")
+        KeypointTrainingViz.plot_loss_curves(history, args.output_dir / "loss_curve.png")
+        if args.tensorboard:
+            viz = KeypointTrainingViz(args.output_dir / "tensorboard", enabled=True)
+            for row in history:
+                viz.log_epoch(row["epoch"], row["train_loss"], row["val_loss"], args.lr)
+            viz.log_final_metrics(results)
+            viz.log_sample_predictions(model, val_loader, device, 0, tag="predictions/eval")
+            viz.close()
         print(json.dumps(results, indent=2))
         return
 
+    viz = KeypointTrainingViz(args.output_dir / "tensorboard", enabled=args.tensorboard)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-6)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=4, gamma=0.6)
 
@@ -200,14 +223,19 @@ def main():
     history = []
 
     for epoch in range(1, args.epochs + 1):
-        train_loss = train_one_epoch(model, train_loader, optimizer, device)
-        val_loss = validate_one_epoch(model, val_loader, device)
+        train_loss, train_components = train_one_epoch(model, train_loader, optimizer, device)
+        val_loss, val_components = validate_one_epoch(model, val_loader, device)
+        lr = optimizer.param_groups[0]["lr"]
         scheduler.step()
 
         row = {"epoch": epoch, "train_loss": train_loss, "val_loss": val_loss}
         history.append(row)
         print(json.dumps(row))
         (args.output_dir / "history.json").write_text(json.dumps(history, indent=2), encoding="utf-8")
+
+        viz.log_epoch(epoch, train_loss, val_loss, lr, train_components, val_components)
+        if args.sample_every > 0 and epoch % args.sample_every == 0:
+            viz.log_sample_predictions(model, val_loader, device, epoch)
 
         if val_loss < best_val:
             best_val = val_loss
@@ -227,6 +255,11 @@ def main():
         model, train_loader, val_loader, test_loader, device, args.keypoint_type, history
     )
     (args.output_dir / "metrics.json").write_text(json.dumps(results, indent=2), encoding="utf-8")
+    KeypointTrainingViz.plot_loss_curves(history, args.output_dir / "loss_curve.png")
+    viz.log_final_metrics(results)
+    if best_state is not None:
+        viz.log_sample_predictions(model, val_loader, device, epoch, tag="predictions/best")
+    viz.close()
     print(json.dumps(results, indent=2))
 
 

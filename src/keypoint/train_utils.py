@@ -8,32 +8,45 @@ from torchvision.ops import box_iou
 from src.keypoint.debug_log import dbg_log
 
 
-def train_one_epoch(model, loader, optimizer, device) -> float:
+def _accumulate_losses(losses: dict, totals: dict[str, float]) -> float:
+    batch_total = 0.0
+    for name, value in losses.items():
+        v = float(value.item())
+        batch_total += v
+        totals[name] = totals.get(name, 0.0) + v
+    return batch_total
+
+
+def train_one_epoch(model, loader, optimizer, device) -> tuple[float, dict[str, float]]:
     model.train()
     total = 0.0
+    components: dict[str, float] = {}
     for images, targets in loader:
         images = [img.to(device) for img in images]
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
         optimizer.zero_grad()
         losses = model(images, targets)
-        loss = sum(v for v in losses.values())
-        loss.backward()
+        batch_total = _accumulate_losses(losses, components)
+        batch_total_tensor = sum(v for v in losses.values())
+        batch_total_tensor.backward()
         optimizer.step()
-        total += float(loss.item())
-    return total / max(len(loader), 1)
+        total += batch_total
+    n = max(len(loader), 1)
+    return total / n, {k: v / n for k, v in components.items()}
 
 
-def validate_one_epoch(model, loader, device) -> float:
+def validate_one_epoch(model, loader, device) -> tuple[float, dict[str, float]]:
     model.train()  # Keypoint R-CNN returns losses only in train mode
     total = 0.0
+    components: dict[str, float] = {}
     with torch.no_grad():
         for images, targets in loader:
             images = [img.to(device) for img in images]
             targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
             losses = model(images, targets)
-            loss = sum(v for v in losses.values())
-            total += float(loss.item())
-    return total / max(len(loader), 1)
+            total += _accumulate_losses(losses, components)
+    n = max(len(loader), 1)
+    return total / n, {k: v / n for k, v in components.items()}
 
 
 def keypoint_similarity(gt_kpts, pred_kpts, sigmas, areas):

@@ -56,6 +56,12 @@ def main():
         exist_ok=True,
         resume=bool(args.resume),
     )
+    run_dir = Path(args.project) / args.name
+    print(f"YOLO curves: {run_dir / 'results.csv'} and {run_dir / 'results.png'}")
+    print(
+        "Plot with: python scripts/plot_training.py "
+        f"--yolo-results {run_dir / 'results.csv'}"
+    )
 
 
 if __name__ == "__main__":

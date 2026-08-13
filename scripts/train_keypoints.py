@@ -14,6 +14,12 @@ def main():
     parser.add_argument("--epochs", type=int, default=200)
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--device", default="cuda")
+    parser.add_argument(
+        "--tensorboard",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+    )
+    parser.add_argument("--sample-every", type=int, default=10)
     args = parser.parse_args()
 
     python = sys.executable
@@ -37,6 +43,11 @@ def main():
             "--device",
             args.device,
         ]
+        if args.tensorboard:
+            cmd.append("--tensorboard")
+        else:
+            cmd.append("--no-tensorboard")
+        cmd.extend(["--sample-every", str(args.sample_every)])
         print("Running:", " ".join(cmd))
         subprocess.run(cmd, check=True)
 
