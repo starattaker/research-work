@@ -89,7 +89,7 @@ class KeypointTrainingViz:
                 for img, tgt, out in zip(images, targets, outputs):
                     if shown >= max_images:
                         break
-                    canvas = _draw_predictions(img, tgt, out)
+                    canvas = draw_keypoint_predictions(img, tgt, out)
                     self.writer.add_image(tag, canvas, epoch, dataformats="HWC")
                     shown += 1
                 if shown >= max_images:
@@ -121,6 +121,41 @@ class KeypointTrainingViz:
         out_path.parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(out_path, dpi=150)
         plt.close(fig)
+
+
+def draw_keypoint_predictions(
+    image: torch.Tensor,
+    target: dict,
+    output: dict,
+    max_teeth: int = 16,
+    title: str = "",
+) -> np.ndarray:
+    """Overlay GT (green boxes/keypoints) and predictions (red) on an image tensor."""
+    img = _draw_predictions(image, target, output, max_teeth=max_teeth)
+    if title:
+        import cv2
+
+        cv2.putText(
+            img,
+            title[:100],
+            (8, 24),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.55,
+            (255, 255, 255),
+            2,
+            cv2.LINE_AA,
+        )
+        cv2.putText(
+            img,
+            "Green=GT  Red=Pred",
+            (8, 48),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.45,
+            (200, 200, 200),
+            1,
+            cv2.LINE_AA,
+        )
+    return img
 
 
 def _draw_predictions(
