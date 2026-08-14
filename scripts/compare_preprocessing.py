@@ -68,7 +68,7 @@ def run_strategy(raw_root: Path, strategy: str, grace_px: float) -> dict:
 
 
 def markdown_table(rows: list[tuple]) -> str:
-    lines = ["| Strategy | Teeth | Single | Double | 0 apex | 1 apex | ≥2 apex | % 0 apex |",
+    lines = ["| Strategy | Teeth | Single | Double | 0 apex | 1 apex | >=2 apex | % 0 apex |",
              "|----------|------:|-------:|-------:|-------:|-------:|--------:|---------:|"]
     for row in rows:
         lines.append(
