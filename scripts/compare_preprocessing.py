@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
+
+import scripts._bootstrap  # noqa: F401
 
 from tqdm import tqdm
 
-from src.preprocess.prepare_dataset import SPLITS, build_tooth_records, infer_root_label, pad_keypoints
+from src.preprocess.prepare_dataset import SPLITS, build_tooth_records
 
 
 def count_records(records) -> dict:
@@ -49,6 +52,11 @@ def run_strategy(raw_root: Path, strategy: str, grace_px: float) -> dict:
     all_stats = []
     for split in SPLITS:
         kp_dir = raw_root / split / "Key Points Annotations"
+        if not kp_dir.exists():
+            raise FileNotFoundError(
+                f"Missing DenPAR annotations: {kp_dir}\n"
+                f"Pass --raw-root pointing to DenPAR/Dataset (folder with Training/, Validation/, Testing/)."
+            )
         bone_dir = raw_root / split / "Bone Level Annotations"
         mask_root = raw_root / split / "Masks (Tooth-wise)"
         split_stats = []
@@ -84,6 +92,17 @@ def main():
     parser.add_argument("--out-json", type=Path, default=Path("research_log/preprocessing_comparison.json"))
     parser.add_argument("--out-md", type=Path, default=Path("research_log/preprocessing_comparison.md"))
     args = parser.parse_args()
+
+    if not args.raw_root.exists():
+        print(f"ERROR: --raw-root not found: {args.raw_root}", file=sys.stderr)
+        print("Example: --raw-root data/DenPAR/Dataset", file=sys.stderr)
+        sys.exit(1)
+
+    sample = args.raw_root / "Training" / "Key Points Annotations"
+    if not sample.exists():
+        print(f"ERROR: DenPAR layout not found under {args.raw_root}", file=sys.stderr)
+        print("Expected: Training/Key Points Annotations/*.json", file=sys.stderr)
+        sys.exit(1)
 
     results = {}
     for strategy in ("v1", "v2", "v3"):
