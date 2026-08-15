@@ -1,77 +1,71 @@
-# Checkpoint — v1 keypoints done; v2/v3 ablation next (2026-08-14)
+# Checkpoint — 2026-08-15
 
-**Status:** v1 keypoint training **complete** on friend GPU. Collect metrics → v2 preprocess → v2 train.
+**Status:** Automation pushed. v2 ready on friend GPU. v3 in progress on Windows.
 
-## Completed (friend machine)
+## Done
 
-- [x] YOLO — test mAP50 **0.873**
-- [x] Keypoint R-CNN v1 data — CEJ + intersection + apex (confirm with collect script)
+- [x] Repo setup, dataset docs, hyperparameter docs
+- [x] Preprocessing **v1 / v2 / v3** code + label stats (`preprocessing_comparison.md`)
+- [x] YOLO tooth detection trained — test mAP50 **0.873** (paper 0.963) — see `05_detection_training.md`
+- [x] Keypoint R-CNN **CEJ on v1 data** — test OKS **0.820** (paper 0.954) — see `06_keypoint_training.md`
+- [x] Training viz, TensorBoard, YOLO/keypoint test scripts
+- [x] LaTeX progress paper draft (`paper/replication_progress.tex`)
+- [x] **Auto logging** — train end → registry → checkpoint + paper fragment → git push logs
 
-## One command after training (friend machine)
+## In progress
+
+- [ ] **v3** — preprocess / keypoint training on Windows (`data/processed_v3/`)
+- [ ] **v2** — friend GPU has not run `run_experiment_v2.sh` yet (no v2 metrics in repo)
+
+## Not started / left
+
+- [ ] v1 **intersection + apex** — not documented in repo (friend may have run; needs `register_v1_results.sh` + pull)
+- [ ] End-to-end inference (YOLO → keypoints → NMS 0.6)
+- [ ] Severity **ICC** vs paper target **0.801**
+
+## Data cross-check (what we actually have in repo)
+
+| Item | Documented? | `metrics.json` / registry in repo? |
+|------|-------------|-------------------------------------|
+| YOLO test metrics | Yes — `05_detection_training.md` | No weights/metrics git-tracked (`runs/` ignored) |
+| CEJ v1 test OKS 0.820 | Yes — `06_keypoint_training.md` | **No** — only prose; friend has `runs/keypoints/cej/metrics.json` locally |
+| Intersection v1 | Marked pending in `06` | **No** |
+| Apex v1 | Marked pending in `06` | **No** |
+| v2 / v3 keypoints | — | **No** |
+| Experiment registry | Structure ready | **No records yet** — fills after training + auto-log |
+
+**Paper table source (when runs finish):** `research_log/experiments/paper_table.json`
+
+## Friend — run v2 (one command)
 
 ```bash
 cd ~/faraz/Test_work/research-work
-python scripts/collect_training_results.py
-# optional: commit summary (small files only)
-python scripts/collect_training_results.py --push-log
-git push
+git pull origin denpar-severity-replication
+chmod +x scripts/run_experiment_v2.sh
+./scripts/run_experiment_v2.sh
 ```
 
-Outputs: `research_log/metrics_snapshot.txt` — paste into chat or open on Windows after pull.
-
-**Do not git-push `best.pt`** (large). Only `metrics.json` summaries if needed.
-
-## Folder strategy — **same repo, NOT a new clone**
-
-| Experiment | Processed data | Train output |
-|------------|----------------|--------------|
-| v1 (done) | `data/processed/` | `runs/keypoints/cej`, `intersection`, `apex` |
-| v2 | `data/processed_v2/` | `runs/keypoints/v2_cej`, `v2_intersection`, `v2_apex` |
-| v3 | `data/processed_v3/` | `runs/keypoints/v3_*` |
-
-Same git clone; different `--output-root` and `--output-dir`.
-
-## v2 on friend machine (next)
+Optional if DenPAR path differs:
 
 ```bash
-export PYTHONPATH=.
-
-# 1. Preprocess v2 (strict bbox)
-python -m src.preprocess.prepare_dataset --strategy v2 --output-root data/processed_v2
-
-# 2. Train all three (separate dirs)
-for KPT in cej intersection apex; do
-  python -m src.keypoint.train \
-    --data-root data/processed_v2/keypoints/$KPT \
-    --keypoint-type $KPT \
-    --output-dir runs/keypoints/v2_$KPT \
-    --batch-size 4 --patience 30 --device cuda
-done
-
-python scripts/collect_training_results.py --push-log && git push
+RAW_ROOT=/path/to/DenPAR/Dataset ./scripts/run_experiment_v2.sh
 ```
 
-## compare_preprocessing (needs DenPAR raw path)
+After v2 finishes, logs auto-push. Here: `git pull`.
 
-All zeros = **raw DenPAR not at default path**. Fix:
+## Friend — backfill v1 metrics once (if v1 intersection/apex already trained)
 
 ```bash
-ls data/DenPAR/Dataset/Training/Key\ Points\ Annotations/ | head
-# if missing:
-python scripts/compare_preprocessing.py --raw-root /path/to/DenPAR/Dataset
+cd ~/faraz/Test_work/research-work
+git pull origin denpar-severity-replication
+chmod +x scripts/register_v1_results.sh
+./scripts/register_v1_results.sh
 ```
 
-Windows: `python scripts/compare_preprocessing.py` works without PYTHONPATH (bootstrap added).
+## Windows — v3 training (after preprocess)
 
-## Not started
-
-- [ ] End-to-end inference + severity ICC
-- [ ] Update `paper/replication_progress.tex` after v2/v3 metrics
-
-## Sync to Windows laptop
-
-```bash
-git pull   # gets metrics_snapshot.txt, training_results_summary.md
+```powershell
+cd c:\Oralvis_Seekright
+git pull origin denpar-severity-replication
+.\scripts\run_experiment_v3.ps1
 ```
-
-Say **"Make a checkpoint"** in chat to refresh this log from new numbers.

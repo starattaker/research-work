@@ -13,6 +13,7 @@ from torch.utils.data import DataLoader
 from torchmetrics.detection import MeanAveragePrecision
 from torchvision.transforms import functional as F
 
+from src.experiment.registry import after_training
 from src.keypoint.dataset import KeypointDataset
 from src.keypoint.debug_log import dbg_log
 from src.keypoint.model import get_keypoint_model
@@ -177,6 +178,22 @@ def main():
         default=10,
         help="Log validation prediction images to TensorBoard every N epochs (0=disable)",
     )
+    parser.add_argument(
+        "--experiment-id",
+        type=str,
+        default=None,
+        help="Experiment tag for metrics registry (e.g. v1, v2). Inferred from output-dir if omitted.",
+    )
+    parser.add_argument(
+        "--no-auto-log",
+        action="store_true",
+        help="Disable automatic experiment registry + git sync at end",
+    )
+    parser.add_argument(
+        "--no-auto-push",
+        action="store_true",
+        help="Commit logs locally but do not git push",
+    )
     args = parser.parse_args()
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -211,6 +228,13 @@ def main():
             viz.log_sample_predictions(model, val_loader, device, 0, tag="predictions/eval")
             viz.close()
         print(json.dumps(results, indent=2))
+        if not args.no_auto_log:
+            after_training(
+                args.output_dir,
+                args.experiment_id,
+                args.keypoint_type,
+                auto_push=not args.no_auto_push,
+            )
         return
 
     viz = KeypointTrainingViz(args.output_dir / "tensorboard", enabled=args.tensorboard)
@@ -261,6 +285,13 @@ def main():
         viz.log_sample_predictions(model, val_loader, device, epoch, tag="predictions/best")
     viz.close()
     print(json.dumps(results, indent=2))
+    if not args.no_auto_log:
+        after_training(
+            args.output_dir,
+            args.experiment_id,
+            args.keypoint_type,
+            auto_push=not args.no_auto_push,
+        )
 
 
 if __name__ == "__main__":

@@ -1,0 +1,1 @@
+# Append-only experiment metrics (safe to commit). Weight files stay in runs/ (gitignored).

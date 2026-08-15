@@ -11,8 +11,9 @@ Paper: *AI-assisted radiographic analysis in detecting alveolar bone-loss severi
 | Preprocessing | [03_preprocessing.md](03_preprocessing.md) | Done (v3 implemented) |
 | Hyperparameters | [04_hyperparameters.md](04_hyperparameters.md) | Done |
 | Detection training | [05_detection_training.md](05_detection_training.md) | Done (test mAP50 **0.873**) |
-| Keypoint training | [06_keypoint_training.md](06_keypoint_training.md) | CEJ done; intersection/apex pending |
-| Preproc comparison | [preprocessing_comparison.md](preprocessing_comparison.md) | Run `compare_preprocessing.py` |
+| Keypoint training | [06_keypoint_training.md](06_keypoint_training.md) | CEJ v1 done (OKS 0.820); intersection/apex v1 unverified in repo |
+| Preproc comparison | [preprocessing_comparison.md](preprocessing_comparison.md) | Stats recorded (v1/v2/v3) |
+| Experiment registry | [experiments/README.md](experiments/README.md) | Auto-log wired; no run records yet |
 | Severity / ICC | *(pending)* | Not started |
 
 **Resume here:** [CHECKPOINT.md](CHECKPOINT.md)

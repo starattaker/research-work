@@ -68,13 +68,14 @@ Three ResNet-50-FPN Keypoint R-CNN models (2 keypoints per tooth, CLAHE augmenta
 \textbf{Training uses ground-truth boxes} from preprocessed JSON, not YOLO outputs. Visual overlays may show many red boxes because raw inference emits $\sim$30 proposals per image; we filter with score threshold 0.5 and NMS IoU 0.6 for QA (paper inference setting).
 
 \section{Experiment Tracking}
-To avoid overwriting artifacts on a shared training machine:
+Metrics are recorded automatically at the end of each \texttt{src.keypoint.train} run (no manual collect step). Append-only records live under \texttt{research\_log/experiments/records/}; the latest per experiment is indexed in \texttt{registry.json} and summarized in \texttt{paper\_table.json} for the paper table. When all three keypoint models finish (CEJ, intersection, apex), the pipeline updates \texttt{CHECKPOINT.md}, \texttt{06\_keypoint\_training.md}, and \texttt{paper/generated\_keypoint\_table.tex}, then commits and pushes log files.
+
 \begin{itemize}
   \item Processed data: \texttt{data/processed\_v\{1,2,3\}/}
   \item Weights: \texttt{runs/keypoints/v\{1,2,3\}\_\{cej,intersection,apex\}/best.pt}
-  \item Metrics: \texttt{metrics.json}, \texttt{history.json}, TensorBoard logs per folder
+  \item One-shot runners: \texttt{scripts/run\_experiment\_v2.sh}, \texttt{run\_experiment\_v3.sh}
 \end{itemize}
-Reusing the same \texttt{--output-dir} overwrites \texttt{best.pt} when validation improves.
+Reusing the same \texttt{--output-dir} overwrites \texttt{best.pt} when validation improves; historical metrics remain in timestamped registry records.
 
 \section{Tooling}
 We added TensorBoard logging, loss-curve plots, and standalone visual testers for YOLO and Keypoint R-CNN. Preprocessing comparison is automated via \texttt{scripts/compare\_preprocessing.py}.
