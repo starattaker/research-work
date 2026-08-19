@@ -57,6 +57,11 @@ def nearest_contour_point(contour: np.ndarray, target: tuple[float, float]) -> l
     return [float(pts[idx, 0]), float(pts[idx, 1])]
 
 
+def cross2(a, b) -> float:
+    """2D scalar cross product (NumPy 2.x safe)."""
+    return float(a[0] * b[1] - a[1] * b[0])
+
+
 def ray_segment_intersection(origin, direction, q1, q2, eps: float = 1e-6):
     """Ray origin + t*direction (t >= 0) vs segment q1-q2."""
     o = np.array(origin, dtype=np.float64)
@@ -67,11 +72,11 @@ def ray_segment_intersection(origin, direction, q1, q2, eps: float = 1e-6):
     d = d / d_norm
     s = q2 - q1
     qmp = q1 - o
-    rxs = np.cross(d, s)
+    rxs = cross2(d, s)
     if abs(rxs) < eps:
         return None
-    t = np.cross(qmp, s) / rxs
-    u = np.cross(qmp, d) / rxs
+    t = cross2(qmp, s) / rxs
+    u = cross2(qmp, d) / rxs
     if t >= -eps and 0.0 - eps <= u <= 1.0 + eps:
         return o + max(t, 0.0) * d
     return None
@@ -140,12 +145,12 @@ def line_contour_intersection(
 def segment_intersection(p1, p2, q1, q2, eps: float = 1e-6):
     r = p2 - p1
     s = q2 - q1
-    rxs = np.cross(r, s)
+    rxs = cross2(r, s)
     qmp = q1 - p1
     if abs(rxs) < eps:
         return None
-    t = np.cross(qmp, s) / rxs
-    u = np.cross(qmp, r) / rxs
+    t = cross2(qmp, s) / rxs
+    u = cross2(qmp, r) / rxs
     if 0.0 <= t <= 1.0 and 0.0 <= u <= 1.0:
         return p1 + t * r
     return None
