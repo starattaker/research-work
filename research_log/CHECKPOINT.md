@@ -1,71 +1,47 @@
-# Checkpoint — 2026-08-15
+# Checkpoint — 2026-08-20
 
-**Status:** Automation pushed. v2 ready on friend GPU. v3 in progress on Windows.
+**Status:** Your v3 training failed because the wrong Python was used (not the project venv). Fix below, then re-run v3.
+
+## The project in one sentence
+
+We are copying a dental X-ray paper: find teeth (YOLO) → find 3 keypoint types (CEJ, intersection, apex) → later score severity (ICC).
+
+## Two machines
+
+| Machine | Job |
+|---------|-----|
+| **Friend GPU (Linux)** | Heavy training — v1 done partly, **v2 not started yet** |
+| **Your laptop (Windows)** | v3 preprocess + v3 keypoint training |
 
 ## Done
 
-- [x] Repo setup, dataset docs, hyperparameter docs
-- [x] Preprocessing **v1 / v2 / v3** code + label stats (`preprocessing_comparison.md`)
-- [x] YOLO tooth detection trained — test mAP50 **0.873** (paper 0.963) — see `05_detection_training.md`
-- [x] Keypoint R-CNN **CEJ on v1 data** — test OKS **0.820** (paper 0.954) — see `06_keypoint_training.md`
-- [x] Training viz, TensorBoard, YOLO/keypoint test scripts
-- [x] LaTeX progress paper draft (`paper/replication_progress.tex`)
-- [x] **Auto logging** — train end → registry → checkpoint + paper fragment → git push logs
+- Preprocessing code (v1, v2, v3)
+- YOLO trained on friend machine — mAP50 **0.873**
+- CEJ keypoints on v1 data — OKS **0.820** (friend machine)
+- Auto logging code pushed to GitHub
 
-## In progress
+## On friend machine (we think)
 
-- [ ] **v3** — preprocess / keypoint training on Windows (`data/processed_v3/`)
-- [ ] **v2** — friend GPU has not run `run_experiment_v2.sh` yet (no v2 metrics in repo)
+- YOLO — done
+- CEJ v1 — done
+- Intersection + apex v1 — **unknown** (not synced to GitHub yet)
+- v2 experiment — **not started**
 
-## Not started / left
+## On your laptop
 
-- [ ] v1 **intersection + apex** — not documented in repo (friend may have run; needs `register_v1_results.sh` + pull)
-- [ ] End-to-end inference (YOLO → keypoints → NMS 0.6)
-- [ ] Severity **ICC** vs paper target **0.801**
+- v3 preprocess — likely done (`data/processed_v3/`)
+- v3 training — **failed** (venv not activated)
 
-## Data cross-check (what we actually have in repo)
+## Left (whole project)
 
-| Item | Documented? | `metrics.json` / registry in repo? |
-|------|-------------|-------------------------------------|
-| YOLO test metrics | Yes — `05_detection_training.md` | No weights/metrics git-tracked (`runs/` ignored) |
-| CEJ v1 test OKS 0.820 | Yes — `06_keypoint_training.md` | **No** — only prose; friend has `runs/keypoints/cej/metrics.json` locally |
-| Intersection v1 | Marked pending in `06` | **No** |
-| Apex v1 | Marked pending in `06` | **No** |
-| v2 / v3 keypoints | — | **No** |
-| Experiment registry | Structure ready | **No records yet** — fills after training + auto-log |
+- Finish v3 keypoints (you)
+- Run v2 on friend GPU
+- Final pipeline + ICC score
 
-**Paper table source (when runs finish):** `research_log/experiments/paper_table.json`
+## `register_v1_results.sh` — ignore for now
 
-## Friend — run v2 (one command)
+Optional one-time script **only on friend machine** if intersection/apex were already trained there. You do not need it on Windows.
 
-```bash
-cd ~/faraz/Test_work/research-work
-git pull origin denpar-severity-replication
-chmod +x scripts/run_experiment_v2.sh
-./scripts/run_experiment_v2.sh
-```
+## Data in GitHub repo
 
-Optional if DenPAR path differs:
-
-```bash
-RAW_ROOT=/path/to/DenPAR/Dataset ./scripts/run_experiment_v2.sh
-```
-
-After v2 finishes, logs auto-push. Here: `git pull`.
-
-## Friend — backfill v1 metrics once (if v1 intersection/apex already trained)
-
-```bash
-cd ~/faraz/Test_work/research-work
-git pull origin denpar-severity-replication
-chmod +x scripts/register_v1_results.sh
-./scripts/register_v1_results.sh
-```
-
-## Windows — v3 training (after preprocess)
-
-```powershell
-cd c:\Oralvis_Seekright
-git pull origin denpar-severity-replication
-.\scripts\run_experiment_v3.ps1
-```
+Only **docs + small JSON logs** sync via git. Model weights stay on each machine (`runs/`). Registry fills automatically when training succeeds.
