@@ -1,0 +1,31 @@
+{
+  "updated": "2026-08-19 23:24 UTC",
+  "experiments": [
+    {
+      "experiment_id": "v2",
+      "models": {
+        "cej": {
+          "test_oks": 0.842615787088871,
+          "paper_target": 0.954,
+          "best_epoch": 8,
+          "epochs_run": 38,
+          "run_dir": "runs/keypoints/v2_cej"
+        },
+        "intersection": {
+          "test_oks": 0.8145487064123154,
+          "paper_target": 0.912,
+          "best_epoch": 6,
+          "epochs_run": 36,
+          "run_dir": "runs/keypoints/v2_intersection"
+        },
+        "apex": {
+          "test_oks": 0.7811488563381136,
+          "paper_target": 0.815,
+          "best_epoch": 5,
+          "epochs_run": 35,
+          "run_dir": "runs/keypoints/v2_apex"
+        }
+      }
+    }
+  ]
+}

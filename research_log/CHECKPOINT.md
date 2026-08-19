@@ -1,6 +1,6 @@
 # Checkpoint — 2026-08-20
 
-**Status:** Your v3 training failed because the wrong Python was used (not the project venv). Fix below, then re-run v3.
+**Status:** Keypoint training **v2 complete** (2026-08-19 23:24 UTC).
 
 ## The project in one sentence
 
@@ -45,3 +45,9 @@ Optional one-time script **only on friend machine** if intersection/apex were al
 ## Data in GitHub repo
 
 Only **docs + small JSON logs** sync via git. Model weights stay on each machine (`runs/`). Registry fills automatically when training succeeds.
+
+## Latest metrics (auto)
+
+- **v2:** cej OKS=0.843; intersection OKS=0.815; apex OKS=0.781
+- Registry: `research_log/experiments/paper_table.json`
+
