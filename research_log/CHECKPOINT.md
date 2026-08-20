@@ -1,6 +1,6 @@
 # Checkpoint — v3/v4 preprocess done (2026-08-20)
 
-**Status:** v2 keypoints **trained**. New **v3 + v4** labels rebuilt on friend GPU. **Next:** train v3 keypoints.
+**Status:** Keypoint training **v3 complete** (2026-08-20 04:13 UTC).
 
 ## Done
 
@@ -36,5 +36,6 @@ Use `SKIP_PREPROCESS=1` (data already built). v1/v2 folders untouched.
 
 ## Latest metrics (auto)
 
-- **v2:** CEJ 0.843; intersection 0.815; apex 0.781
+- **v3:** cej OKS=0.911; intersection OKS=0.817; apex OKS=0.836
 - Registry: `research_log/experiments/paper_table.json`
+
