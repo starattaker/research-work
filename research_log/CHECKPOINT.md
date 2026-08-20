@@ -1,6 +1,6 @@
 # Checkpoint — v3/v4 preprocess done (2026-08-20)
 
-**Status:** Keypoint training **v3 complete** (2026-08-20 04:13 UTC).
+**Status:** Keypoint training **v4 complete** (2026-08-20 07:03 UTC).
 
 ## Done
 
@@ -36,6 +36,6 @@ Use `SKIP_PREPROCESS=1` (data already built). v1/v2 folders untouched.
 
 ## Latest metrics (auto)
 
-- **v3:** cej OKS=0.911; intersection OKS=0.817; apex OKS=0.836
+- **v4:** cej OKS=0.921; intersection OKS=0.822; apex OKS=0.853
 - Registry: `research_log/experiments/paper_table.json`
 

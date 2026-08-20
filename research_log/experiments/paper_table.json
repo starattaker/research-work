@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-20 04:13 UTC",
+  "updated": "2026-08-20 07:03 UTC",
   "experiments": [
     {
       "experiment_id": "v2",
@@ -50,6 +50,32 @@
           "best_epoch": 6,
           "epochs_run": 36,
           "run_dir": "runs/keypoints/v3_apex"
+        }
+      }
+    },
+    {
+      "experiment_id": "v4",
+      "models": {
+        "cej": {
+          "test_oks": 0.9210635432600975,
+          "paper_target": 0.954,
+          "best_epoch": 5,
+          "epochs_run": 35,
+          "run_dir": "runs/keypoints/v4_cej"
+        },
+        "intersection": {
+          "test_oks": 0.8222693479061127,
+          "paper_target": 0.912,
+          "best_epoch": 5,
+          "epochs_run": 35,
+          "run_dir": "runs/keypoints/v4_intersection"
+        },
+        "apex": {
+          "test_oks": 0.8530984434485436,
+          "paper_target": 0.815,
+          "best_epoch": 6,
+          "epochs_run": 36,
+          "run_dir": "runs/keypoints/v4_apex"
         }
       }
     }

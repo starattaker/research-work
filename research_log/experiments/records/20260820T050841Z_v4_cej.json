@@ -1,0 +1,13 @@
+{
+  "recorded_at": "2026-08-20 05:08 UTC",
+  "experiment_id": "v4",
+  "keypoint_type": "cej",
+  "run_dir": "runs/keypoints/v4_cej",
+  "test_oks": 0.9210635432600975,
+  "val_oks": 0.9051179915666581,
+  "test_map_50": 0.8633781671524048,
+  "best_epoch": 5,
+  "best_val_loss": 3.502550929651285,
+  "epochs_run": 35,
+  "paper_oks_target": 0.954
+}
