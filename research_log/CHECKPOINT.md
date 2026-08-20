@@ -1,53 +1,40 @@
-# Checkpoint — 2026-08-20
+# Checkpoint — v3/v4 preprocess done (2026-08-20)
 
-**Status:** Keypoint training **v2 complete** (2026-08-19 23:24 UTC).
-
-## The project in one sentence
-
-We are copying a dental X-ray paper: find teeth (YOLO) → find 3 keypoint types (CEJ, intersection, apex) → later score severity (ICC).
-
-## Two machines
-
-| Machine | Job |
-|---------|-----|
-| **Friend GPU (Linux)** | Heavy training — v1 done partly, **v2 not started yet** |
-| **Your laptop (Windows)** | v3 preprocess + v3 keypoint training |
+**Status:** v2 keypoints **trained**. New **v3 + v4** labels rebuilt on friend GPU. **Next:** train v3 keypoints.
 
 ## Done
 
-- Preprocessing code (v1, v2, v3)
-- YOLO trained on friend machine — mAP50 **0.873**
-- CEJ keypoints on v1 data — OKS **0.820** (friend machine)
-- Auto logging code pushed to GitHub
+- [x] YOLO — test mAP50 **0.873** (paper 0.963)
+- [x] v1 CEJ — test OKS **0.820**
+- [x] **v2 keypoints** (strict bbox):
 
-## On friend machine (we think)
+| Model | v2 OKS | Paper |
+|-------|-------:|------:|
+| CEJ | 0.843 | 0.954 |
+| Intersection | 0.815 | 0.912 |
+| Apex | 0.781 | 0.815 |
 
-- YOLO — done
-- CEJ v1 — done
-- Intersection + apex v1 — **unknown** (not synced to GitHub yet)
-- v2 experiment — **not started**
+- [x] **v3 + v4 preprocess** rebuilt (`data/processed_v3/`, `data/processed_v4/`)
+- [x] Comparison stats → `preprocessing_comparison.md` + paper draft updated
 
-## On your laptop
+## In progress
 
-- v3 preprocess — likely done (`data/processed_v3/`)
-- v3 training — **failed** (venv not activated)
+- [ ] **v3 keypoint training** on friend GPU (first)
 
-## Left (whole project)
+## Left
 
-- Finish v3 keypoints (you)
-- Run v2 on friend GPU
-- Final pipeline + ICC score
+- [ ] v4 keypoint training (after v3)
+- [ ] End-to-end inference + ICC (0.801)
 
-## `register_v1_results.sh` — ignore for now
+## Resume (friend GPU — one step at a time)
 
-Optional one-time script **only on friend machine** if intersection/apex were already trained there. You do not need it on Windows.
+```bash
+cd ~/faraz/Test_work/research-work && bash scripts/run_experiment_v3.sh
+```
 
-## Data in GitHub repo
-
-Only **docs + small JSON logs** sync via git. Model weights stay on each machine (`runs/`). Registry fills automatically when training succeeds.
+Use `SKIP_PREPROCESS=1` (data already built). v1/v2 folders untouched.
 
 ## Latest metrics (auto)
 
-- **v2:** cej OKS=0.843; intersection OKS=0.815; apex OKS=0.781
+- **v2:** CEJ 0.843; intersection 0.815; apex 0.781
 - Registry: `research_log/experiments/paper_table.json`
-

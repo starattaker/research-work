@@ -8,12 +8,12 @@ Paper: *AI-assisted radiographic analysis in detecting alveolar bone-loss severi
 |------|-----|--------|
 | Environment | [01_environment.md](01_environment.md) | Done |
 | Dataset | [02_dataset.md](02_dataset.md) | Done |
-| Preprocessing | [03_preprocessing.md](03_preprocessing.md) | Done (v3 implemented) |
+| Preprocessing | [03_preprocessing.md](03_preprocessing.md) | Done (v1–v4); stats in [preprocessing_comparison.md](preprocessing_comparison.md) |
 | Hyperparameters | [04_hyperparameters.md](04_hyperparameters.md) | Done |
 | Detection training | [05_detection_training.md](05_detection_training.md) | Done (test mAP50 **0.873**) |
-| Keypoint training | [06_keypoint_training.md](06_keypoint_training.md) | CEJ v1 done (OKS 0.820); intersection/apex v1 unverified in repo |
-| Preproc comparison | [preprocessing_comparison.md](preprocessing_comparison.md) | Stats recorded (v1/v2/v3) |
-| Experiment registry | [experiments/README.md](experiments/README.md) | Auto-log wired; no run records yet |
+| Preproc comparison | [preprocessing_comparison.md](preprocessing_comparison.md) | **v1–v4** rebuilt on friend GPU (2026-08-20) |
+| Keypoint training | [06_keypoint_training.md](06_keypoint_training.md) | v1 CEJ; **v2 all 3 trained**; v3/v4 data ready, training next |
+| Experiment registry | [experiments/README.md](experiments/README.md) | **v2 recorded** in `paper_table.json` |
 | Severity / ICC | *(pending)* | Not started |
 
 **Resume here:** [CHECKPOINT.md](CHECKPOINT.md)

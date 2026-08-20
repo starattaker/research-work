@@ -153,11 +153,44 @@ python -m src.preprocess.prepare_dataset --strategy v3 --output-root data/proces
 python scripts/compare_preprocessing.py
 ```
 
-See [preprocessing_comparison.md](preprocessing_comparison.md) for v1/v2/v3 table.
+See [preprocessing_comparison.md](preprocessing_comparison.md) for v1–v4 table.
 
 ---
 
-## Chapter 5 — Planned v3 cleaning (mask + KNN + grace region) — **superseded by Chapter 4**
+## Chapter 5 — Region growing (v4, 2026-08-20) — **implemented**
+
+**Status:** `--strategy v4` in `prepare_dataset.py`. Rebuild with `scripts/rebuild_preprocess_v3_v4.sh`.
+
+### Passes
+
+| Pass | Rule |
+|------|------|
+| 1 | Assign CEJ/apex **on tooth mask** (same as v3) |
+| 2 | Unassigned points: try distance rings **1, 2, … 8 px** from mask (step 1 px) |
+| 3 | Beyond 8 px → **drop** |
+| 4 | Tie-break: nearest **mask centroid** |
+| 5 | Root type from apex count; intersection same as v2 |
+
+### v4 numerics (2026-08-20, friend GPU rebuild)
+
+| Metric | v4 | v3 (4 px grace) | v2 |
+|--------|----|-----------------|-----|
+| Single / double | 3498 / 904 | 3719 / 683 | 3181 / 1221 |
+| % 0 apex teeth | 27.7% | 37.7% | 29.4% |
+| Apex drop rate | 9.0% | 23.7% | 3.5% |
+| CEJ drop rate | 0.6% | 1.9% | 5.6% |
+
+**Interpretation:** v4 keeps almost all CEJ clicks like v3, but **recovers more apex** than v3's fixed 4 px cutoff. v2 still had best **test OKS** when trained (empirical; train v3/v4 to confirm).
+
+### Re-run
+
+```bash
+bash scripts/rebuild_preprocess_v3_v4.sh
+```
+
+---
+
+## Chapter 6 — Superseded planning notes
 
 *(Original planning notes retained in git history.)*
 

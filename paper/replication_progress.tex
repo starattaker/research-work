@@ -23,24 +23,43 @@ We report incremental progress replicating a panoramic radiograph pipeline for a
 The target publication combines tooth detection, anatomical keypoints, and severity scoring. Our replication restricts scope to detection, keypoints, and intraclass correlation (ICC) against expert severity labels. DenPAR provides boxes, CEJ/apex clicks, bone lines, and tooth masks; \emph{intersection keypoints} and single/double root labels are derived by us.
 
 \section{Dataset and Preprocessing Ablation}
-DenPAR contains 1{,}000 images (650/150/200 train/val/test) and 4{,}402 annotated teeth. Bounding boxes are unchanged across ablations; assignment rules for apex/CEJ differ:
+DenPAR contains 1{,}000 images (650/150/200 train/val/test) and 4{,}402 annotated teeth. Bounding boxes are unchanged across ablations; assignment rules for apex/CEJ differ. Tie-break for mask-based strategies uses the **segmentation centroid**, not the bbox center.
 
 \begin{table}[t]
 \centering
-\caption{Preprocessing label statistics (full dataset).}
+\caption{Preprocessing label statistics (full dataset, 4{,}402 teeth).}
 \label{tab:preproc}
-\begin{tabular}{lrrrrr}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrrrrr}
 \toprule
-Strategy & Single & Double & 0 apex & 1 apex & $\geq$2 apex \\
+Strategy & Single & Double & 0 apex & 1 apex & $\geq$2 apex & \% 0 apex \\
 \midrule
-v1 (8\,px margin)    & 3332 & 1070 & 1134 & 2198 & 1070 \\
-v2 (strict bbox)     & 3181 & 1221 & 1292 & 1889 & 1221 \\
-v3 (mask + 4\,px)    & \multicolumn{5}{c}{\textit{pending re-run}} \\
+v1 (8\,px margin)       & 3332 & 1070 & 1134 & 2198 & 1070 & 25.8\% \\
+v2 (strict bbox)        & 3181 & 1221 & 1292 & 1889 & 1221 & 29.4\% \\
+v3 (mask + 4\,px grace) & 3719 &  683 & 1661 & 2058 &  683 & 37.7\% \\
+v4 (region grow 1--8\,px) & 3498 &  904 & 1219 & 2279 &  904 & 27.7\% \\
 \bottomrule
-\end{tabular}
+\end{tabular}}%
 \end{table}
 
-Strict bbox (v2) increases teeth with \textbf{zero assigned apex} from 25.8\% to 29.4\% because many expert apex clicks lie just outside DenPAR boxes. Version~v3 assigns points on segmentation masks with a 4\,px grace region to recover near-boundary clicks without expanding boxes.
+\begin{table}[t]
+\centering
+\caption{Expert click retention (raw DenPAR JSON $\rightarrow$ assigned labels).}
+\label{tab:retention}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrrrrr}
+\toprule
+Strategy & CEJ kept & CEJ drop & Apex kept & Apex drop \\
+\midrule
+v1 & 5708 & 6.7\% & 4338 & 3.4\% \\
+v2 & 5778 & 5.6\% & 4331 & 3.5\% \\
+v3 & 6000 & 1.9\% & 3424 & 23.7\% \\
+v4 & 6085 & 0.6\% & 4087 & 9.0\% \\
+\bottomrule
+\end{tabular}}%
+\end{table}
+
+\textbf{Reading the ablation:} v3's fixed 4\,px grace retains CEJ well but **drops 23.7\% of apex clicks** and inflates 0-apex teeth (37.7\%), shifting single/double labels. v4 (region growing to 8\,px) improves apex retention (9.0\% drop) while keeping CEJ (0.6\% drop). Label statistics alone do not prove clinical correctness---**test OKS after training** is the final judge (v2 CEJ OKS 0.843 vs.\ v1 0.820).
 
 \section{Tooth Detection (YOLOv8x)}
 Training followed paper hyperparameters (Adam, lr $10^{-4}$, cosine schedule, 200 epochs max, patience 25). On a Pop!\_OS workstation (RTX $\sim$12\,GB), batch size 4 was used.
@@ -63,7 +82,24 @@ Precision    & 0.850 & 0.892 \\
 Early stopping selected epoch 42 (run stopped at 67). The double-root class remains weaker (test mAP@0.5 = 0.827 vs.\ single 0.919). Visual QA (\texttt{test\_yolo\_detection.py}) confirmed acceptable box placement despite the mAP gap.
 
 \section{Keypoint R-CNN}
-Three ResNet-50-FPN Keypoint R-CNN models (2 keypoints per tooth, CLAHE augmentation) are trained sequentially. CEJ completed with test OKS $=0.820$ (paper target 0.954); best checkpoint at epoch 5 after early stopping at 35.
+Three ResNet-50-FPN Keypoint R-CNN models (2 keypoints per tooth, CLAHE augmentation) per preprocessing ablation. **v2 (strict bbox)** completed on a collaborator RTX $\sim$12\,GB GPU:
+
+\begin{table}[t]
+\centering
+\caption{Keypoint test OKS vs.\ paper (v2 labels).}
+\label{tab:kpt}
+\begin{tabular}{lrr}
+\toprule
+Model & Ours (v2) & Paper \\
+\midrule
+CEJ          & 0.843 & 0.954 \\
+Intersection & 0.815 & 0.912 \\
+Apex         & 0.781 & 0.815 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+v1 CEJ OKS was 0.820. v3/v4 labels are rebuilt; keypoint training pending.
 
 \textbf{Training uses ground-truth boxes} from preprocessed JSON, not YOLO outputs. Visual overlays may show many red boxes because raw inference emits $\sim$30 proposals per image; we filter with score threshold 0.5 and NMS IoU 0.6 for QA (paper inference setting).
 
@@ -71,9 +107,9 @@ Three ResNet-50-FPN Keypoint R-CNN models (2 keypoints per tooth, CLAHE augmenta
 Metrics are recorded automatically at the end of each \texttt{src.keypoint.train} run (no manual collect step). Append-only records live under \texttt{research\_log/experiments/records/}; the latest per experiment is indexed in \texttt{registry.json} and summarized in \texttt{paper\_table.json} for the paper table. When all three keypoint models finish (CEJ, intersection, apex), the pipeline updates \texttt{CHECKPOINT.md}, \texttt{06\_keypoint\_training.md}, and \texttt{paper/generated\_keypoint\_table.tex}, then commits and pushes log files.
 
 \begin{itemize}
-  \item Processed data: \texttt{data/processed\_v\{1,2,3\}/}
-  \item Weights: \texttt{runs/keypoints/v\{1,2,3\}\_\{cej,intersection,apex\}/best.pt}
-  \item One-shot runners: \texttt{scripts/run\_experiment\_v2.sh}, \texttt{run\_experiment\_v3.sh}
+  \item Processed data: \texttt{data/processed\_v\{1,2,3,4\}/}
+  \item Weights: \texttt{runs/keypoints/v\{2,3,4\}\_\{cej,intersection,apex\}/best.pt}
+  \item Runners: \texttt{run\_experiment\_v2.sh}, \texttt{v3.sh}, \texttt{v4.sh}
 \end{itemize}
 Reusing the same \texttt{--output-dir} overwrites \texttt{best.pt} when validation improves; historical metrics remain in timestamped registry records.
 
@@ -82,8 +118,7 @@ We added TensorBoard logging, loss-curve plots, and standalone visual testers fo
 
 \section{Next Steps}
 \begin{enumerate}
-  \item Finish intersection and apex training on v1 labels.
-  \item Re-preprocess v2/v3; train keypoints into separate run folders.
+  \item Train keypoints on v3 then v4 labels; compare test OKS to v2.
   \item Build end-to-end inference (YOLO $\rightarrow$ keypoints $\rightarrow$ NMS 0.6 $\rightarrow$ severity ICC).
 \end{enumerate}
 
