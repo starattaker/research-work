@@ -36,6 +36,29 @@ def bbox_center(bbox: list[float]) -> tuple[float, float]:
     return (x1 + x2) / 2.0, (y1 + y2) / 2.0
 
 
+def mask_center(mask: np.ndarray | None) -> tuple[float, float] | None:
+    """Centroid of foreground pixels (v3/v4 tie-break)."""
+    if mask is None:
+        return None
+    ys, xs = np.where(mask > 0)
+    if len(xs) == 0:
+        return None
+    return float(xs.mean()), float(ys.mean())
+
+
+def tooth_anchor_center(
+    index: int,
+    bboxes: list[list[float]],
+    masks: list[np.ndarray | None],
+) -> tuple[float, float]:
+    """Prefer mask centroid; fall back to bbox center if mask missing."""
+    if index < len(masks):
+        c = mask_center(masks[index])
+        if c is not None:
+            return c
+    return bbox_center(bboxes[index])
+
+
 def dist2(p1: Iterable[float], p2: Iterable[float]) -> float:
     return float((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
 
@@ -217,7 +240,7 @@ def assign_points_to_teeth_mask(
             assigned[on_mask[0]].append(pt)
             continue
         if len(on_mask) > 1:
-            i = min(on_mask, key=lambda idx: dist2(pt, bbox_center(bboxes[idx])))
+            i = min(on_mask, key=lambda idx: dist2(pt, tooth_anchor_center(idx, bboxes, masks)))
             assigned[i].append(pt)
             continue
 
@@ -228,12 +251,62 @@ def assign_points_to_teeth_mask(
             d = distance_to_mask(pt[0], pt[1], m)
             candidates.append((d, i))
         if not candidates:
-            i = int(np.argmin([dist2(pt, bbox_center(bb)) for bb in bboxes]))
-            assigned[i].append(pt)
             continue
-        best_d, best_i = min(candidates, key=lambda x: x[0])
+        best_d, best_i = min(
+            candidates,
+            key=lambda x: (x[0], dist2(pt, tooth_anchor_center(x[1], bboxes, masks))),
+        )
         if best_d <= grace_px:
             assigned[best_i].append(pt)
+    return assigned
+
+
+def assign_points_to_teeth_mask_region_grow(
+    points: list[list[float]],
+    bboxes: list[list[float]],
+    mask_paths: list[Path],
+    step_px: int = 1,
+    max_radius_px: int = 8,
+) -> list[list[list[float]]]:
+    """v4: on-mask first, then assign in outward rings (step_px) up to max_radius_px; else drop."""
+    masks = [load_tooth_mask(p) for p in mask_paths]
+    assigned: list[list[list[float]]] = [[] for _ in bboxes]
+    pending = [list(pt) for pt in points]
+    step_px = max(1, int(step_px))
+    max_radius_px = max(0, int(max_radius_px))
+
+    radii = list(range(0, max_radius_px + 1, step_px))
+    if not radii or radii[-1] != max_radius_px:
+        radii.append(max_radius_px)
+
+    for r in radii:
+        if not pending:
+            break
+        next_pending: list[list[float]] = []
+        for pt in pending:
+            candidates: list[int] = []
+            for i, m in enumerate(masks):
+                if m is None:
+                    continue
+                d = distance_to_mask(pt[0], pt[1], m)
+                if r == 0:
+                    if d == 0.0:
+                        candidates.append(i)
+                else:
+                    inner = float(r - step_px)
+                    if d <= float(r) and d > inner:
+                        candidates.append(i)
+            if len(candidates) == 1:
+                assigned[candidates[0]].append(pt)
+            elif len(candidates) > 1:
+                i = min(
+                    candidates,
+                    key=lambda idx: dist2(pt, tooth_anchor_center(idx, bboxes, masks)),
+                )
+                assigned[i].append(pt)
+            else:
+                next_pending.append(pt)
+        pending = next_pending
     return assigned
 
 
@@ -342,12 +415,29 @@ def build_tooth_records(
     strategy: str = "v2",
     bbox_margin: float = 0.0,
     grace_px: float = 4.0,
+    grace_step_px: int = 1,
+    max_grace_px: int = 8,
 ) -> list[ToothRecord]:
     bboxes = kp_json["bboxes"]
     mask_paths = sorted(mask_dir.glob("*.png")) if mask_dir and mask_dir.exists() else []
     use_masks = len(mask_paths) == len(bboxes)
 
-    if strategy == "v3" and use_masks:
+    if strategy == "v4" and use_masks:
+        cej_assign = assign_points_to_teeth_mask_region_grow(
+            kp_json.get("CEJ_Points", []),
+            bboxes,
+            mask_paths,
+            step_px=grace_step_px,
+            max_radius_px=max_grace_px,
+        )
+        apex_assign = assign_points_to_teeth_mask_region_grow(
+            kp_json.get("Apex_Points", []),
+            bboxes,
+            mask_paths,
+            step_px=grace_step_px,
+            max_radius_px=max_grace_px,
+        )
+    elif strategy == "v3" and use_masks:
         cej_assign = assign_points_to_teeth_mask(
             kp_json.get("CEJ_Points", []), bboxes, mask_paths, grace_px=grace_px
         )
@@ -417,6 +507,8 @@ def process_split(
     split: str,
     strategy: str = "v2",
     grace_px: float = 4.0,
+    grace_step_px: int = 1,
+    max_grace_px: int = 8,
 ) -> dict:
     split_alias = SPLIT_ALIASES[split]
     images_dir = raw_root / split / "Images"
@@ -450,7 +542,13 @@ def process_split(
             stats["missing_bone"] += 1
 
         records = build_tooth_records(
-            kp_json, bone_json, mask_root / stem, strategy=strategy, grace_px=grace_px
+            kp_json,
+            bone_json,
+            mask_root / stem,
+            strategy=strategy,
+            grace_px=grace_px,
+            grace_step_px=grace_step_px,
+            max_grace_px=max_grace_px,
         )
         if not records:
             continue
@@ -510,18 +608,26 @@ def main() -> None:
     )
     parser.add_argument(
         "--strategy",
-        choices=["v1", "v2", "v3"],
+        choices=["v1", "v2", "v3", "v4"],
         default="v2",
-        help="v1=8px margin, v2=strict bbox, v3=mask+4px grace",
+        help="v1=8px margin, v2=strict bbox, v3=mask+grace, v4=mask region-growing rings",
     )
-    parser.add_argument("--grace-px", type=float, default=4.0)
+    parser.add_argument("--grace-px", type=float, default=4.0, help="v3: max distance to mask (px)")
+    parser.add_argument("--grace-step-px", type=int, default=1, help="v4: ring step size (px)")
+    parser.add_argument("--max-grace-px", type=int, default=8, help="v4: max outward rings (px)")
     args = parser.parse_args()
 
     args.output_root.mkdir(parents=True, exist_ok=True)
     summary = {}
     for split in SPLITS:
         summary[split] = process_split(
-            args.raw_root, args.output_root, split, args.strategy, args.grace_px
+            args.raw_root,
+            args.output_root,
+            split,
+            args.strategy,
+            args.grace_px,
+            args.grace_step_px,
+            args.max_grace_px,
         )
 
     write_yolo_data_yaml(args.output_root)

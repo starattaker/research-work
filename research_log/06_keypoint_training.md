@@ -32,6 +32,7 @@ Use **separate folders** per preprocessing ablation:
 | v1 (8 px margin) | `data/processed/` (current) | `runs/keypoints/v1_{cej,intersection,apex}/` |
 | v2 (strict bbox) | `data/processed_v2/` | `runs/keypoints/v2_*` |
 | v3 (mask+grace) | `data/processed_v3/` | `runs/keypoints/v3_*` |
+| v4 (region grow) | `data/processed_v4/` | `runs/keypoints/v4_*` |
 
 `best.pt` is saved automatically each time val loss improves; re-training the **same** `--output-dir` overwrites it. Use distinct `--output-dir` per experiment.
 

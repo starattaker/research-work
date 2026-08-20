@@ -143,7 +143,8 @@ $env:PYTHONPATH='.'
 | 1 | Assign CEJ/apex if point lies **on tooth segmentation mask** |
 | 2 | Else nearest mask pixel within **grace_px** (default 4) |
 | 3 | Beyond grace → **drop** point (no assignment) |
-| 4 | Root type from apex count after cleaning; intersection same as v2 |
+| 4 | Tie-break overlapping teeth: nearest **mask centroid** (not bbox center) |
+| 5 | Root type from apex count after cleaning; intersection same as v2 |
 
 ### Re-run
 
