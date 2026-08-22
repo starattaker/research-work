@@ -12,7 +12,7 @@
 
 ## In progress
 
-- [ ] **v5 keypoint training** on friend GPU
+- [ ] **v5 intersection training** on friend GPU (`bash scripts/run_v5_intersection.sh`) — compare vs v4_intersection
 
 ## Not started
 
@@ -29,8 +29,7 @@
 ```bash
 cd ~/faraz/Test_work/research-work
 git pull origin denpar-severity-replication
-bash scripts/run_experiment_v5.sh
-# or: SKIP_PREPROCESS=1 bash scripts/run_experiment_v5.sh
+bash scripts/run_v5_intersection.sh
 ```
 
 Weights → `runs/keypoints/v5_{cej,intersection,apex}/`

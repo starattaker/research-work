@@ -412,17 +412,34 @@ def nearest_tooth_for_point(point: list[float], bboxes: list[list[float]]) -> in
     return int(np.argmin([dist2(point, bbox_center(bb)) for bb in bboxes]))
 
 
+def nearest_tooth_for_point_by_mask(
+    point: list[float],
+    masks: list[np.ndarray | None],
+) -> int:
+    """Assign point to tooth with smallest distance to its segmentation mask."""
+    candidates: list[tuple[float, int]] = []
+    for i, mask in enumerate(masks):
+        if mask is None:
+            continue
+        candidates.append((distance_to_mask(point[0], point[1], mask), i))
+    if not candidates:
+        return 0
+    return min(candidates, key=lambda x: (x[0], x[1]))[1]
+
+
 def compute_intersections_endpoints(
     bboxes: list[list[float]],
     bone_lines: list[list[list[float]]],
+    mask_paths: list[Path],
 ) -> list[list[list[float]]]:
-    """v5: bone-line endpoints assigned to nearest tooth bbox center (no mask/ray)."""
+    """v5: bone-line endpoints assigned to nearest tooth mask (same CEJ/apex as v4)."""
+    masks = [load_tooth_mask(p) for p in mask_paths]
     intersections: list[list[list[float]]] = [[] for _ in bboxes]
     for line in bone_lines:
         if len(line) < 2:
             continue
         for endpoint in (line[0], line[-1]):
-            tooth_i = nearest_tooth_for_point(endpoint, bboxes)
+            tooth_i = nearest_tooth_for_point_by_mask(endpoint, masks)
             intersections[tooth_i].append([float(endpoint[0]), float(endpoint[1])])
     return intersections
 
@@ -471,8 +488,10 @@ def build_tooth_records(
     intersections = [[] for _ in bboxes]
     if bone_json:
         if strategy == "v5":
+            if not use_masks:
+                raise ValueError("v5 requires tooth masks for endpoint intersection assignment")
             intersections = compute_intersections_endpoints(
-                bboxes, bone_json.get("Bone_Lines", [])
+                bboxes, bone_json.get("Bone_Lines", []), mask_paths
             )
         elif use_masks:
             if strategy == "v1":
@@ -634,7 +653,7 @@ def main() -> None:
         "--strategy",
         choices=["v1", "v2", "v3", "v4", "v5"],
         default="v2",
-        help="v1=8px margin, v2=strict bbox, v3=mask+grace, v4=region-growing, v5=v4 CEJ/apex + bone-line endpoints for intersection",
+        help="v1=8px margin, v2=strict bbox, v3=mask+grace, v4=region-growing, v5=v4 CEJ/apex + bone endpoints -> nearest mask",
     )
     parser.add_argument("--grace-px", type=float, default=4.0, help="v3: max distance to mask (px)")
     parser.add_argument("--grace-step-px", type=int, default=1, help="v4: ring step size (px)")

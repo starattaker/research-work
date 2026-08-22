@@ -36,7 +36,7 @@ echo "=== Folder safety ==="
 echo "  v1/v2/v3/v4 data + older weights: NOT modified"
 echo "  v5 data:  $DATA_ROOT/"
 echo "  v5 weights: runs/keypoints/v5_*/"
-echo "  v5 intersection: bone-line endpoints -> nearest tooth (no mask/ray)"
+echo "  v5 intersection: bone-line endpoints -> nearest tooth MASK"
 echo ""
 
 if [[ ! -d "$RAW_ROOT/Training/Key Points Annotations" ]]; then
