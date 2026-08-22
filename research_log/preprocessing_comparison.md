@@ -21,7 +21,7 @@ Raw = clicks in DenPAR JSON. Kept = clicks assigned to a tooth and exported (may
 |----------|--------:|---------:|-----------:|---------:|----------:|------------:|
 | v1 (8px margin) | 6119 | 5708 | 6.7% | 4490 | 4338 | 3.4% |
 | v2 (strict bbox) | 6119 | 5778 | 5.6% | 4490 | 4331 | 3.5% |
-| v3 (mask + 4.0px grace) | 6119 | 6001 | 1.9% | 4490 | 3424 | 23.7% |
+| v3 (mask + 4.0px grace) | 6119 | 6000 | 1.9% | 4490 | 3424 | 23.7% |
 | v4 (region grow 1-8px rings) | 6119 | 6085 | 0.6% | 4490 | 4087 | 9.0% |
 
 ## Single vs double (vs v2 baseline)
@@ -37,7 +37,7 @@ Raw = clicks in DenPAR JSON. Kept = clicks assigned to a tooth and exported (may
 | v1 | Point in bbox + **8 px margin** | Line x contour, else nearest to **midpoint** |
 | v2 | **Strict** DenPAR bbox only | Line x contour, else **endpoint extension** |
 | v3 | **Tooth mask** + nearest within **4.0px** grace; tie-break **mask centroid** | Same as v2 |
-| v4 | **Region growing:** on-mask, then rings **+1..8px** (step 1px); tie-break **mask centroid** | Same as v2 |
+| v4 | **Region growing:** on-mask, then rings **+1..8px**; tie-break **mask centroid** | Same as v2 |
 
 ## Why v3 used 4 px (and why v4)
 

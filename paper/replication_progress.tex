@@ -16,7 +16,7 @@ Paper: Sci Rep 2026, DOI \href{https://doi.org/10.1038/s41598-026-38061-1}{10.10
 \maketitle
 
 \begin{abstract}
-We report incremental progress replicating a panoramic radiograph pipeline for alveolar bone-loss \emph{severity} estimation: YOLOv8x tooth detection, three Keypoint R-CNN models (CEJ, bone-line intersection, apex), and planned ICC evaluation. We document preprocessing ablations (8\,px bbox margin vs.\ strict bbox vs.\ mask-based cleaning), hardware-limited training on a 12\,GB GPU, and visual QA tooling. Pattern classification and segmentation are out of scope.
+We report replication progress for alveolar bone-loss \emph{severity} on DenPAR: YOLOv8x tooth detection, three Keypoint R-CNN heads (CEJ, intersection, apex), and preprocessing ablations v1--v4. Region-growing label assignment (v4, 1--8\,px rings) yields the best keypoint test OKS (CEJ 0.921, intersection 0.822, apex 0.853 vs.\ paper 0.954/0.912/0.815). End-to-end severity ICC evaluation is the remaining stage. Pattern classification and segmentation are out of scope.
 \end{abstract}
 
 \section{Introduction}
@@ -24,6 +24,32 @@ The target publication combines tooth detection, anatomical keypoints, and sever
 
 \section{Dataset and Preprocessing Ablation}
 DenPAR contains 1{,}000 images (650/150/200 train/val/test) and 4{,}402 annotated teeth. Bounding boxes are unchanged across ablations; assignment rules for apex/CEJ differ. Tie-break for mask-based strategies uses the **segmentation centroid**, not the bbox center.
+
+\subsection{Region growing (v4)}
+Expert CEJ/apex clicks are assigned in passes: (0) on the tooth mask; (1--8) unassigned clicks in outward distance bands of 1\,px up to 8\,px from the mask; beyond 8\,px the click is dropped. Ties between teeth use the nearest mask centroid. This replaces v3's single 4\,px grace constant with a principled ring expansion (Fig.~\ref{fig:region-grow}).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/region_growing_schematic_grid.png}
+\caption{Schematic v4 region growing: mask only, then cumulative outward rings at 1, 2, 4, and 8\,px. Animation frames: \texttt{research\_log/figures/region\_growing/animation\_frames/}.}
+\label{fig:region-grow}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.42\linewidth]{figures/region_growing_flow.png}
+\hfill
+\includegraphics[width=0.54\linewidth]{figures/real_inset_test_431.jpg}
+\caption{Left: step-by-step ring assignment (r=0\ldots8). Right: real tooth inset from test image 431 (mask, +2, +4, +8\,px bands on X-ray).}
+\label{fig:region-flow}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/grace_qa_test_431.jpg}
+\caption{Clinical QA on test image 431: top = 8\,px envelope; middle = v3 (4\,px grace) with dropped apex (purple X); bottom = v4 recovers apex while keeping CEJ.}
+\label{fig:grace-qa}
+\end{figure}
 
 \begin{table}[t]
 \centering
@@ -59,7 +85,7 @@ v4 & 6085 & 0.6\% & 4087 & 9.0\% \\
 \end{tabular}}%
 \end{table}
 
-\textbf{Reading the ablation:} v3's fixed 4\,px grace retains CEJ well but **drops 23.7\% of apex clicks** and inflates 0-apex teeth (37.7\%), shifting single/double labels. v4 (region growing to 8\,px) improves apex retention (9.0\% drop) while keeping CEJ (0.6\% drop). Label statistics alone do not prove clinical correctness---**test OKS after training** is the final judge (v2 CEJ OKS 0.843 vs.\ v1 0.820).
+\textbf{Reading the ablation:} v3's fixed 4\,px grace retains CEJ well but **drops 23.7\% of apex clicks** and inflates 0-apex teeth (37.7\%). v4 (region growing to 8\,px) improves apex retention (9.0\% drop) while keeping CEJ (0.6\% drop). **Test OKS after training** (Table~\ref{tab:kpt-all}) confirms v4 as the best preprocessing variant; apex OKS **exceeds** the paper target.
 
 \section{Tooth Detection (YOLOv8x)}
 Training followed paper hyperparameters (Adam, lr $10^{-4}$, cosine schedule, 200 epochs max, patience 25). On a Pop!\_OS workstation (RTX $\sim$12\,GB), batch size 4 was used.
@@ -82,26 +108,30 @@ Precision    & 0.850 & 0.892 \\
 Early stopping selected epoch 42 (run stopped at 67). The double-root class remains weaker (test mAP@0.5 = 0.827 vs.\ single 0.919). Visual QA (\texttt{test\_yolo\_detection.py}) confirmed acceptable box placement despite the mAP gap.
 
 \section{Keypoint R-CNN}
-Three ResNet-50-FPN Keypoint R-CNN models (2 keypoints per tooth, CLAHE augmentation) per preprocessing ablation. **v2 (strict bbox)** completed on a collaborator RTX $\sim$12\,GB GPU:
+Three ResNet-50-FPN Keypoint R-CNN models (2 keypoints per tooth, CLAHE augmentation) were trained per preprocessing ablation on a collaborator RTX $\sim$12\,GB GPU (batch 4, patience 30).
 
 \begin{table}[t]
 \centering
-\caption{Keypoint test OKS vs.\ paper (v2 labels).}
-\label{tab:kpt}
-\begin{tabular}{lrr}
+\caption{Keypoint test OKS by preprocessing ablation vs.\ paper.}
+\label{tab:kpt-all}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrrrr}
 \toprule
-Model & Ours (v2) & Paper \\
+Model & v2 & v3 & \textbf{v4} & Paper & $\Delta$ (v4) \\
 \midrule
-CEJ          & 0.843 & 0.954 \\
-Intersection & 0.815 & 0.912 \\
-Apex         & 0.781 & 0.815 \\
+CEJ          & 0.843 & 0.911 & \textbf{0.921} & 0.954 & $-$0.033 \\
+Intersection & 0.815 & 0.817 & \textbf{0.822} & 0.912 & $-$0.090 \\
+Apex         & 0.781 & 0.836 & \textbf{0.853} & 0.815 & $+$0.038 \\
 \bottomrule
-\end{tabular}
+\end{tabular}}%
 \end{table}
 
-v1 CEJ OKS was 0.820. v3/v4 labels are rebuilt; keypoint training pending.
+v1 CEJ OKS was 0.820. **v4 is selected** for the final inference pipeline. Apex is the only head that exceeds the paper OKS on test; CEJ and intersection gaps remain and may reflect label derivation (intersection) and GT-box training vs.\ paper setup.
 
-\textbf{Training uses ground-truth boxes} from preprocessed JSON, not YOLO outputs. Visual overlays may show many red boxes because raw inference emits $\sim$30 proposals per image; we filter with score threshold 0.5 and NMS IoU 0.6 for QA (paper inference setting).
+\textbf{Training uses ground-truth boxes} from preprocessed JSON, not YOLO outputs. At inference, YOLO boxes replace GT---ICC is the true end-to-end metric.
+
+\section{Tooling and visual QA}
+We added TensorBoard logging, loss-curve plots, and standalone visual testers for YOLO and Keypoint R-CNN. Preprocessing comparison is automated via \texttt{scripts/compare\_preprocessing.py}. Grace-band QA (\texttt{visualize\_v3\_v4\_grace.py}) and region-growing diagrams (\texttt{draw\_region\_growing\_diagram.py}) produce paper figures and animation frames (PNG sequence + GIF) under \texttt{research\_log/figures/} and \texttt{paper/figures/}.
 
 \section{Experiment Tracking}
 Metrics are recorded automatically at the end of each \texttt{src.keypoint.train} run (no manual collect step). Append-only records live under \texttt{research\_log/experiments/records/}; the latest per experiment is indexed in \texttt{registry.json} and summarized in \texttt{paper\_table.json} for the paper table. When all three keypoint models finish (CEJ, intersection, apex), the pipeline updates \texttt{CHECKPOINT.md}, \texttt{06\_keypoint\_training.md}, and \texttt{paper/generated\_keypoint\_table.tex}, then commits and pushes log files.
@@ -113,13 +143,11 @@ Metrics are recorded automatically at the end of each \texttt{src.keypoint.train
 \end{itemize}
 Reusing the same \texttt{--output-dir} overwrites \texttt{best.pt} when validation improves; historical metrics remain in timestamped registry records.
 
-\section{Tooling}
-We added TensorBoard logging, loss-curve plots, and standalone visual testers for YOLO and Keypoint R-CNN. Preprocessing comparison is automated via \texttt{scripts/compare\_preprocessing.py}.
-
 \section{Next Steps}
 \begin{enumerate}
-  \item Train keypoints on v3 then v4 labels; compare test OKS to v2.
-  \item Build end-to-end inference (YOLO $\rightarrow$ keypoints $\rightarrow$ NMS 0.6 $\rightarrow$ severity ICC).
+  \item Build end-to-end inference: YOLO $\rightarrow$ v4 keypoints $\rightarrow$ NMS 0.6 $\rightarrow$ severity (\texttt{src/severity/bone\_loss.py}).
+  \item Compute ICC vs.\ expert severity on the test split (target 0.801).
+  \item Document YOLO-box vs.\ GT-box gap if ICC falls below paper.
 \end{enumerate}
 
 \section*{Acknowledgment}

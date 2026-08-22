@@ -8,13 +8,13 @@ Paper: *AI-assisted radiographic analysis in detecting alveolar bone-loss severi
 |------|-----|--------|
 | Environment | [01_environment.md](01_environment.md) | Done |
 | Dataset | [02_dataset.md](02_dataset.md) | Done |
-| Preprocessing | [03_preprocessing.md](03_preprocessing.md) | Done (v1–v4); stats in [preprocessing_comparison.md](preprocessing_comparison.md) |
+| Preprocessing | [03_preprocessing.md](03_preprocessing.md) | Done (v1–v4); intersection QA [intersection_logic_analysis.md](intersection_logic_analysis.md) |
 | Hyperparameters | [04_hyperparameters.md](04_hyperparameters.md) | Done |
 | Detection training | [05_detection_training.md](05_detection_training.md) | Done (test mAP50 **0.873**) |
-| Preproc comparison | [preprocessing_comparison.md](preprocessing_comparison.md) | **v1–v4** rebuilt on friend GPU (2026-08-20) |
-| Keypoint training | [06_keypoint_training.md](06_keypoint_training.md) | v1 CEJ; **v2 all 3 trained**; v3/v4 data ready, training next |
-| Experiment registry | [experiments/README.md](experiments/README.md) | **v2 recorded** in `paper_table.json` |
-| Severity / ICC | *(pending)* | Not started |
+| Preproc comparison | [preprocessing_comparison.md](preprocessing_comparison.md) | v1–v4 stats |
+| Keypoint training | [06_keypoint_training.md](06_keypoint_training.md) | **v2/v3/v4 done** — **v4 best** (apex OKS **0.853**) |
+| Severity / ICC | [07_severity_icc.md](07_severity_icc.md) | **Next** |
+| Experiment registry | [experiments/README.md](experiments/README.md) | v2–v4 in `paper_table.json` |
 
 **Resume here:** [CHECKPOINT.md](CHECKPOINT.md)
 

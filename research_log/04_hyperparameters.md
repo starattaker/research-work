@@ -62,12 +62,16 @@ Our training run (`runs/.../args.yaml`) confirms:
 | Intersection | 0.912 |
 | Apex | 0.815 |
 
-## 3. Inference / severity (post-training, not yet run)
+## 3. Inference / severity (next stage)
 
 | Parameter | Value |
 |-----------|-------|
+| Preprocessing | **v4** (region growing) |
+| Keypoint weights | `runs/keypoints/v4_{cej,intersection,apex}/best.pt` |
 | NMS IoU (combine keypoints) | 0.6 |
 | Severity formula | Min-max line + Eq. 1 (`src/severity/bone_loss.py`) |
 | Evaluation metric | ICC vs ground truth |
 
 **Paper test target:** ICC = 0.801
+
+See [07_severity_icc.md](07_severity_icc.md).

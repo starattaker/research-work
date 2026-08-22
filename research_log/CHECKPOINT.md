@@ -1,41 +1,36 @@
-# Checkpoint — v3/v4 preprocess done (2026-08-20)
+# Checkpoint — v5 preprocess ready (2026-08-22)
 
-**Status:** Keypoint training **v4 complete** (2026-08-20 07:03 UTC).
+**Status:** v4 training complete. **v5 labels built** — train on friend GPU next.
 
-## Done
+## Completed
 
 - [x] YOLO — test mAP50 **0.873** (paper 0.963)
-- [x] v1 CEJ — test OKS **0.820**
-- [x] **v2 keypoints** (strict bbox):
-
-| Model | v2 OKS | Paper |
-|-------|-------:|------:|
-| CEJ | 0.843 | 0.954 |
-| Intersection | 0.815 | 0.912 |
-| Apex | 0.781 | 0.815 |
-
-- [x] **v3 + v4 preprocess** rebuilt (`data/processed_v3/`, `data/processed_v4/`)
-- [x] Comparison stats → `preprocessing_comparison.md` + paper draft updated
+- [x] Keypoint R-CNN v2/v3/v4 — **v4 best** (CEJ 0.921, int 0.822, apex **0.853**)
+- [x] Intersection QA + ray-bug analysis ([intersection_logic_analysis.md](intersection_logic_analysis.md))
+- [x] **v5 preprocess** — endpoint intersections → `data/processed_v5/` (rebuild on GPU with script)
+- [x] QA scripts + `scripts/run_experiment_v5.sh`
 
 ## In progress
 
-- [ ] **v3 keypoint training** on friend GPU (first)
+- [ ] **v5 keypoint training** on friend GPU
 
-## Left
+## Not started
 
-- [ ] v4 keypoint training (after v3)
-- [ ] End-to-end inference + ICC (0.801)
+- [ ] v6 (midplane CEJ + region grow)
+- [ ] End-to-end inference + ICC (target **0.801**)
 
-## Resume (friend GPU — one step at a time)
+## v4 metrics (auto)
 
-```bash
-cd ~/faraz/Test_work/research-work && bash scripts/run_experiment_v3.sh
-```
-
-Use `SKIP_PREPROCESS=1` (data already built). v1/v2 folders untouched.
-
-## Latest metrics (auto)
-
-- **v4:** cej OKS=0.921; intersection OKS=0.822; apex OKS=0.853
+- CEJ 0.921 · intersection 0.822 · apex **0.853**
 - Registry: `research_log/experiments/paper_table.json`
 
+## Resume — friend GPU
+
+```bash
+cd ~/faraz/Test_work/research-work
+git pull origin denpar-severity-replication
+bash scripts/run_experiment_v5.sh
+# or: SKIP_PREPROCESS=1 bash scripts/run_experiment_v5.sh
+```
+
+Weights → `runs/keypoints/v5_{cej,intersection,apex}/`

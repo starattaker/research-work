@@ -408,6 +408,25 @@ def compute_intersections(
     return intersections
 
 
+def nearest_tooth_for_point(point: list[float], bboxes: list[list[float]]) -> int:
+    return int(np.argmin([dist2(point, bbox_center(bb)) for bb in bboxes]))
+
+
+def compute_intersections_endpoints(
+    bboxes: list[list[float]],
+    bone_lines: list[list[list[float]]],
+) -> list[list[list[float]]]:
+    """v5: bone-line endpoints assigned to nearest tooth bbox center (no mask/ray)."""
+    intersections: list[list[list[float]]] = [[] for _ in bboxes]
+    for line in bone_lines:
+        if len(line) < 2:
+            continue
+        for endpoint in (line[0], line[-1]):
+            tooth_i = nearest_tooth_for_point(endpoint, bboxes)
+            intersections[tooth_i].append([float(endpoint[0]), float(endpoint[1])])
+    return intersections
+
+
 def build_tooth_records(
     kp_json: dict,
     bone_json: dict | None,
@@ -422,7 +441,7 @@ def build_tooth_records(
     mask_paths = sorted(mask_dir.glob("*.png")) if mask_dir and mask_dir.exists() else []
     use_masks = len(mask_paths) == len(bboxes)
 
-    if strategy == "v4" and use_masks:
+    if strategy in ("v4", "v5") and use_masks:
         cej_assign = assign_points_to_teeth_mask_region_grow(
             kp_json.get("CEJ_Points", []),
             bboxes,
@@ -450,15 +469,20 @@ def build_tooth_records(
         apex_assign = assign_points_to_teeth(kp_json.get("Apex_Points", []), bboxes, margin=margin)
 
     intersections = [[] for _ in bboxes]
-    if bone_json and use_masks:
-        if strategy == "v1":
-            intersections = compute_intersections_v1(
-                bboxes, bone_json.get("Bone_Lines", []), mask_paths
+    if bone_json:
+        if strategy == "v5":
+            intersections = compute_intersections_endpoints(
+                bboxes, bone_json.get("Bone_Lines", [])
             )
-        else:
-            intersections = compute_intersections(
-                bboxes, bone_json.get("Bone_Lines", []), mask_paths
-            )
+        elif use_masks:
+            if strategy == "v1":
+                intersections = compute_intersections_v1(
+                    bboxes, bone_json.get("Bone_Lines", []), mask_paths
+                )
+            else:
+                intersections = compute_intersections(
+                    bboxes, bone_json.get("Bone_Lines", []), mask_paths
+                )
 
     records: list[ToothRecord] = []
     for i, bbox in enumerate(bboxes):
@@ -608,9 +632,9 @@ def main() -> None:
     )
     parser.add_argument(
         "--strategy",
-        choices=["v1", "v2", "v3", "v4"],
+        choices=["v1", "v2", "v3", "v4", "v5"],
         default="v2",
-        help="v1=8px margin, v2=strict bbox, v3=mask+grace, v4=mask region-growing rings",
+        help="v1=8px margin, v2=strict bbox, v3=mask+grace, v4=region-growing, v5=v4 CEJ/apex + bone-line endpoints for intersection",
     )
     parser.add_argument("--grace-px", type=float, default=4.0, help="v3: max distance to mask (px)")
     parser.add_argument("--grace-step-px", type=int, default=1, help="v4: ring step size (px)")

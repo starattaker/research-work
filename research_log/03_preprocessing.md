@@ -2,7 +2,7 @@
 
 **Script:** `src/preprocess/prepare_dataset.py`  
 **Validation:** `scripts/validate_preprocessed.py`  
-**QA visuals:** `scripts/visualize_yolo_labels.py`, `scripts/visualize_intersections.py`  
+**QA visuals:** `scripts/visualize_yolo_labels.py`, `scripts/visualize_intersections.py`, `scripts/visualize_v3_v4_grace.py`, `scripts/draw_region_growing_diagram.py`, `scripts/visualize_intersection_logic.py`  
 **Output:** `data/processed/`
 
 This file tracks preprocessing **versions**, issues found, and numerics for the methods section of the replication paper.
@@ -180,7 +180,7 @@ See [preprocessing_comparison.md](preprocessing_comparison.md) for v1–v4 table
 | Apex drop rate | 9.0% | 23.7% | 3.5% |
 | CEJ drop rate | 0.6% | 1.9% | 5.6% |
 
-**Interpretation:** v4 keeps almost all CEJ clicks like v3, but **recovers more apex** than v3's fixed 4 px cutoff. v2 still had best **test OKS** when trained (empirical; train v3/v4 to confirm).
+**Interpretation:** v4 keeps almost all CEJ clicks like v3, but **recovers more apex** than v3's fixed 4 px cutoff. **Keypoint training (2026-08-20) confirms v4 wins:** CEJ 0.921, intersection 0.822, apex **0.853** (exceeds paper 0.815) vs v2 (0.843 / 0.815 / 0.781).
 
 ### Re-run
 
@@ -188,9 +188,45 @@ See [preprocessing_comparison.md](preprocessing_comparison.md) for v1–v4 table
 bash scripts/rebuild_preprocess_v3_v4.sh
 ```
 
+### Visual QA (2026-08-20)
+
+| Tool | Output | Purpose |
+|------|--------|---------|
+| `visualize_v3_v4_grace.py` | `research_log/figures/v3_v4_grace_qa/` | Side-by-side 8 px envelope, v3 (4 px), v4 (8 px rings); kept/dropped CEJ & apex |
+| `draw_region_growing_diagram.py` | `research_log/figures/region_growing/` | Schematic rings, step flow, **animation frames** + GIF for paper/slides |
+| Paper copies | `paper/figures/` | `grace_qa_test_431.jpg`, `region_growing_schematic_grid.png`, etc. |
+
+**Sample case (test 431):** v3 keeps apex **2/4**; v4 keeps **3/4** — one apex recovered within 5–8 px band without widening to neighboring teeth.
+
+```powershell
+.\venv\Scripts\python.exe scripts\visualize_v3_v4_grace.py --split test --ids 431
+.\venv\Scripts\python.exe scripts\draw_region_growing_diagram.py
+```
+
 ---
 
-## Chapter 6 — Superseded planning notes
+## Chapter 6 — Intersection logic QA (2026-08-20)
+
+**Scripts:** `visualize_intersection_logic.py`, `debug_intersection_cases.py`, `visualize_overloaded_teeth.py`  
+**Analysis:** [intersection_logic_analysis.md](intersection_logic_analysis.md)
+
+| Output | Count |
+|--------|------:|
+| Full intersection QA (test) | 200 images → `figures/intersection_logic/` |
+| Method mix (1,300 pts) | 455 D / 790 R / 55 N |
+| Teeth with >3 raw keypoints (test) | **526** → `figures/overloaded_teeth/` |
+
+**Known issue:** ray fallback extends along polyline tangent; can hit contour 100–400 px away when bone line geometry is only over one tooth of the pair (e.g. test_51 T1 B0, test_5 T1 B3).
+
+```powershell
+python scripts/visualize_intersection_logic.py --split test --all
+python scripts/debug_intersection_cases.py
+python scripts/visualize_overloaded_teeth.py --split test
+```
+
+---
+
+## Chapter 7 — Superseded planning notes
 
 *(Original planning notes retained in git history.)*
 

@@ -1,0 +1,1802 @@
+[
+  {
+    "image": "1",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 2,
+    "ray": 6,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "100",
+    "teeth": 6,
+    "bone_lines": 5,
+    "direct": 8,
+    "ray": 1,
+    "nearest": 1,
+    "intersection_points": 10
+  },
+  {
+    "image": "1000",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "1007",
+    "teeth": 7,
+    "bone_lines": 3,
+    "direct": 3,
+    "ray": 2,
+    "nearest": 1,
+    "intersection_points": 6
+  },
+  {
+    "image": "1027",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 1,
+    "ray": 7,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "103",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 2,
+    "ray": 5,
+    "nearest": 1,
+    "intersection_points": 8
+  },
+  {
+    "image": "1036",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 0,
+    "ray": 6,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "1042",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "1048",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 5,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "1059",
+    "teeth": 5,
+    "bone_lines": 2,
+    "direct": 1,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "106",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 2,
+    "intersection_points": 8
+  },
+  {
+    "image": "1064",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 0,
+    "ray": 6,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "1065",
+    "teeth": 3,
+    "bone_lines": 2,
+    "direct": 3,
+    "ray": 1,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "107",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 3,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "1071",
+    "teeth": 1,
+    "bone_lines": 2,
+    "direct": 0,
+    "ray": 0,
+    "nearest": 0,
+    "intersection_points": 0
+  },
+  {
+    "image": "1078",
+    "teeth": 3,
+    "bone_lines": 3,
+    "direct": 3,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "1079",
+    "teeth": 3,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 4,
+    "nearest": 1,
+    "intersection_points": 6
+  },
+  {
+    "image": "108",
+    "teeth": 5,
+    "bone_lines": 3,
+    "direct": 3,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "1082",
+    "teeth": 5,
+    "bone_lines": 5,
+    "direct": 5,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 10
+  },
+  {
+    "image": "1084",
+    "teeth": 4,
+    "bone_lines": 2,
+    "direct": 1,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "1086",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 3,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "1088",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "109",
+    "teeth": 6,
+    "bone_lines": 4,
+    "direct": 0,
+    "ray": 6,
+    "nearest": 2,
+    "intersection_points": 8
+  },
+  {
+    "image": "1098",
+    "teeth": 5,
+    "bone_lines": 3,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "1112",
+    "teeth": 6,
+    "bone_lines": 4,
+    "direct": 3,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "1113",
+    "teeth": 5,
+    "bone_lines": 3,
+    "direct": 4,
+    "ray": 2,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "1121",
+    "teeth": 4,
+    "bone_lines": 5,
+    "direct": 6,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 10
+  },
+  {
+    "image": "1137",
+    "teeth": 3,
+    "bone_lines": 3,
+    "direct": 0,
+    "ray": 6,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "1140",
+    "teeth": 5,
+    "bone_lines": 3,
+    "direct": 4,
+    "ray": 2,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "1141",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 3,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "1144",
+    "teeth": 4,
+    "bone_lines": 2,
+    "direct": 2,
+    "ray": 2,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "1177",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 1,
+    "ray": 6,
+    "nearest": 1,
+    "intersection_points": 8
+  },
+  {
+    "image": "1194",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 4,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "1201",
+    "teeth": 6,
+    "bone_lines": 5,
+    "direct": 6,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 10
+  },
+  {
+    "image": "1211",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "1221",
+    "teeth": 2,
+    "bone_lines": 3,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "1223",
+    "teeth": 4,
+    "bone_lines": 2,
+    "direct": 2,
+    "ray": 2,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "1224",
+    "teeth": 7,
+    "bone_lines": 4,
+    "direct": 4,
+    "ray": 3,
+    "nearest": 1,
+    "intersection_points": 8
+  },
+  {
+    "image": "1227",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 4,
+    "ray": 2,
+    "nearest": 2,
+    "intersection_points": 8
+  },
+  {
+    "image": "1229",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 5,
+    "ray": 2,
+    "nearest": 1,
+    "intersection_points": 8
+  },
+  {
+    "image": "1231",
+    "teeth": 2,
+    "bone_lines": 3,
+    "direct": 2,
+    "ray": 3,
+    "nearest": 1,
+    "intersection_points": 6
+  },
+  {
+    "image": "1241",
+    "teeth": 3,
+    "bone_lines": 2,
+    "direct": 2,
+    "ray": 2,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "1242",
+    "teeth": 3,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "125",
+    "teeth": 6,
+    "bone_lines": 2,
+    "direct": 2,
+    "ray": 1,
+    "nearest": 1,
+    "intersection_points": 4
+  },
+  {
+    "image": "1251",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 5,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "1253",
+    "teeth": 5,
+    "bone_lines": 3,
+    "direct": 5,
+    "ray": 1,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "1258",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 1,
+    "ray": 6,
+    "nearest": 1,
+    "intersection_points": 8
+  },
+  {
+    "image": "1271",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 5,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "1278",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 3,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "1285",
+    "teeth": 6,
+    "bone_lines": 5,
+    "direct": 6,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 10
+  },
+  {
+    "image": "131",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "134",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 2,
+    "ray": 5,
+    "nearest": 1,
+    "intersection_points": 8
+  },
+  {
+    "image": "138",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 5,
+    "ray": 1,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "139",
+    "teeth": 2,
+    "bone_lines": 2,
+    "direct": 0,
+    "ray": 3,
+    "nearest": 1,
+    "intersection_points": 4
+  },
+  {
+    "image": "143",
+    "teeth": 5,
+    "bone_lines": 5,
+    "direct": 3,
+    "ray": 7,
+    "nearest": 0,
+    "intersection_points": 10
+  },
+  {
+    "image": "148",
+    "teeth": 3,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "149",
+    "teeth": 3,
+    "bone_lines": 1,
+    "direct": 0,
+    "ray": 2,
+    "nearest": 0,
+    "intersection_points": 2
+  },
+  {
+    "image": "150",
+    "teeth": 4,
+    "bone_lines": 2,
+    "direct": 1,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "152",
+    "teeth": 3,
+    "bone_lines": 2,
+    "direct": 0,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "156",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 3,
+    "ray": 4,
+    "nearest": 1,
+    "intersection_points": 8
+  },
+  {
+    "image": "163",
+    "teeth": 3,
+    "bone_lines": 2,
+    "direct": 4,
+    "ray": 0,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "166",
+    "teeth": 3,
+    "bone_lines": 1,
+    "direct": 0,
+    "ray": 2,
+    "nearest": 0,
+    "intersection_points": 2
+  },
+  {
+    "image": "167",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 1,
+    "ray": 7,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "168",
+    "teeth": 3,
+    "bone_lines": 3,
+    "direct": 4,
+    "ray": 1,
+    "nearest": 1,
+    "intersection_points": 6
+  },
+  {
+    "image": "177",
+    "teeth": 3,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "178",
+    "teeth": 2,
+    "bone_lines": 3,
+    "direct": 0,
+    "ray": 5,
+    "nearest": 1,
+    "intersection_points": 6
+  },
+  {
+    "image": "18",
+    "teeth": 7,
+    "bone_lines": 4,
+    "direct": 4,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "183",
+    "teeth": 3,
+    "bone_lines": 2,
+    "direct": 0,
+    "ray": 3,
+    "nearest": 1,
+    "intersection_points": 4
+  },
+  {
+    "image": "184",
+    "teeth": 3,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "190",
+    "teeth": 4,
+    "bone_lines": 2,
+    "direct": 0,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "201",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "203",
+    "teeth": 3,
+    "bone_lines": 4,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 2,
+    "intersection_points": 8
+  },
+  {
+    "image": "22",
+    "teeth": 4,
+    "bone_lines": 2,
+    "direct": 2,
+    "ray": 2,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "228",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "231",
+    "teeth": 5,
+    "bone_lines": 1,
+    "direct": 0,
+    "ray": 2,
+    "nearest": 0,
+    "intersection_points": 2
+  },
+  {
+    "image": "233",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "240",
+    "teeth": 6,
+    "bone_lines": 4,
+    "direct": 2,
+    "ray": 5,
+    "nearest": 1,
+    "intersection_points": 8
+  },
+  {
+    "image": "244",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 4,
+    "ray": 3,
+    "nearest": 1,
+    "intersection_points": 8
+  },
+  {
+    "image": "245",
+    "teeth": 4,
+    "bone_lines": 2,
+    "direct": 1,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "258",
+    "teeth": 2,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "266",
+    "teeth": 5,
+    "bone_lines": 3,
+    "direct": 3,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "269",
+    "teeth": 5,
+    "bone_lines": 3,
+    "direct": 0,
+    "ray": 6,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "270",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 2,
+    "ray": 6,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "281",
+    "teeth": 3,
+    "bone_lines": 3,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "286",
+    "teeth": 6,
+    "bone_lines": 4,
+    "direct": 2,
+    "ray": 5,
+    "nearest": 1,
+    "intersection_points": 8
+  },
+  {
+    "image": "298",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "301",
+    "teeth": 5,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "327",
+    "teeth": 4,
+    "bone_lines": 2,
+    "direct": 0,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "337",
+    "teeth": 6,
+    "bone_lines": 2,
+    "direct": 2,
+    "ray": 2,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "338",
+    "teeth": 6,
+    "bone_lines": 3,
+    "direct": 3,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "340",
+    "teeth": 5,
+    "bone_lines": 3,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "35",
+    "teeth": 6,
+    "bone_lines": 4,
+    "direct": 5,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "358",
+    "teeth": 5,
+    "bone_lines": 3,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "361",
+    "teeth": 7,
+    "bone_lines": 3,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "365",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 1,
+    "ray": 6,
+    "nearest": 1,
+    "intersection_points": 8
+  },
+  {
+    "image": "372",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "389",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 4,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "394",
+    "teeth": 5,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "411",
+    "teeth": 6,
+    "bone_lines": 3,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "413",
+    "teeth": 7,
+    "bone_lines": 5,
+    "direct": 3,
+    "ray": 4,
+    "nearest": 3,
+    "intersection_points": 10
+  },
+  {
+    "image": "430",
+    "teeth": 5,
+    "bone_lines": 3,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "431",
+    "teeth": 4,
+    "bone_lines": 2,
+    "direct": 2,
+    "ray": 2,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "44",
+    "teeth": 5,
+    "bone_lines": 3,
+    "direct": 3,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "441",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 4,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "448",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 2,
+    "ray": 6,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "458",
+    "teeth": 3,
+    "bone_lines": 3,
+    "direct": 3,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "459",
+    "teeth": 2,
+    "bone_lines": 2,
+    "direct": 1,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "468",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 3,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "469",
+    "teeth": 3,
+    "bone_lines": 2,
+    "direct": 0,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "472",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "473",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 1,
+    "ray": 7,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "474",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "483",
+    "teeth": 5,
+    "bone_lines": 5,
+    "direct": 3,
+    "ray": 7,
+    "nearest": 0,
+    "intersection_points": 10
+  },
+  {
+    "image": "485",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 5,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "495",
+    "teeth": 2,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "5",
+    "teeth": 6,
+    "bone_lines": 4,
+    "direct": 4,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "504",
+    "teeth": 1,
+    "bone_lines": 2,
+    "direct": 0,
+    "ray": 0,
+    "nearest": 0,
+    "intersection_points": 0
+  },
+  {
+    "image": "51",
+    "teeth": 3,
+    "bone_lines": 3,
+    "direct": 5,
+    "ray": 1,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "511",
+    "teeth": 5,
+    "bone_lines": 3,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "521",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 2,
+    "ray": 6,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "530",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 0,
+    "ray": 6,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "531",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 4,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "537",
+    "teeth": 3,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "539",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 1,
+    "ray": 7,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "54",
+    "teeth": 7,
+    "bone_lines": 4,
+    "direct": 5,
+    "ray": 2,
+    "nearest": 1,
+    "intersection_points": 8
+  },
+  {
+    "image": "542",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 2,
+    "ray": 6,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "544",
+    "teeth": 6,
+    "bone_lines": 5,
+    "direct": 1,
+    "ray": 9,
+    "nearest": 0,
+    "intersection_points": 10
+  },
+  {
+    "image": "545",
+    "teeth": 6,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "549",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 4,
+    "ray": 3,
+    "nearest": 1,
+    "intersection_points": 8
+  },
+  {
+    "image": "558",
+    "teeth": 5,
+    "bone_lines": 3,
+    "direct": 4,
+    "ray": 2,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "567",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 2,
+    "intersection_points": 8
+  },
+  {
+    "image": "570",
+    "teeth": 3,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "580",
+    "teeth": 1,
+    "bone_lines": 2,
+    "direct": 0,
+    "ray": 0,
+    "nearest": 0,
+    "intersection_points": 0
+  },
+  {
+    "image": "583",
+    "teeth": 4,
+    "bone_lines": 5,
+    "direct": 4,
+    "ray": 6,
+    "nearest": 0,
+    "intersection_points": 10
+  },
+  {
+    "image": "590",
+    "teeth": 5,
+    "bone_lines": 3,
+    "direct": 3,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "611",
+    "teeth": 2,
+    "bone_lines": 2,
+    "direct": 0,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "613",
+    "teeth": 2,
+    "bone_lines": 3,
+    "direct": 0,
+    "ray": 6,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "622",
+    "teeth": 6,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "624",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 3,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "630",
+    "teeth": 5,
+    "bone_lines": 5,
+    "direct": 2,
+    "ray": 8,
+    "nearest": 0,
+    "intersection_points": 10
+  },
+  {
+    "image": "633",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 5,
+    "ray": 2,
+    "nearest": 1,
+    "intersection_points": 8
+  },
+  {
+    "image": "641",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 4,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "643",
+    "teeth": 6,
+    "bone_lines": 3,
+    "direct": 3,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "657",
+    "teeth": 2,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "663",
+    "teeth": 4,
+    "bone_lines": 2,
+    "direct": 1,
+    "ray": 2,
+    "nearest": 1,
+    "intersection_points": 4
+  },
+  {
+    "image": "666",
+    "teeth": 3,
+    "bone_lines": 2,
+    "direct": 0,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "675",
+    "teeth": 6,
+    "bone_lines": 4,
+    "direct": 3,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "677",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 2,
+    "ray": 6,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "68",
+    "teeth": 7,
+    "bone_lines": 5,
+    "direct": 3,
+    "ray": 7,
+    "nearest": 0,
+    "intersection_points": 10
+  },
+  {
+    "image": "682",
+    "teeth": 5,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "687",
+    "teeth": 6,
+    "bone_lines": 5,
+    "direct": 7,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 10
+  },
+  {
+    "image": "695",
+    "teeth": 2,
+    "bone_lines": 2,
+    "direct": 0,
+    "ray": 2,
+    "nearest": 2,
+    "intersection_points": 4
+  },
+  {
+    "image": "715",
+    "teeth": 2,
+    "bone_lines": 3,
+    "direct": 0,
+    "ray": 6,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "716",
+    "teeth": 3,
+    "bone_lines": 3,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "736",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 2,
+    "intersection_points": 8
+  },
+  {
+    "image": "74",
+    "teeth": 4,
+    "bone_lines": 2,
+    "direct": 3,
+    "ray": 0,
+    "nearest": 1,
+    "intersection_points": 4
+  },
+  {
+    "image": "756",
+    "teeth": 2,
+    "bone_lines": 3,
+    "direct": 0,
+    "ray": 6,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "757",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 4,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "764",
+    "teeth": 5,
+    "bone_lines": 3,
+    "direct": 3,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "769",
+    "teeth": 3,
+    "bone_lines": 3,
+    "direct": 0,
+    "ray": 6,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "782",
+    "teeth": 6,
+    "bone_lines": 2,
+    "direct": 2,
+    "ray": 2,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "784",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "786",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 2,
+    "ray": 6,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "797",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 4,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "799",
+    "teeth": 7,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "804",
+    "teeth": 6,
+    "bone_lines": 4,
+    "direct": 5,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "808",
+    "teeth": 5,
+    "bone_lines": 2,
+    "direct": 1,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "81",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 3,
+    "ray": 4,
+    "nearest": 1,
+    "intersection_points": 8
+  },
+  {
+    "image": "810",
+    "teeth": 5,
+    "bone_lines": 5,
+    "direct": 3,
+    "ray": 7,
+    "nearest": 0,
+    "intersection_points": 10
+  },
+  {
+    "image": "811",
+    "teeth": 5,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "851",
+    "teeth": 6,
+    "bone_lines": 4,
+    "direct": 6,
+    "ray": 2,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "852",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "854",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 2,
+    "ray": 3,
+    "nearest": 1,
+    "intersection_points": 6
+  },
+  {
+    "image": "859",
+    "teeth": 7,
+    "bone_lines": 3,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "87",
+    "teeth": 6,
+    "bone_lines": 5,
+    "direct": 2,
+    "ray": 6,
+    "nearest": 2,
+    "intersection_points": 10
+  },
+  {
+    "image": "881",
+    "teeth": 7,
+    "bone_lines": 5,
+    "direct": 4,
+    "ray": 5,
+    "nearest": 1,
+    "intersection_points": 10
+  },
+  {
+    "image": "884",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 2,
+    "ray": 6,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "885",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 3,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "887",
+    "teeth": 6,
+    "bone_lines": 4,
+    "direct": 7,
+    "ray": 1,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "890",
+    "teeth": 3,
+    "bone_lines": 3,
+    "direct": 4,
+    "ray": 2,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "892",
+    "teeth": 5,
+    "bone_lines": 3,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "893",
+    "teeth": 4,
+    "bone_lines": 2,
+    "direct": 2,
+    "ray": 2,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "896",
+    "teeth": 5,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 3,
+    "nearest": 2,
+    "intersection_points": 6
+  },
+  {
+    "image": "904",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 2,
+    "ray": 5,
+    "nearest": 1,
+    "intersection_points": 8
+  },
+  {
+    "image": "907",
+    "teeth": 3,
+    "bone_lines": 4,
+    "direct": 0,
+    "ray": 6,
+    "nearest": 2,
+    "intersection_points": 8
+  },
+  {
+    "image": "913",
+    "teeth": 1,
+    "bone_lines": 2,
+    "direct": 0,
+    "ray": 0,
+    "nearest": 0,
+    "intersection_points": 0
+  },
+  {
+    "image": "915",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 3,
+    "nearest": 2,
+    "intersection_points": 6
+  },
+  {
+    "image": "930",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "938",
+    "teeth": 6,
+    "bone_lines": 4,
+    "direct": 4,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "944",
+    "teeth": 6,
+    "bone_lines": 5,
+    "direct": 5,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 10
+  },
+  {
+    "image": "946",
+    "teeth": 3,
+    "bone_lines": 3,
+    "direct": 1,
+    "ray": 4,
+    "nearest": 1,
+    "intersection_points": 6
+  },
+  {
+    "image": "947",
+    "teeth": 3,
+    "bone_lines": 3,
+    "direct": 2,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "961",
+    "teeth": 3,
+    "bone_lines": 2,
+    "direct": 2,
+    "ray": 2,
+    "nearest": 0,
+    "intersection_points": 4
+  },
+  {
+    "image": "973",
+    "teeth": 4,
+    "bone_lines": 3,
+    "direct": 5,
+    "ray": 1,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "975",
+    "teeth": 3,
+    "bone_lines": 3,
+    "direct": 3,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "976",
+    "teeth": 3,
+    "bone_lines": 3,
+    "direct": 3,
+    "ray": 3,
+    "nearest": 0,
+    "intersection_points": 6
+  },
+  {
+    "image": "984",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 3,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "988",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 3,
+    "ray": 5,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "993",
+    "teeth": 4,
+    "bone_lines": 4,
+    "direct": 4,
+    "ray": 4,
+    "nearest": 0,
+    "intersection_points": 8
+  },
+  {
+    "image": "998",
+    "teeth": 5,
+    "bone_lines": 4,
+    "direct": 2,
+    "ray": 6,
+    "nearest": 0,
+    "intersection_points": 8
+  }
+]
