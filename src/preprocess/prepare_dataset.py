@@ -204,6 +204,33 @@ def load_tooth_mask(mask_path: Path) -> np.ndarray | None:
     return (mask > 0).astype(np.uint8)
 
 
+def resolve_tooth_masks(mask_dir: Path | None, n_teeth: int) -> list[Path | None]:
+    """Map bbox index i -> mask file (DenPAR convention: mask1.png = tooth 0)."""
+    if mask_dir is None or not mask_dir.exists() or n_teeth == 0:
+        return [None] * n_teeth
+    sorted_pngs = sorted(mask_dir.glob("*.png"))
+    paths: list[Path | None] = []
+    for i in range(n_teeth):
+        named = mask_dir / f"mask{i + 1}.png"
+        if named.exists():
+            paths.append(named)
+        elif len(sorted_pngs) == n_teeth:
+            paths.append(sorted_pngs[i])
+        else:
+            paths.append(None)
+    return paths
+
+
+def subset_teeth_with_masks(
+    bboxes: list[list[float]],
+    mask_dir: Path | None,
+) -> tuple[list[list[float]], list[Path]]:
+    """Keep teeth that have a mask; drop the rest."""
+    slots = resolve_tooth_masks(mask_dir, len(bboxes))
+    indices = [i for i, p in enumerate(slots) if p is not None]
+    return [bboxes[i] for i in indices], [slots[i] for i in indices]  # type: ignore[misc]
+
+
 def distance_to_mask(px: float, py: float, mask: np.ndarray) -> float:
     """Distance from point to nearest foreground pixel in mask."""
     h, w = mask.shape
@@ -454,9 +481,18 @@ def build_tooth_records(
     grace_step_px: int = 1,
     max_grace_px: int = 8,
 ) -> list[ToothRecord]:
-    bboxes = kp_json["bboxes"]
-    mask_paths = sorted(mask_dir.glob("*.png")) if mask_dir and mask_dir.exists() else []
-    use_masks = len(mask_paths) == len(bboxes)
+    bboxes_all = kp_json["bboxes"]
+    needs_masks = strategy in ("v3", "v4", "v5")
+
+    if needs_masks:
+        bboxes, mask_paths = subset_teeth_with_masks(bboxes_all, mask_dir)
+        if not bboxes:
+            return []
+        use_masks = True
+    else:
+        bboxes = bboxes_all
+        mask_paths = sorted(mask_dir.glob("*.png")) if mask_dir and mask_dir.exists() else []
+        use_masks = len(mask_paths) == len(bboxes)
 
     if strategy in ("v4", "v5") and use_masks:
         cej_assign = assign_points_to_teeth_mask_region_grow(
@@ -488,11 +524,6 @@ def build_tooth_records(
     intersections = [[] for _ in bboxes]
     if bone_json:
         if strategy == "v5":
-            if not use_masks:
-                raise ValueError(
-                    f"v5 requires tooth masks (stem={mask_dir.name if mask_dir else '?'}, "
-                    f"bboxes={len(bboxes)}, masks={len(mask_paths)})"
-                )
             intersections = compute_intersections_endpoints(
                 bboxes, bone_json.get("Bone_Lines", []), mask_paths
             )
@@ -567,7 +598,7 @@ def process_split(
     yolo_images.mkdir(parents=True, exist_ok=True)
     yolo_labels.mkdir(parents=True, exist_ok=True)
 
-    stats = {"images": 0, "teeth": 0, "missing_bone": 0, "mask_mismatch": 0, "mask_mismatch_stems": []}
+    stats = {"images": 0, "teeth": 0, "missing_bone": 0, "teeth_skipped_no_mask": 0}
 
     for kp_path in tqdm(sorted(kp_dir.glob("*.json")), desc=f"Preprocess {split_alias}"):
         stem = kp_path.stem
@@ -577,15 +608,7 @@ def process_split(
             continue
 
         kp_json = json.loads(kp_path.read_text(encoding="utf-8"))
-        bboxes = kp_json["bboxes"]
         mask_dir = mask_root / stem
-        mask_paths = sorted(mask_dir.glob("*.png")) if mask_dir.exists() else []
-        if strategy in ("v3", "v4", "v5") and len(mask_paths) != len(bboxes):
-            stats["mask_mismatch"] += 1
-            stats["mask_mismatch_stems"].append(
-                f"{stem}(bboxes={len(bboxes)},masks={len(mask_paths)})"
-            )
-            continue
 
         img = cv2.imread(str(src_image))
         if img is None:
@@ -608,6 +631,8 @@ def process_split(
         )
         if not records:
             continue
+
+        stats["teeth_skipped_no_mask"] += len(kp_json["bboxes"]) - len(records)
 
         dst_image = yolo_images / image_name
         if not dst_image.exists():
@@ -690,9 +715,9 @@ def main() -> None:
     summary_path = args.output_root / "preprocess_summary.json"
     summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(json.dumps(summary, indent=2))
-    for split, st in summary.items():
-        if st.get("mask_mismatch"):
-            print(f"  {split}: skipped {st['mask_mismatch']} mask/bbox mismatches: {st.get('mask_mismatch_stems', [])}")
+    total_skipped = sum(st.get("teeth_skipped_no_mask", 0) for st in summary.values())
+    if total_skipped:
+        print(f"  Teeth skipped (no mask file): {total_skipped}")
     print(f"Wrote summary to {summary_path}")
 
 
