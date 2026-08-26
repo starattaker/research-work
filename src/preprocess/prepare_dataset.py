@@ -489,7 +489,10 @@ def build_tooth_records(
     if bone_json:
         if strategy == "v5":
             if not use_masks:
-                raise ValueError("v5 requires tooth masks for endpoint intersection assignment")
+                raise ValueError(
+                    f"v5 requires tooth masks (stem={mask_dir.name if mask_dir else '?'}, "
+                    f"bboxes={len(bboxes)}, masks={len(mask_paths)})"
+                )
             intersections = compute_intersections_endpoints(
                 bboxes, bone_json.get("Bone_Lines", []), mask_paths
             )
@@ -564,7 +567,7 @@ def process_split(
     yolo_images.mkdir(parents=True, exist_ok=True)
     yolo_labels.mkdir(parents=True, exist_ok=True)
 
-    stats = {"images": 0, "teeth": 0, "missing_bone": 0}
+    stats = {"images": 0, "teeth": 0, "missing_bone": 0, "mask_mismatch": 0, "mask_mismatch_stems": []}
 
     for kp_path in tqdm(sorted(kp_dir.glob("*.json")), desc=f"Preprocess {split_alias}"):
         stem = kp_path.stem
@@ -573,12 +576,22 @@ def process_split(
         if not src_image.exists():
             continue
 
+        kp_json = json.loads(kp_path.read_text(encoding="utf-8"))
+        bboxes = kp_json["bboxes"]
+        mask_dir = mask_root / stem
+        mask_paths = sorted(mask_dir.glob("*.png")) if mask_dir.exists() else []
+        if strategy in ("v3", "v4", "v5") and len(mask_paths) != len(bboxes):
+            stats["mask_mismatch"] += 1
+            stats["mask_mismatch_stems"].append(
+                f"{stem}(bboxes={len(bboxes)},masks={len(mask_paths)})"
+            )
+            continue
+
         img = cv2.imread(str(src_image))
         if img is None:
             continue
         h, w = img.shape[:2]
 
-        kp_json = json.loads(kp_path.read_text(encoding="utf-8"))
         bone_path = bone_dir / kp_path.name
         bone_json = json.loads(bone_path.read_text(encoding="utf-8")) if bone_path.exists() else None
         if bone_json is None:
@@ -587,7 +600,7 @@ def process_split(
         records = build_tooth_records(
             kp_json,
             bone_json,
-            mask_root / stem,
+            mask_dir,
             strategy=strategy,
             grace_px=grace_px,
             grace_step_px=grace_step_px,
@@ -677,6 +690,9 @@ def main() -> None:
     summary_path = args.output_root / "preprocess_summary.json"
     summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(json.dumps(summary, indent=2))
+    for split, st in summary.items():
+        if st.get("mask_mismatch"):
+            print(f"  {split}: skipped {st['mask_mismatch']} mask/bbox mismatches: {st.get('mask_mismatch_stems', [])}")
     print(f"Wrote summary to {summary_path}")
 
 
