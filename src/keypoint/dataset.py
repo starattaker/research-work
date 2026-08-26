@@ -12,6 +12,22 @@ from torch.utils.data import Dataset
 from torchvision.transforms import functional as F
 
 
+def clamp_visible_keypoint(kp: list[float], width: int, height: int) -> list[float]:
+    """Keep invisible (0,0) slots; clamp visible points inside image for Albumentations."""
+    if len(kp) < 2:
+        return kp
+    x, y = float(kp[0]), float(kp[1])
+    vis = float(kp[2]) if len(kp) > 2 else 2.0
+    if vis == 0 or (x == 0.0 and y == 0.0):
+        return kp
+    x = min(max(x, 0.0), float(width - 1))
+    y = min(max(y, 0.0), float(height - 1))
+    out = [x, y]
+    if len(kp) > 2:
+        out.extend(kp[2:])
+    return out
+
+
 class KeypointDataset(Dataset):
     def __init__(self, root: Path, transform=None):
         self.root = Path(root)
@@ -29,11 +45,14 @@ class KeypointDataset(Dataset):
 
         img = cv2.imread(str(img_path))
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        h, w = img.shape[:2]
         data = json.loads(ann_path.read_text(encoding="utf-8"))
 
         bboxes = data["bboxes"]
         labels = data["labels"]
-        keypoints = data["keypoints"]
+        keypoints = [
+            [clamp_visible_keypoint(kp, w, h) for kp in obj] for obj in data["keypoints"]
+        ]
         keypoints = [sorted(kps, key=lambda kp: kp[0]) for kps in keypoints]
         keypoints_original = keypoints
 

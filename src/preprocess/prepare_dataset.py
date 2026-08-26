@@ -381,6 +381,22 @@ def pad_keypoints(points: list[list[float]], count: int = 2) -> list[list[float]
     return out
 
 
+def clamp_point_in_image(pt: list[float], width: int, height: int) -> list[float]:
+    if pt == [0.0, 0.0]:
+        return pt
+    return [
+        min(max(float(pt[0]), 0.0), float(width - 1)),
+        min(max(float(pt[1]), 0.0), float(height - 1)),
+    ]
+
+
+def clamp_record_keypoints(record: ToothRecord, width: int, height: int) -> ToothRecord:
+    record.cej = [clamp_point_in_image(p, width, height) for p in record.cej]
+    record.intersection = [clamp_point_in_image(p, width, height) for p in record.intersection]
+    record.apex = [clamp_point_in_image(p, width, height) for p in record.apex]
+    return record
+
+
 def keypoints_with_visibility(points: list[list[float]], count: int = 2) -> list[list[float]]:
     padded = pad_keypoints(points, count)
     result = []
@@ -633,6 +649,7 @@ def process_split(
             continue
 
         stats["teeth_skipped_no_mask"] += len(kp_json["bboxes"]) - len(records)
+        records = [clamp_record_keypoints(r, w, h) for r in records]
 
         dst_image = yolo_images / image_name
         if not dst_image.exists():
