@@ -53,7 +53,6 @@ class KeypointDataset(Dataset):
         keypoints = [
             [clamp_visible_keypoint(kp, w, h) for kp in obj] for obj in data["keypoints"]
         ]
-        keypoints = [sorted(kps, key=lambda kp: kp[0]) for kps in keypoints]
         keypoints_original = keypoints
 
         if self.transform is not None:

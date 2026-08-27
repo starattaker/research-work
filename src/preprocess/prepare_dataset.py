@@ -381,6 +381,105 @@ def pad_keypoints(points: list[list[float]], count: int = 2) -> list[list[float]
     return out
 
 
+def mask_pca_axis(mask: np.ndarray | None) -> tuple[np.ndarray, np.ndarray] | None:
+    """Tooth long axis: mask centroid + unit direction (major PCA component)."""
+    if mask is None:
+        return None
+    ys, xs = np.where(mask > 0)
+    if len(xs) < 3:
+        return None
+    coords = np.stack([xs, ys], axis=1).astype(np.float64)
+    mean = coords.mean(axis=0)
+    centered = coords - mean
+    _, _, vt = np.linalg.svd(centered, full_matrices=False)
+    direction = vt[0]
+    norm = float(np.linalg.norm(direction))
+    if norm < 1e-8:
+        return None
+    return mean, direction / norm
+
+
+def _perp_dist_to_axis(pt: list[float], mean: np.ndarray, direction: np.ndarray) -> float:
+    rel = np.array([pt[0] - mean[0], pt[1] - mean[1]], dtype=np.float64)
+    return float(abs(direction[0] * rel[1] - direction[1] * rel[0]))
+
+
+def _pca_side(pt: list[float], mean: np.ndarray, direction: np.ndarray) -> str:
+    rel = np.array([pt[0] - mean[0], pt[1] - mean[1]], dtype=np.float64)
+    cross = direction[0] * rel[1] - direction[1] * rel[0]
+    return "neg" if cross < 0 else "pos"
+
+
+def slot_keypoints_pca_axis(
+    points: list[list[float]],
+    mask: np.ndarray | None,
+    count: int = 2,
+) -> list[list[float]]:
+    """v6: fixed slots [neg side of PCA axis, pos side]; missing -> (0,0)."""
+    if count != 2:
+        raise ValueError("slot_keypoints_pca_axis supports count=2 only")
+    axis = mask_pca_axis(mask)
+    if axis is None or not points:
+        return [[0.0, 0.0], [0.0, 0.0]]
+    mean, direction = axis
+    buckets: dict[str, list[list[float]]] = {"neg": [], "pos": []}
+    for pt in points:
+        buckets[_pca_side(pt, mean, direction)].append(pt)
+    out: list[list[float]] = []
+    for side in ("neg", "pos"):
+        pts = buckets[side]
+        if pts:
+            best = min(pts, key=lambda p: _perp_dist_to_axis(p, mean, direction))
+            out.append([float(best[0]), float(best[1])])
+        else:
+            out.append([0.0, 0.0])
+    return out
+
+
+def compute_intersections_endpoints_v6(
+    bboxes: list[list[float]],
+    bone_lines: list[list[list[float]]],
+    mask_paths: list[Path],
+) -> list[list[list[float]]]:
+    """v6: bone endpoints -> nearest mask; max 2 (one from left bone line, one from right)."""
+    masks = [load_tooth_mask(p) for p in mask_paths]
+    left_pts: list[list[list[float]]] = [[] for _ in bboxes]
+    right_pts: list[list[list[float]]] = [[] for _ in bboxes]
+
+    for line in bone_lines:
+        if len(line) < 2:
+            continue
+        line_cx = float(np.mean([p[0] for p in line]))
+        for endpoint in (line[0], line[-1]):
+            tooth_i = nearest_tooth_for_point_by_mask(endpoint, masks)
+            center = tooth_anchor_center(tooth_i, bboxes, masks)
+            side = "left" if line_cx < center[0] else "right"
+            pt = [float(endpoint[0]), float(endpoint[1])]
+            if side == "left":
+                left_pts[tooth_i].append(pt)
+            else:
+                right_pts[tooth_i].append(pt)
+
+    intersections: list[list[list[float]]] = []
+    for i in range(len(bboxes)):
+        mask = masks[i] if i < len(masks) else None
+
+        def pick_best(candidates: list[list[float]]) -> list[float] | None:
+            if not candidates:
+                return None
+            if mask is not None:
+                return min(candidates, key=lambda p: distance_to_mask(p[0], p[1], mask))
+            return candidates[0]
+
+        left = pick_best(left_pts[i])
+        right = pick_best(right_pts[i])
+        intersections.append([
+            list(left) if left is not None else [0.0, 0.0],
+            list(right) if right is not None else [0.0, 0.0],
+        ])
+    return intersections
+
+
 def clamp_point_in_image(pt: list[float], width: int, height: int) -> list[float]:
     if pt == [0.0, 0.0]:
         return pt
@@ -498,7 +597,7 @@ def build_tooth_records(
     max_grace_px: int = 8,
 ) -> list[ToothRecord]:
     bboxes_all = kp_json["bboxes"]
-    needs_masks = strategy in ("v3", "v4", "v5")
+    needs_masks = strategy in ("v3", "v4", "v5", "v6")
 
     if needs_masks:
         bboxes, mask_paths = subset_teeth_with_masks(bboxes_all, mask_dir)
@@ -510,7 +609,9 @@ def build_tooth_records(
         mask_paths = sorted(mask_dir.glob("*.png")) if mask_dir and mask_dir.exists() else []
         use_masks = len(mask_paths) == len(bboxes)
 
-    if strategy in ("v4", "v5") and use_masks:
+    masks_loaded = [load_tooth_mask(p) for p in mask_paths] if use_masks else []
+
+    if strategy in ("v4", "v5", "v6") and use_masks:
         cej_assign = assign_points_to_teeth_mask_region_grow(
             kp_json.get("CEJ_Points", []),
             bboxes,
@@ -543,6 +644,10 @@ def build_tooth_records(
             intersections = compute_intersections_endpoints(
                 bboxes, bone_json.get("Bone_Lines", []), mask_paths
             )
+        elif strategy == "v6":
+            intersections = compute_intersections_endpoints_v6(
+                bboxes, bone_json.get("Bone_Lines", []), mask_paths
+            )
         elif use_masks:
             if strategy == "v1":
                 intersections = compute_intersections_v1(
@@ -555,12 +660,20 @@ def build_tooth_records(
 
     records: list[ToothRecord] = []
     for i, bbox in enumerate(bboxes):
-        apex = pad_keypoints(apex_assign[i], 2)
+        mask = masks_loaded[i] if i < len(masks_loaded) else None
+        if strategy == "v6":
+            cej = slot_keypoints_pca_axis(cej_assign[i], mask, 2)
+            apex = slot_keypoints_pca_axis(apex_assign[i], mask, 2)
+            intersection = intersections[i]
+        else:
+            cej = pad_keypoints(cej_assign[i], 2)
+            apex = pad_keypoints(apex_assign[i], 2)
+            intersection = pad_keypoints(intersections[i], 2)
         record = ToothRecord(
             bbox=[float(v) for v in bbox],
             label=infer_root_label(apex),
-            cej=pad_keypoints(cej_assign[i], 2),
-            intersection=pad_keypoints(intersections[i], 2),
+            cej=cej,
+            intersection=intersection,
             apex=apex,
         )
         records.append(record)
@@ -706,9 +819,12 @@ def main() -> None:
     )
     parser.add_argument(
         "--strategy",
-        choices=["v1", "v2", "v3", "v4", "v5"],
+        choices=["v1", "v2", "v3", "v4", "v5", "v6"],
         default="v2",
-        help="v1=8px margin, v2=strict bbox, v3=mask+grace, v4=region-growing, v5=v4 CEJ/apex + bone endpoints -> nearest mask",
+        help=(
+            "v1=8px margin, v2=strict bbox, v3=mask+grace, v4=region-growing, "
+            "v5=v4 CEJ/apex + endpoints->mask, v6=PCA-axis CEJ/apex slots + endpoint L/R bone lines"
+        ),
     )
     parser.add_argument("--grace-px", type=float, default=4.0, help="v3: max distance to mask (px)")
     parser.add_argument("--grace-step-px", type=int, default=1, help="v4: ring step size (px)")
