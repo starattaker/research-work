@@ -48,6 +48,17 @@ def main():
     parser.add_argument("--nms-thresh", type=float, default=0.6, help="Paper NMS IoU")
     parser.add_argument("--match-iou", type=float, default=0.5, help="GT↔YOLO IoU")
     parser.add_argument(
+        "--keypoint-match-iou",
+        type=float,
+        default=0.5,
+        help="GT/CEJ-box ↔ Keypoint R-CNN det IoU",
+    )
+    parser.add_argument(
+        "--no-require-yolo",
+        action="store_true",
+        help="Include teeth even when YOLO misses (upper-bound diagnostic)",
+    )
+    parser.add_argument(
         "--out",
         type=Path,
         default=Path("research_log/severity_icc_end_to_end.json"),
@@ -64,6 +75,8 @@ def main():
         score_thresh=args.score_thresh,
         nms_thresh=args.nms_thresh,
         match_iou=args.match_iou,
+        keypoint_match_iou=args.keypoint_match_iou,
+        require_yolo=not args.no_require_yolo,
     )
 
     gt_vals: list[float] = []
@@ -123,13 +136,15 @@ def main():
         "score_thresh": args.score_thresh,
         "nms_thresh": args.nms_thresh,
         "match_iou": args.match_iou,
+        "keypoint_match_iou": args.keypoint_match_iou,
+        "require_yolo": not args.no_require_yolo,
         "icc": icc,
         "mae_pct": mae,
         "n_pairs": len(gt_vals),
         "stats": stats,
         "note": (
-            "GT severity from processed label JSON (GT boxes). "
-            "Pred severity from YOLO boxes + Keypoint R-CNN + Eq. 1."
+            "GT severity from v6 label JSON (aligned slots). "
+            "Pred: CEJ det anchored on GT box; int/apex tied to CEJ box; YOLO gate optional."
         ),
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)

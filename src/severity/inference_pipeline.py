@@ -7,7 +7,6 @@ from pathlib import Path
 
 import albumentations as A
 import cv2
-import numpy as np
 import torch
 from torchvision.ops import box_iou
 from torchvision.transforms import functional as F
@@ -22,28 +21,59 @@ def build_clahe_transform():
     return A.Compose([A.CLAHE(clip_limit=40.0, tile_grid_size=(8, 8), p=1.0)])
 
 
-def first_visible_xy(keypoints: list) -> tuple[float, float]:
-    """First visible slot; fall back to (0,0) if none."""
-    for kp in keypoints:
-        if len(kp) > 2 and int(kp[2]) == 0:
-            continue
-        x, y = float(kp[0]), float(kp[1])
-        if x == 0.0 and y == 0.0:
-            continue
-        return x, y
-    return 0.0, 0.0
-
-
-def tensor_keypoints_to_xy(kps: torch.Tensor) -> tuple[float, float]:
-    """Pick first visible keypoint from model output (2, 3)."""
-    rows = []
-    for i in range(kps.shape[0]):
-        x, y, v = float(kps[i, 0]), float(kps[i, 1]), float(kps[i, 2])
-        if v > 0 and not (x == 0.0 and y == 0.0):
-            rows.append((x, y))
-    if not rows:
+def point_from_slot(keypoints: list, slot: int) -> tuple[float, float]:
+    if slot >= len(keypoints):
         return 0.0, 0.0
-    return rows[0]
+    kp = keypoints[slot]
+    if len(kp) > 2 and int(kp[2]) == 0:
+        return 0.0, 0.0
+    x, y = float(kp[0]), float(kp[1])
+    if x == 0.0 and y == 0.0:
+        return 0.0, 0.0
+    return x, y
+
+
+def severity_from_slots(
+    cej_pts: list,
+    inter_pts: list,
+    apex_pts: list,
+) -> float | None:
+    """v6: try aligned slot 0 then slot 1 (PCA / L-R slots)."""
+    for slot in (0, 1):
+        sev = compute_bone_loss_severity(
+            point_from_slot(cej_pts, slot),
+            point_from_slot(inter_pts, slot),
+            point_from_slot(apex_pts, slot),
+        )
+        if sev is not None:
+            return sev
+    return None
+
+
+def slot_xy_from_tensor(kps: torch.Tensor, slot: int) -> tuple[float, float] | None:
+    if slot >= kps.shape[0]:
+        return None
+    x, y, v = float(kps[slot, 0]), float(kps[slot, 1]), float(kps[slot, 2])
+    if v <= 0 or (x == 0.0 and y == 0.0):
+        return None
+    return x, y
+
+
+def severity_from_tensor_slots(
+    cej_kps: torch.Tensor,
+    inter_kps: torch.Tensor,
+    apex_kps: torch.Tensor,
+) -> float | None:
+    for slot in (0, 1):
+        c = slot_xy_from_tensor(cej_kps, slot)
+        t = slot_xy_from_tensor(inter_kps, slot)
+        a = slot_xy_from_tensor(apex_kps, slot)
+        if c is None or t is None or a is None:
+            continue
+        sev = compute_bone_loss_severity(c, t, a)
+        if sev is not None:
+            return sev
+    return None
 
 
 def load_gt_annotations(data_root: Path, split: str, stem: str) -> dict | None:
@@ -62,10 +92,11 @@ def load_gt_annotations(data_root: Path, split: str, stem: str) -> dict | None:
 
 
 def gt_severity_for_tooth(merged: dict, tooth_idx: int) -> float | None:
-    cej = first_visible_xy(merged["cej"][tooth_idx])
-    inter = first_visible_xy(merged["intersection"][tooth_idx])
-    apex = first_visible_xy(merged["apex"][tooth_idx])
-    return compute_bone_loss_severity(cej, inter, apex)
+    return severity_from_slots(
+        merged["cej"][tooth_idx],
+        merged["intersection"][tooth_idx],
+        merged["apex"][tooth_idx],
+    )
 
 
 def load_image_tensor(image_path: Path, transform) -> torch.Tensor:
@@ -76,11 +107,10 @@ def load_image_tensor(image_path: Path, transform) -> torch.Tensor:
     return F.to_tensor(img)
 
 
-def yolo_boxes(result, img_w: int, img_h: int) -> torch.Tensor:
+def yolo_boxes(result) -> torch.Tensor:
     if result.boxes is None or len(result.boxes) == 0:
         return torch.empty(0, 4)
-    xyxy = result.boxes.xyxy.cpu()
-    return xyxy
+    return result.boxes.xyxy.cpu()
 
 
 def best_match_idx(ref: torch.Tensor, boxes: torch.Tensor, min_iou: float) -> int | None:
@@ -93,20 +123,20 @@ def best_match_idx(ref: torch.Tensor, boxes: torch.Tensor, min_iou: float) -> in
     return j
 
 
-def xy_from_filtered_output(
-    output: dict,
-    ref_box: torch.Tensor,
+def keypoints_for_tooth(
+    outputs: dict,
+    anchor_box: torch.Tensor,
     device: torch.device,
     min_iou: float,
-) -> tuple[float, float]:
-    boxes = output.get("boxes", torch.empty(0, device=device))
-    kps = output.get("keypoints", torch.empty(0, device=device))
+) -> torch.Tensor | None:
+    boxes = outputs.get("boxes", torch.empty(0, device=device))
+    kps = outputs.get("keypoints", torch.empty(0, device=device))
     if boxes.numel() == 0:
-        return 0.0, 0.0
-    j = best_match_idx(ref_box.to(device), boxes, min_iou)
+        return None
+    j = best_match_idx(anchor_box.to(device), boxes, min_iou)
     if j is None:
-        return 0.0, 0.0
-    return tensor_keypoints_to_xy(kps[j])
+        return None
+    return kps[j]
 
 
 @torch.no_grad()
@@ -133,13 +163,15 @@ class SeverityPipeline:
         score_thresh: float = 0.5,
         nms_thresh: float = 0.6,
         match_iou: float = 0.5,
-        keypoint_match_iou: float = 0.3,
+        keypoint_match_iou: float = 0.5,
+        require_yolo: bool = True,
     ):
         self.device = torch.device(device if torch.cuda.is_available() or device == "cpu" else "cpu")
         self.score_thresh = score_thresh
         self.nms_thresh = nms_thresh
         self.match_iou = match_iou
         self.keypoint_match_iou = keypoint_match_iou
+        self.require_yolo = require_yolo
         self.yolo = YOLO(str(yolo_weights))
         self.transform = build_clahe_transform()
         self.models = {
@@ -157,16 +189,14 @@ class SeverityPipeline:
         image_path: Path,
         gt_merged: dict,
     ) -> list[dict]:
-        """Return per-tooth GT vs predicted severity (matched by GT box index)."""
-        img_bgr = cv2.imread(str(image_path))
-        h, w = img_bgr.shape[:2]
+        """Per-tooth GT vs predicted severity. Keypoints matched via CEJ det box (same as OKS eval anchor)."""
         yolo_result = self.yolo.predict(
             source=str(image_path),
             imgsz=640,
             conf=self.score_thresh,
             verbose=False,
         )[0]
-        yolo_boxes_xyxy = yolo_boxes(yolo_result, w, h)
+        yolo_boxes_xyxy = yolo_boxes(yolo_result)
         image_tensor = load_image_tensor(image_path, self.transform)
 
         cej_out = run_keypoint_model(
@@ -188,8 +218,10 @@ class SeverityPipeline:
         for i in range(len(gt_merged["bboxes"])):
             gt_sev = gt_severity_for_tooth(gt_merged, i)
             gt_box = gt_boxes[i]
+
             yolo_idx = best_match_idx(gt_box, yolo_boxes_xyxy, self.match_iou)
-            if yolo_idx is None:
+            yolo_matched = yolo_idx is not None
+            if self.require_yolo and not yolo_matched:
                 rows.append(
                     {
                         "tooth_idx": i,
@@ -199,23 +231,45 @@ class SeverityPipeline:
                     }
                 )
                 continue
-            ref_box = yolo_boxes_xyxy[yolo_idx]
-            cej = xy_from_filtered_output(
-                cej_out, ref_box, self.device, self.keypoint_match_iou
-            )
-            inter = xy_from_filtered_output(
-                int_out, ref_box, self.device, self.keypoint_match_iou
-            )
-            apex = xy_from_filtered_output(
-                apex_out, ref_box, self.device, self.keypoint_match_iou
-            )
-            pred_sev = compute_bone_loss_severity(cej, inter, apex)
+
+            cej_boxes = cej_out.get("boxes", torch.empty(0))
+            if cej_boxes.numel() == 0:
+                rows.append(
+                    {
+                        "tooth_idx": i,
+                        "gt_severity": gt_sev,
+                        "pred_severity": None,
+                        "yolo_matched": yolo_matched,
+                    }
+                )
+                continue
+            cej_j = best_match_idx(gt_box, cej_boxes.cpu(), self.keypoint_match_iou)
+            if cej_j is None:
+                rows.append(
+                    {
+                        "tooth_idx": i,
+                        "gt_severity": gt_sev,
+                        "pred_severity": None,
+                        "yolo_matched": yolo_matched,
+                    }
+                )
+                continue
+
+            cej_kps = cej_out["keypoints"][cej_j]
+            cej_box = cej_boxes[cej_j]
+            int_kps = keypoints_for_tooth(int_out, cej_box, self.device, self.keypoint_match_iou)
+            apex_kps = keypoints_for_tooth(apex_out, cej_box, self.device, self.keypoint_match_iou)
+            if int_kps is None or apex_kps is None:
+                pred_sev = None
+            else:
+                pred_sev = severity_from_tensor_slots(cej_kps, int_kps, apex_kps)
+
             rows.append(
                 {
                     "tooth_idx": i,
                     "gt_severity": gt_sev,
                     "pred_severity": pred_sev,
-                    "yolo_matched": True,
+                    "yolo_matched": yolo_matched,
                 }
             )
         return rows
