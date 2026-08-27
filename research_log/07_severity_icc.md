@@ -10,12 +10,14 @@
 ```
 Panoramic X-ray
   → YOLOv8x tooth detection (best.pt)
-  → Per-tooth Keypoint R-CNN ×3 (v6_cej, v6_intersection, v6_apex)
-  → NMS IoU 0.6 (per model, paper)
   → Match YOLO box to GT tooth (IoU ≥ 0.5)
-  → Min-max line + Eq. 1 severity % (src/severity/bone_loss.py)
+  → YOLO box as fixed ROI proposal → Keypoint R-CNN ×3 (no RPN / no R-CNN tooth detector)
+  → NMS IoU 0.6 + score ≥ 0.5 (per model, paper)
+  → Combine CEJ + intersection + apex (v6 aligned slots) → Eq. 1 severity %
   → ICC vs GT severity from processed label JSON
 ```
+
+Diagnostic: `--no-require-yolo` uses **GT box** as the ROI proposal when YOLO misses (isolates keypoint error).
 
 ## Command
 
@@ -41,6 +43,7 @@ python scripts/run_severity_icc.py \
 | Keypoint NMS IoU | 0.6 |
 | Score threshold | 0.5 |
 | GT↔YOLO match IoU | 0.5 |
+| Proposal↔ROI det IoU | 0.3 |
 | Severity formula | `compute_bone_loss_severity()` |
 
 ## GT vs pred severity

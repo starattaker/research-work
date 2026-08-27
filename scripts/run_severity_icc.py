@@ -50,8 +50,8 @@ def main():
     parser.add_argument(
         "--keypoint-match-iou",
         type=float,
-        default=0.5,
-        help="GT/CEJ-box ↔ Keypoint R-CNN det IoU",
+        default=0.3,
+        help="YOLO proposal ↔ ROI-head detection IoU (paper uses fixed YOLO boxes)",
     )
     parser.add_argument(
         "--no-require-yolo",
@@ -144,7 +144,8 @@ def main():
         "stats": stats,
         "note": (
             "GT severity from v6 label JSON (aligned slots). "
-            "Pred: CEJ det anchored on GT box; int/apex tied to CEJ box; YOLO gate optional."
+            "Pred: YOLO box as Keypoint R-CNN ROI proposal (no RPN); "
+            "3 models on same box; Eq. 1. --no-require-yolo uses GT box as proposal."
         ),
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)

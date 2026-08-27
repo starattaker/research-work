@@ -12,7 +12,7 @@ from torchvision.ops import box_iou
 from torchvision.transforms import functional as F
 from ultralytics import YOLO
 
-from src.keypoint.inference_utils import filter_keypoint_output
+from src.keypoint.inference_utils import predict_keypoints_on_proposals
 from src.keypoint.model import get_keypoint_model
 from src.severity.bone_loss import compute_bone_loss_severity
 
@@ -123,35 +123,6 @@ def best_match_idx(ref: torch.Tensor, boxes: torch.Tensor, min_iou: float) -> in
     return j
 
 
-def keypoints_for_tooth(
-    outputs: dict,
-    anchor_box: torch.Tensor,
-    device: torch.device,
-    min_iou: float,
-) -> torch.Tensor | None:
-    boxes = outputs.get("boxes", torch.empty(0, device=device))
-    kps = outputs.get("keypoints", torch.empty(0, device=device))
-    if boxes.numel() == 0:
-        return None
-    j = best_match_idx(anchor_box.to(device), boxes, min_iou)
-    if j is None:
-        return None
-    return kps[j]
-
-
-@torch.no_grad()
-def run_keypoint_model(
-    model,
-    image_tensor: torch.Tensor,
-    device: torch.device,
-    score_thresh: float,
-    nms_thresh: float,
-) -> dict:
-    model.eval()
-    out = model([image_tensor.to(device)])[0]
-    return filter_keypoint_output(out, score_thresh, nms_thresh)
-
-
 class SeverityPipeline:
     def __init__(
         self,
@@ -163,7 +134,7 @@ class SeverityPipeline:
         score_thresh: float = 0.5,
         nms_thresh: float = 0.6,
         match_iou: float = 0.5,
-        keypoint_match_iou: float = 0.5,
+        keypoint_match_iou: float = 0.3,
         require_yolo: bool = True,
     ):
         self.device = torch.device(device if torch.cuda.is_available() or device == "cpu" else "cpu")
@@ -184,12 +155,32 @@ class SeverityPipeline:
         for m in self.models.values():
             m.eval()
 
+    def _proposal_boxes_for_teeth(
+        self,
+        gt_boxes: torch.Tensor,
+        yolo_boxes_xyxy: torch.Tensor,
+    ) -> tuple[list[torch.Tensor | None], list[bool]]:
+        proposals: list[torch.Tensor | None] = []
+        yolo_matched: list[bool] = []
+        for gt_box in gt_boxes:
+            yolo_idx = best_match_idx(gt_box, yolo_boxes_xyxy, self.match_iou)
+            if yolo_idx is not None:
+                proposals.append(yolo_boxes_xyxy[yolo_idx])
+                yolo_matched.append(True)
+            elif not self.require_yolo:
+                proposals.append(gt_box)
+                yolo_matched.append(False)
+            else:
+                proposals.append(None)
+                yolo_matched.append(False)
+        return proposals, yolo_matched
+
     def predict_image_severities(
         self,
         image_path: Path,
         gt_merged: dict,
     ) -> list[dict]:
-        """Per-tooth GT vs predicted severity. Keypoints matched via CEJ det box (same as OKS eval anchor)."""
+        """Per-tooth GT vs predicted severity using YOLO boxes as Keypoint R-CNN proposals."""
         yolo_result = self.yolo.predict(
             source=str(image_path),
             imgsz=640,
@@ -199,77 +190,58 @@ class SeverityPipeline:
         yolo_boxes_xyxy = yolo_boxes(yolo_result)
         image_tensor = load_image_tensor(image_path, self.transform)
 
-        cej_out = run_keypoint_model(
-            self.models["cej"], image_tensor, self.device, self.score_thresh, self.nms_thresh
-        )
-        int_out = run_keypoint_model(
-            self.models["intersection"],
-            image_tensor,
-            self.device,
-            self.score_thresh,
-            self.nms_thresh,
-        )
-        apex_out = run_keypoint_model(
-            self.models["apex"], image_tensor, self.device, self.score_thresh, self.nms_thresh
-        )
+        gt_boxes = torch.tensor(gt_merged["bboxes"], dtype=torch.float32)
+        tooth_proposals, yolo_flags = self._proposal_boxes_for_teeth(gt_boxes, yolo_boxes_xyxy)
+
+        valid_idx = [i for i, box in enumerate(tooth_proposals) if box is not None]
+        kps_by_tooth: dict[int, tuple[torch.Tensor | None, torch.Tensor | None, torch.Tensor | None]] = {}
+
+        if valid_idx:
+            prop_tensor = torch.stack([tooth_proposals[i] for i in valid_idx])
+            cej_list = predict_keypoints_on_proposals(
+                self.models["cej"],
+                image_tensor,
+                prop_tensor,
+                self.device,
+                self.score_thresh,
+                self.nms_thresh,
+                self.keypoint_match_iou,
+            )
+            int_list = predict_keypoints_on_proposals(
+                self.models["intersection"],
+                image_tensor,
+                prop_tensor,
+                self.device,
+                self.score_thresh,
+                self.nms_thresh,
+                self.keypoint_match_iou,
+            )
+            apex_list = predict_keypoints_on_proposals(
+                self.models["apex"],
+                image_tensor,
+                prop_tensor,
+                self.device,
+                self.score_thresh,
+                self.nms_thresh,
+                self.keypoint_match_iou,
+            )
+            for row, tooth_idx in enumerate(valid_idx):
+                kps_by_tooth[tooth_idx] = (cej_list[row], int_list[row], apex_list[row])
 
         rows = []
-        gt_boxes = torch.tensor(gt_merged["bboxes"], dtype=torch.float32)
         for i in range(len(gt_merged["bboxes"])):
             gt_sev = gt_severity_for_tooth(gt_merged, i)
-            gt_box = gt_boxes[i]
-
-            yolo_idx = best_match_idx(gt_box, yolo_boxes_xyxy, self.match_iou)
-            yolo_matched = yolo_idx is not None
-            if self.require_yolo and not yolo_matched:
-                rows.append(
-                    {
-                        "tooth_idx": i,
-                        "gt_severity": gt_sev,
-                        "pred_severity": None,
-                        "yolo_matched": False,
-                    }
-                )
-                continue
-
-            cej_boxes = cej_out.get("boxes", torch.empty(0))
-            if cej_boxes.numel() == 0:
-                rows.append(
-                    {
-                        "tooth_idx": i,
-                        "gt_severity": gt_sev,
-                        "pred_severity": None,
-                        "yolo_matched": yolo_matched,
-                    }
-                )
-                continue
-            cej_j = best_match_idx(gt_box, cej_boxes.cpu(), self.keypoint_match_iou)
-            if cej_j is None:
-                rows.append(
-                    {
-                        "tooth_idx": i,
-                        "gt_severity": gt_sev,
-                        "pred_severity": None,
-                        "yolo_matched": yolo_matched,
-                    }
-                )
-                continue
-
-            cej_kps = cej_out["keypoints"][cej_j]
-            cej_box = cej_boxes[cej_j]
-            int_kps = keypoints_for_tooth(int_out, cej_box, self.device, self.keypoint_match_iou)
-            apex_kps = keypoints_for_tooth(apex_out, cej_box, self.device, self.keypoint_match_iou)
-            if int_kps is None or apex_kps is None:
-                pred_sev = None
-            else:
-                pred_sev = severity_from_tensor_slots(cej_kps, int_kps, apex_kps)
-
+            pred_sev = None
+            if i in kps_by_tooth:
+                cej_kps, int_kps, apex_kps = kps_by_tooth[i]
+                if cej_kps is not None and int_kps is not None and apex_kps is not None:
+                    pred_sev = severity_from_tensor_slots(cej_kps, int_kps, apex_kps)
             rows.append(
                 {
                     "tooth_idx": i,
                     "gt_severity": gt_sev,
                     "pred_severity": pred_sev,
-                    "yolo_matched": yolo_matched,
+                    "yolo_matched": yolo_flags[i],
                 }
             )
         return rows
