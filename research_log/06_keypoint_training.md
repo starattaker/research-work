@@ -2,60 +2,49 @@
 
 **Machine:** Friend RTX ~12 GB (Pop!_OS)  
 **Batch:** 4 (paper-equivalent on 12 GB)  
-**Updated:** 2026-08-22
+**Updated:** 2026-08-27
 
-## Summary — test OKS by preprocessing ablation
+## Summary — test OKS (selected: **v6**)
 
-| Model | v1 | v2 | v3 | **v4** | Paper |
-|-------|---:|---:|---:|-------:|------:|
-| CEJ | 0.820* | 0.843 | 0.911 | **0.921** | 0.954 |
-| Intersection | — | 0.815 | 0.817 | **0.822** | 0.912 |
-| Apex | — | 0.781 | 0.836 | **0.853** | 0.815 |
+| Model | v4 | v5 | **v6** | Paper |
+|-------|---:|---:|-------:|------:|
+| CEJ | 0.921 | — | **0.927** | 0.954 |
+| Intersection | 0.822 | 0.859 | **0.894** | 0.912 |
+| Apex | 0.853 | — | **0.871** | 0.815 |
 
-\*v1 CEJ only.
-
-**Decision:** **v4 (region growing)** wins all three vs v2/v3. **v5** (endpoint intersections) training next.
+**Decision:** **v6** wins all three vs v4/v5. Use for ICC pipeline.
 
 ## Experiment layout
 
 | Ablation | Processed data | Weights |
 |----------|----------------|---------|
-| v1 | `data/processed/` | `runs/keypoints/cej/` |
-| v2 | `data/processed_v2/` | `runs/keypoints/v2_*` |
-| v3 | `data/processed_v3/` | `runs/keypoints/v3_*` |
 | v4 | `data/processed_v4/` | `runs/keypoints/v4_*` |
-| **v5** | `data/processed_v5/` | `runs/keypoints/v5_*` |
+| v5 | `data/processed_v5/` | `runs/keypoints/v5_*` (intersection only trained) |
+| **v6** | `data/processed_v6/` | `runs/keypoints/v6_*` |
 
-## v4 keypoints
+## v6 preprocessing rules
 
-Recorded: 2026-08-20 07:03 UTC
+- **CEJ / apex:** v4 region growing → PCA long-axis slots (no x-sort pad)
+- **Intersection:** bone-line endpoints → nearest mask; max 2 (left/right bone line)
+- **Clamp:** keypoints clipped to image bounds before save/load
 
-| Model | test_oks | best epoch | run_dir |
-|-------|----------:|-----------:|---------|
-| cej | 0.921 | 5 | `runs/keypoints/v4_cej` |
-| intersection | 0.822 | 5 | `runs/keypoints/v4_intersection` |
-| apex | 0.853 | 6 | `runs/keypoints/v4_apex` |
-
-## v5 keypoints
-
-**Status:** labels ready; training not started.
+## v6 training (friend GPU, 2026-08-27)
 
 ```bash
-bash scripts/run_experiment_v5.sh
+bash scripts/run_v6_experiment.sh
 ```
 
-## Command (per model)
-
-```bash
-python -m src.keypoint.train \
-  --data-root data/processed_v5/keypoints/cej \
-  --keypoint-type cej \
-  --output-dir runs/keypoints/v5_cej \
-  --batch-size 4 --patience 30 --device cuda
-```
+| Model | test_oks | run_dir |
+|-------|----------:|---------|
+| cej | 0.927 | `runs/keypoints/v6_cej` |
+| intersection | 0.894 | `runs/keypoints/v6_intersection` |
+| apex | 0.871 | `runs/keypoints/v6_apex` |
 
 ## Notes
 
-- Training uses **GT bboxes from JSON**, not YOLO predictions.
-- Keypoint test OKS is on GT boxes; ICC requires **YOLO boxes at inference**.
+- Training uses **GT bboxes** from JSON; ICC uses **YOLO boxes** at inference.
 - Registry: `research_log/experiments/paper_table.json`
+
+## Next
+
+End-to-end ICC: `scripts/run_severity_icc.py` — see [07_severity_icc.md](07_severity_icc.md).

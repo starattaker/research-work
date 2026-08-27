@@ -1,76 +1,63 @@
 # 07 — Severity inference + ICC
 
-**Status:** Not started  
+**Status:** Script ready — run on friend GPU  
 **Target:** ICC = **0.801** (paper)  
-**Selected preprocessing:** **v4** (region growing)  
-**Updated:** 2026-08-20
+**Selected preprocessing:** **v6** (PCA-axis CEJ/apex + L/R endpoint intersections)  
+**Updated:** 2026-08-27
 
 ## Pipeline (paper order)
 
 ```
 Panoramic X-ray
   → YOLOv8x tooth detection (best.pt)
-  → Per-tooth Keypoint R-CNN ×3 (v4_cej, v4_intersection, v4_apex)
-  → NMS IoU 0.6 (combine duplicate tooth/keypoint proposals)
+  → Per-tooth Keypoint R-CNN ×3 (v6_cej, v6_intersection, v6_apex)
+  → NMS IoU 0.6 (per model, paper)
+  → Match YOLO box to GT tooth (IoU ≥ 0.5)
   → Min-max line + Eq. 1 severity % (src/severity/bone_loss.py)
-  → ICC vs expert severity labels (DenPAR)
+  → ICC vs GT severity from processed label JSON
 ```
 
-## Inputs required
+## Command
 
-| Asset | Path (friend GPU) |
-|-------|-------------------|
-| YOLO weights | `runs/detect/train/weights/best.pt` |
-| v4 CEJ | `runs/keypoints/v4_cej/best.pt` |
-| v4 intersection | `runs/keypoints/v4_intersection/best.pt` |
-| v4 apex | `runs/keypoints/v4_apex/best.pt` |
-| Test images | `data/processed_v4/yolo_detection/test/images/` |
-| GT severity | DenPAR severity labels (see `02_dataset.md`) |
+```bash
+cd ~/faraz/Test_work/research-work
+git pull origin denpar-severity-replication
+export PYTHONPATH=.
+python scripts/run_severity_icc.py \
+  --yolo-weights runs/detect/runs/detection/yolov8x_tooth/weights/best.pt \
+  --cej-weights runs/keypoints/v6_cej/best.pt \
+  --intersection-weights runs/keypoints/v6_intersection/best.pt \
+  --apex-weights runs/keypoints/v6_apex/best.pt \
+  --data-root data/processed_v6 \
+  --split test
+```
 
-## Parameters (replication — do not change)
+**Output:** `research_log/severity_icc_end_to_end.json`
+
+## Parameters (replication)
 
 | Parameter | Value |
 |-----------|-------|
 | Keypoint NMS IoU | 0.6 |
-| Score threshold | 0.5 (viz / inference default) |
-| Severity formula | `compute_bone_loss_severity()` in `src/severity/bone_loss.py` |
+| Score threshold | 0.5 |
+| GT↔YOLO match IoU | 0.5 |
+| Severity formula | `compute_bone_loss_severity()` |
 
-## What exists today
+## GT vs pred severity
 
-| Component | Status |
-|-----------|--------|
-| Severity math | `src/severity/bone_loss.py` |
-| Keypoint inference + NMS | `src/keypoint/inference_utils.py`, `scripts/test_keypoint_detection.py` |
-| YOLO inference | `scripts/test_yolo_detection.py` |
-| **End-to-end script** | **Not implemented** — needs `scripts/run_severity_icc.py` (or equivalent) |
+| | Source |
+|--|--------|
+| **GT severity** | Processed v6 label JSON on **GT boxes** (CEJ + intersection + apex) |
+| **Pred severity** | **YOLO boxes** + model keypoints + same Eq. 1 |
 
-## Expected blockers for ICC
+ICC therefore includes YOLO localization error (intended end-to-end metric).
 
-1. **YOLO box error** — keypoint OKS was measured on GT boxes; real ICC uses predicted boxes.
-2. **Tooth matching** — assign predicted teeth to GT for ICC pairing.
-3. **Missing keypoints** — severity `None` when CEJ/intersection/apex invisible.
-4. **Double-root teeth** — weaker YOLO class may hurt multi-apex cases.
+## Paper comparison (keypoints done, ICC pending)
 
-## Next command (when script exists)
-
-```bash
-cd ~/faraz/Test_work/research-work
-export PYTHONPATH=.
-python scripts/run_severity_icc.py \
-  --yolo-weights runs/detect/train/weights/best.pt \
-  --cej-weights runs/keypoints/v4_cej/best.pt \
-  --intersection-weights runs/keypoints/v4_intersection/best.pt \
-  --apex-weights runs/keypoints/v4_apex/best.pt \
-  --data-root data/processed_v4 \
-  --split test
-```
-
-## Paper comparison table (keypoints done, ICC pending)
-
-| Stage | Metric | Best (v4) | Paper |
+| Stage | Metric | Best (v6) | Paper |
 |-------|--------|----------:|------:|
 | YOLO | mAP50 | 0.873 | 0.963 |
-| CEJ | test OKS | 0.921 | 0.954 |
-| Intersection | test OKS | 0.822 | 0.912 |
-| Apex | test OKS | 0.853 | 0.815 |
+| CEJ | test OKS | 0.927 | 0.954 |
+| Intersection | test OKS | 0.894 | 0.912 |
+| Apex | test OKS | 0.871 | 0.815 |
 | Severity | ICC | — | 0.801 |

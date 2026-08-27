@@ -8,12 +8,12 @@ Paper: *AI-assisted radiographic analysis in detecting alveolar bone-loss severi
 |------|-----|--------|
 | Environment | [01_environment.md](01_environment.md) | Done |
 | Dataset | [02_dataset.md](02_dataset.md) | Done |
-| Preprocessing | [03_preprocessing.md](03_preprocessing.md) | Done (v1–v4); intersection QA [intersection_logic_analysis.md](intersection_logic_analysis.md) |
+| Preprocessing | [03_preprocessing.md](03_preprocessing.md) | Done (v1–v6); **v6 selected** |
 | Hyperparameters | [04_hyperparameters.md](04_hyperparameters.md) | Done |
 | Detection training | [05_detection_training.md](05_detection_training.md) | Done (test mAP50 **0.873**) |
 | Preproc comparison | [preprocessing_comparison.md](preprocessing_comparison.md) | v1–v4 stats |
-| Keypoint training | [06_keypoint_training.md](06_keypoint_training.md) | **v2/v3/v4 done** — **v4 best** (apex OKS **0.853**) |
-| Severity / ICC | [07_severity_icc.md](07_severity_icc.md) | **Next** |
+| Keypoint training | [06_keypoint_training.md](06_keypoint_training.md) | **v6 best** (int OKS **0.894**) |
+| Severity / ICC | [07_severity_icc.md](07_severity_icc.md) | **Run ICC** (`run_severity_icc.py`) |
 | Experiment registry | [experiments/README.md](experiments/README.md) | v2–v4 in `paper_table.json` |
 
 **Resume here:** [CHECKPOINT.md](CHECKPOINT.md)

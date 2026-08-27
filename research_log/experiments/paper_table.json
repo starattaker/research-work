@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-20 07:03 UTC",
+  "updated": "2026-08-27",
   "experiments": [
     {
       "experiment_id": "v2",
@@ -79,5 +79,38 @@
         }
       }
     }
-  ]
+    ,
+    {
+      "experiment_id": "v5",
+      "models": {
+        "intersection": {
+          "test_oks": 0.8591,
+          "paper_target": 0.912,
+          "run_dir": "runs/keypoints/v5_intersection",
+          "note": "intersection-only run"
+        }
+      }
+    },
+    {
+      "experiment_id": "v6",
+      "models": {
+        "cej": {
+          "test_oks": 0.9271,
+          "paper_target": 0.954,
+          "run_dir": "runs/keypoints/v6_cej"
+        },
+        "intersection": {
+          "test_oks": 0.8938,
+          "paper_target": 0.912,
+          "run_dir": "runs/keypoints/v6_intersection"
+        },
+        "apex": {
+          "test_oks": 0.8711,
+          "paper_target": 0.815,
+          "run_dir": "runs/keypoints/v6_apex"
+        }
+      }
+    }
+  ],
+  "selected_for_icc": "v6"
 }

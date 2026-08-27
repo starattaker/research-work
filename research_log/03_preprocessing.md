@@ -226,6 +226,19 @@ python scripts/visualize_overloaded_teeth.py --split test
 
 ---
 
+## Chapter 6 — v5 / v6 (2026-08-27)
+
+| Version | CEJ / apex | Intersection | Padding |
+|---------|------------|--------------|---------|
+| **v5** | v4 region grow | Bone-line endpoints → nearest **mask** | x-sort (legacy) |
+| **v6** | Region grow → **PCA long-axis slots** | Endpoints → mask; max 2 (L/R bone line) | Fixed axis slots |
+| **Selected** | **v6** — test OKS 0.927 / 0.871 | **v6** — 0.894 | — |
+
+**Data:** `data/processed_v5/`, `data/processed_v6/`  
+**Runners:** `scripts/run_v5_intersection.sh`, `scripts/run_v6_experiment.sh`
+
+---
+
 ## Chapter 7 — Superseded planning notes
 
 *(Original planning notes retained in git history.)*
