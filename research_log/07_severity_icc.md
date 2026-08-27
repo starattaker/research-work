@@ -17,7 +17,9 @@ Panoramic X-ray
   → ICC vs GT severity from processed label JSON
 ```
 
-Diagnostic: `--no-require-yolo` uses **GT box** as the ROI proposal when YOLO misses (isolates keypoint error).
+Diagnostics:
+- `--gt-proposals` — **GT box** for every tooth (isolates keypoint + severity vs YOLO)
+- `--no-require-yolo` — GT box only when YOLO misses (~39 teeth on test)
 
 ## Command
 
@@ -43,7 +45,6 @@ python scripts/run_severity_icc.py \
 | Keypoint NMS IoU | 0.6 |
 | Score threshold | 0.5 |
 | GT↔YOLO match IoU | 0.5 |
-| Proposal↔ROI det IoU | 0.3 |
 | Severity formula | `compute_bone_loss_severity()` |
 
 ## GT vs pred severity

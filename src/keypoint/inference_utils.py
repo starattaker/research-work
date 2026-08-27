@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import torch
-from torchvision.ops import box_iou, nms
+from torchvision.ops import nms
 
 
 def filter_keypoint_output(
@@ -41,22 +41,13 @@ def filter_keypoint_output(
     return filtered
 
 
-def keypoints_for_proposal(
-    output: dict,
-    proposal_box: torch.Tensor,
-    min_iou: float,
-) -> torch.Tensor | None:
-    """Pick keypoints from ROI-head output that best overlaps a fixed proposal box."""
-    boxes = output.get("boxes")
+def _keypoints_from_roi_output(output: dict) -> torch.Tensor | None:
     keypoints = output.get("keypoints")
-    if boxes is None or keypoints is None or boxes.numel() == 0:
+    scores = output.get("scores")
+    if keypoints is None or scores is None or keypoints.numel() == 0:
         return None
-    device = boxes.device
-    ious = box_iou(proposal_box.unsqueeze(0).to(device), boxes)[0]
-    j = int(ious.argmax().item())
-    if float(ious[j]) < min_iou:
-        return None
-    return keypoints[j]
+    best = int(scores.argmax().item())
+    return keypoints[best]
 
 
 @torch.no_grad()
@@ -67,27 +58,35 @@ def predict_keypoints_on_proposals(
     device: torch.device,
     score_thresh: float = 0.5,
     nms_thresh: float = 0.6,
-    match_iou: float = 0.3,
+    proposal_labels: torch.Tensor | None = None,
 ) -> list[torch.Tensor | None]:
     """
-    Paper inference path: fixed boxes (YOLO) → backbone + ROI heads only (no RPN).
+    Paper inference path: fixed boxes (YOLO or GT) → backbone + ROI heads only (no RPN).
 
-    Returns one (num_keypoints, 3) tensor per proposal, or None when no valid detection.
+    Runs one proposal at a time so each tooth gets exactly one keypoint tensor.
     """
     if proposal_boxes.numel() == 0:
         return []
 
     model.eval()
     boxes = proposal_boxes.to(device).float()
-    labels = torch.ones(len(boxes), dtype=torch.int64, device=device)
-    targets = [{"boxes": boxes, "labels": labels}]
+    if proposal_labels is None:
+        labels_all = torch.ones(len(boxes), dtype=torch.int64, device=device)
+    else:
+        labels_all = proposal_labels.to(device).long()
+
     images = [image_tensor.to(device)]
+    results: list[torch.Tensor | None] = []
 
-    images_t, targets_t = model.transform(images, targets)
-    features = model.backbone(images_t.tensors)
-    proposals = [targets_t[0]["boxes"]]
-    detections, _ = model.roi_heads(features, proposals, images_t.image_sizes, None)
-    filtered = filter_keypoint_output(detections[0], score_thresh, nms_thresh)
+    for j in range(len(boxes)):
+        box = boxes[j : j + 1]
+        labels = labels_all[j : j + 1]
+        targets = [{"boxes": box, "labels": labels}]
+        images_t, targets_t = model.transform(images, targets)
+        features = model.backbone(images_t.tensors)
+        proposals = [targets_t[0]["boxes"]]
+        detections, _ = model.roi_heads(features, proposals, images_t.image_sizes, None)
+        filtered = filter_keypoint_output(detections[0], score_thresh, nms_thresh)
+        results.append(_keypoints_from_roi_output(filtered))
 
-    prop = proposals[0]
-    return [keypoints_for_proposal(filtered, prop[j], match_iou) for j in range(len(prop))]
+    return results

@@ -134,15 +134,15 @@ class SeverityPipeline:
         score_thresh: float = 0.5,
         nms_thresh: float = 0.6,
         match_iou: float = 0.5,
-        keypoint_match_iou: float = 0.3,
         require_yolo: bool = True,
+        gt_proposals: bool = False,
     ):
         self.device = torch.device(device if torch.cuda.is_available() or device == "cpu" else "cpu")
         self.score_thresh = score_thresh
         self.nms_thresh = nms_thresh
         self.match_iou = match_iou
-        self.keypoint_match_iou = keypoint_match_iou
         self.require_yolo = require_yolo
+        self.gt_proposals = gt_proposals
         self.yolo = YOLO(str(yolo_weights))
         self.transform = build_clahe_transform()
         self.models = {
@@ -164,15 +164,15 @@ class SeverityPipeline:
         yolo_matched: list[bool] = []
         for gt_box in gt_boxes:
             yolo_idx = best_match_idx(gt_box, yolo_boxes_xyxy, self.match_iou)
-            if yolo_idx is not None:
+            yolo_matched.append(yolo_idx is not None)
+            if self.gt_proposals:
+                proposals.append(gt_box)
+            elif yolo_idx is not None:
                 proposals.append(yolo_boxes_xyxy[yolo_idx])
-                yolo_matched.append(True)
             elif not self.require_yolo:
                 proposals.append(gt_box)
-                yolo_matched.append(False)
             else:
                 proposals.append(None)
-                yolo_matched.append(False)
         return proposals, yolo_matched
 
     def predict_image_severities(
@@ -198,6 +198,8 @@ class SeverityPipeline:
 
         if valid_idx:
             prop_tensor = torch.stack([tooth_proposals[i] for i in valid_idx])
+            gt_labels = torch.tensor(gt_merged["labels"], dtype=torch.int64)
+            label_tensor = gt_labels[valid_idx]
             cej_list = predict_keypoints_on_proposals(
                 self.models["cej"],
                 image_tensor,
@@ -205,7 +207,7 @@ class SeverityPipeline:
                 self.device,
                 self.score_thresh,
                 self.nms_thresh,
-                self.keypoint_match_iou,
+                label_tensor,
             )
             int_list = predict_keypoints_on_proposals(
                 self.models["intersection"],
@@ -214,7 +216,7 @@ class SeverityPipeline:
                 self.device,
                 self.score_thresh,
                 self.nms_thresh,
-                self.keypoint_match_iou,
+                label_tensor,
             )
             apex_list = predict_keypoints_on_proposals(
                 self.models["apex"],
@@ -223,7 +225,7 @@ class SeverityPipeline:
                 self.device,
                 self.score_thresh,
                 self.nms_thresh,
-                self.keypoint_match_iou,
+                label_tensor,
             )
             for row, tooth_idx in enumerate(valid_idx):
                 kps_by_tooth[tooth_idx] = (cej_list[row], int_list[row], apex_list[row])

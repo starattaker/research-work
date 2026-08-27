@@ -48,15 +48,14 @@ def main():
     parser.add_argument("--nms-thresh", type=float, default=0.6, help="Paper NMS IoU")
     parser.add_argument("--match-iou", type=float, default=0.5, help="GT↔YOLO IoU")
     parser.add_argument(
-        "--keypoint-match-iou",
-        type=float,
-        default=0.3,
-        help="YOLO proposal ↔ ROI-head detection IoU (paper uses fixed YOLO boxes)",
-    )
-    parser.add_argument(
         "--no-require-yolo",
         action="store_true",
-        help="Include teeth even when YOLO misses (upper-bound diagnostic)",
+        help="When YOLO misses a tooth, fall back to GT box as ROI proposal",
+    )
+    parser.add_argument(
+        "--gt-proposals",
+        action="store_true",
+        help="Use GT boxes as ROI proposals for all teeth (keypoint-only diagnostic)",
     )
     parser.add_argument(
         "--out",
@@ -75,8 +74,8 @@ def main():
         score_thresh=args.score_thresh,
         nms_thresh=args.nms_thresh,
         match_iou=args.match_iou,
-        keypoint_match_iou=args.keypoint_match_iou,
         require_yolo=not args.no_require_yolo,
+        gt_proposals=args.gt_proposals,
     )
 
     gt_vals: list[float] = []
@@ -136,16 +135,17 @@ def main():
         "score_thresh": args.score_thresh,
         "nms_thresh": args.nms_thresh,
         "match_iou": args.match_iou,
-        "keypoint_match_iou": args.keypoint_match_iou,
         "require_yolo": not args.no_require_yolo,
+        "gt_proposals": args.gt_proposals,
         "icc": icc,
         "mae_pct": mae,
         "n_pairs": len(gt_vals),
         "stats": stats,
         "note": (
             "GT severity from v6 label JSON (aligned slots). "
-            "Pred: YOLO box as Keypoint R-CNN ROI proposal (no RPN); "
-            "3 models on same box; Eq. 1. --no-require-yolo uses GT box as proposal."
+            "Pred: fixed ROI proposals → Keypoint R-CNN (no RPN); 3 models; Eq. 1. "
+            "Default proposals=Yolo-matched boxes; --gt-proposals=GT boxes for all teeth; "
+            "--no-require-yolo=GT box only when YOLO misses."
         ),
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
