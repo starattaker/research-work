@@ -10,12 +10,18 @@ __pycache__/
 data/DenPAR/
 data/*.zip
 *.pt
+!artifacts/local_viz/*.pt
 
 # Clone separately if needed
 official_repo/
 
 # Training outputs — retrain or resume locally
 runs/
+
+# Bundled weights for local viz (friend pushes, you pull) — see scripts/push_local_viz_to_github.sh
+!artifacts/
+!artifacts/local_viz/
+!artifacts/local_viz/**
 
 # Local IDE (skills are under .cursor/skills/ — included if present)
 .cursor/projects/
