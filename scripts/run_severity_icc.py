@@ -151,9 +151,8 @@ def main():
         "stats": stats,
         "note": (
             "GT severity from v6 label JSON (aligned slots). "
-            "Pred: fixed ROI proposals → Keypoint R-CNN (no RPN); 3 models; Eq. 1. "
-            "Default proposals=Yolo-matched boxes; --gt-proposals=GT boxes for all teeth; "
-            "--no-require-yolo=GT box only when YOLO misses."
+            "Pred: inference_mode full|roi; YOLO-matched boxes; 3 models; Eq. 1. "
+            "--gt-proposals uses GT boxes for all teeth."
         ),
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
