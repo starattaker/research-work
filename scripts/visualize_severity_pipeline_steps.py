@@ -368,14 +368,15 @@ def step5_severity(
         pred_slot = None
         if i in kps_by_tooth:
             cej_kps, int_kps, apex_kps = kps_by_tooth[i]
-            pred_sev = severity_from_tensor_slots(cej_kps, int_kps, apex_kps)
-            pred_slot = pred_slot_used(cej_kps, int_kps, apex_kps)
-            if pred_slot is not None and pred_sev is not None:
-                c = slot_xy_from_tensor(cej_kps, pred_slot)
-                t = slot_xy_from_tensor(int_kps, pred_slot)
-                a = slot_xy_from_tensor(apex_kps, pred_slot)
-                if c and t and a:
-                    draw_severity_line(canvas, c, t, a, (255, 255, 0))
+            if cej_kps is not None and int_kps is not None and apex_kps is not None:
+                pred_sev = severity_from_tensor_slots(cej_kps, int_kps, apex_kps)
+                pred_slot = pred_slot_used(cej_kps, int_kps, apex_kps)
+                if pred_slot is not None and pred_sev is not None:
+                    c = slot_xy_from_tensor(cej_kps, pred_slot)
+                    t = slot_xy_from_tensor(int_kps, pred_slot)
+                    a = slot_xy_from_tensor(apex_kps, pred_slot)
+                    if c and t and a:
+                        draw_severity_line(canvas, c, t, a, (255, 255, 0))
         cv2.rectangle(canvas, (x1, y1), (x2, y2), color, 2, cv2.LINE_AA)
         if gt_sev is not None and pred_sev is not None:
             delta = pred_sev - gt_sev
@@ -561,10 +562,14 @@ def main():
         )
         for img_path in chosen:
             print(f"Processing {img_path.stem} (steps 1-5)...")
-            summary = process_image(
-                pipeline, img_path, args.data_root, args.split, args.out_dir, args.match_iou, dirs
-            )
-            manifest["images"].append(summary)
+            try:
+                summary = process_image(
+                    pipeline, img_path, args.data_root, args.split, args.out_dir, args.match_iou, dirs
+                )
+                manifest["images"].append(summary)
+            except Exception as exc:
+                print(f"  WARNING: skipped {img_path.stem}: {exc}")
+                manifest.setdefault("errors", []).append({"image": img_path.stem, "error": str(exc)})
 
     (args.out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     print(f"\nDone. Outputs in {args.out_dir}/")

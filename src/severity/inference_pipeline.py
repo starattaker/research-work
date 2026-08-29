@@ -50,7 +50,9 @@ def severity_from_slots(
     return None
 
 
-def slot_xy_from_tensor(kps: torch.Tensor, slot: int) -> tuple[float, float] | None:
+def slot_xy_from_tensor(kps: torch.Tensor | None, slot: int) -> tuple[float, float] | None:
+    if kps is None or kps.numel() == 0:
+        return None
     if slot >= kps.shape[0]:
         return None
     x, y, v = float(kps[slot, 0]), float(kps[slot, 1]), float(kps[slot, 2])
@@ -60,10 +62,12 @@ def slot_xy_from_tensor(kps: torch.Tensor, slot: int) -> tuple[float, float] | N
 
 
 def severity_from_tensor_slots(
-    cej_kps: torch.Tensor,
-    inter_kps: torch.Tensor,
-    apex_kps: torch.Tensor,
+    cej_kps: torch.Tensor | None,
+    inter_kps: torch.Tensor | None,
+    apex_kps: torch.Tensor | None,
 ) -> float | None:
+    if cej_kps is None or inter_kps is None or apex_kps is None:
+        return None
     for slot in (0, 1):
         c = slot_xy_from_tensor(cej_kps, slot)
         t = slot_xy_from_tensor(inter_kps, slot)
