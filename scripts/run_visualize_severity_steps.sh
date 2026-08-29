@@ -41,8 +41,14 @@ pick_python() {
 
 PYTHON=$(pick_python) || {
   echo "ERROR: No Python with torch, albumentations, opencv, ultralytics found."
-  echo "You used '(base)' before — try:  source ~/anaconda3/etc/profile.d/conda.sh && conda activate base"
-  echo "Or:  pip install -r requirements.txt   (inside your training venv)"
+  echo ""
+  echo "If you trained in this repo, activate the project venv:"
+  echo "  source venv/bin/activate"
+  echo ""
+  echo "Or create it once:"
+  echo "  python3 -m venv venv && source venv/bin/activate"
+  echo "  pip install -U pip && pip install -r requirements.txt"
+  echo "  pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124"
   exit 1
 }
 
