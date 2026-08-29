@@ -43,6 +43,26 @@ TOOTH_COLORS = [
 
 PANEL_W = 420
 
+STEP_FOLDERS = {
+    1: "step1_gt_labels",
+    2: "step2_yolo",
+    3: "step3_gt_yolo_match",
+    4: "step4_keypoints_pred",
+    5: "step5_severity_compare",
+}
+
+
+def step_dirs(out_dir: Path) -> dict[int, Path]:
+    dirs = {}
+    for step, name in STEP_FOLDERS.items():
+        d = out_dir / name
+        d.mkdir(parents=True, exist_ok=True)
+        dirs[step] = d
+    summary_dir = out_dir / "summaries"
+    summary_dir.mkdir(parents=True, exist_ok=True)
+    dirs["summaries"] = summary_dir
+    return dirs
+
 
 def tooth_color(i: int) -> tuple[int, int, int]:
     return TOOTH_COLORS[i % len(TOOTH_COLORS)]
@@ -395,6 +415,7 @@ def process_image(
     split: str,
     out_dir: Path,
     match_iou: float,
+    dirs: dict,
 ) -> dict:
     stem = image_path.stem
     merged = load_gt_annotations(data_root, split, stem)
@@ -402,20 +423,18 @@ def process_image(
         raise FileNotFoundError(f"Missing annotations for {stem}")
 
     img_bgr = load_bgr(image_path)
-    img_dir = out_dir / stem
-    img_dir.mkdir(parents=True, exist_ok=True)
 
     s1_img, tooth_rows = step1_gt_labels(img_bgr, merged)
-    cv2.imwrite(str(img_dir / "step1_gt_labels.jpg"), s1_img)
+    cv2.imwrite(str(dirs[1] / f"{stem}.jpg"), s1_img)
 
     yolo_result = pipeline.yolo.predict(
         source=str(image_path), imgsz=640, conf=pipeline.score_thresh, verbose=False
     )[0]
     s2_img, yolo_box_list = step2_yolo(img_bgr, yolo_result)
-    cv2.imwrite(str(img_dir / "step2_yolo.jpg"), s2_img)
+    cv2.imwrite(str(dirs[2] / f"{stem}.jpg"), s2_img)
 
     s3_img, match_rows = step3_match(img_bgr, merged, yolo_box_list, match_iou)
-    cv2.imwrite(str(img_dir / "step3_gt_yolo_match.jpg"), s3_img)
+    cv2.imwrite(str(dirs[3] / f"{stem}.jpg"), s3_img)
 
     from src.severity.inference_pipeline import load_image_tensor
 
@@ -446,20 +465,27 @@ def process_image(
             kps_by_tooth[tooth_idx] = (cej_list[row], int_list[row], apex_list[row])
 
     s4_img = step4_keypoints(img_bgr, merged, kps_by_tooth)
-    cv2.imwrite(str(img_dir / "step4_keypoints_pred.jpg"), s4_img)
+    cv2.imwrite(str(dirs[4] / f"{stem}.jpg"), s4_img)
 
     s5_img, compare_rows = step5_severity(img_bgr, merged, tooth_rows, kps_by_tooth)
-    cv2.imwrite(str(img_dir / "step5_severity_compare.jpg"), s5_img)
+    cv2.imwrite(str(dirs[5] / f"{stem}.jpg"), s5_img)
 
     summary = {
         "image": stem,
         "n_teeth": len(merged["bboxes"]),
         "n_yolo": len(yolo_box_list),
+        "outputs": {
+            "step1": (dirs[1] / f"{stem}.jpg").as_posix(),
+            "step2": (dirs[2] / f"{stem}.jpg").as_posix(),
+            "step3": (dirs[3] / f"{stem}.jpg").as_posix(),
+            "step4": (dirs[4] / f"{stem}.jpg").as_posix(),
+            "step5": (dirs[5] / f"{stem}.jpg").as_posix(),
+        },
         "step1_gt": tooth_rows,
         "step3_match": match_rows,
         "step5_compare": compare_rows,
     }
-    (img_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    (dirs["summaries"] / f"{stem}.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     return summary
 
 
@@ -497,7 +523,14 @@ def main():
     chosen = sorted(rng.sample(paths, args.n_images), key=lambda p: p.stem)
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    manifest = {"seed": args.seed, "images": [], "out_dir": args.out_dir.as_posix()}
+    dirs = step_dirs(args.out_dir)
+    manifest = {
+        "seed": args.seed,
+        "images": [],
+        "out_dir": args.out_dir.as_posix(),
+        "folders": {f"step{k}": v for k, v in STEP_FOLDERS.items()},
+        "summaries": "summaries",
+    }
 
     if args.step1_only:
         for img_path in chosen:
@@ -506,14 +539,13 @@ def main():
             if merged is None:
                 continue
             img_bgr = load_bgr(img_path)
-            img_dir = args.out_dir / stem
-            img_dir.mkdir(parents=True, exist_ok=True)
             s1_img, tooth_rows = step1_gt_labels(img_bgr, merged)
-            cv2.imwrite(str(img_dir / "step1_gt_labels.jpg"), s1_img)
+            out_path = dirs[1] / f"{stem}.jpg"
+            cv2.imwrite(str(out_path), s1_img)
             summary = {"image": stem, "n_teeth": len(merged["bboxes"]), "step1_gt": tooth_rows}
-            (img_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+            (dirs["summaries"] / f"{stem}.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
             manifest["images"].append(summary)
-            print(f"  {stem}/step1_gt_labels.jpg")
+            print(f"  step1_gt_labels/{stem}.jpg")
     else:
         if not all([args.cej_weights, args.intersection_weights, args.apex_weights]):
             raise ValueError("Steps 2-5 require --cej/intersection/apex-weights (or use --step1-only)")
@@ -528,16 +560,17 @@ def main():
             match_iou=args.match_iou,
         )
         for img_path in chosen:
-            print(f"Processing {img_path.stem}...")
+            print(f"Processing {img_path.stem} (steps 1-5)...")
             summary = process_image(
-                pipeline, img_path, args.data_root, args.split, args.out_dir, args.match_iou
+                pipeline, img_path, args.data_root, args.split, args.out_dir, args.match_iou, dirs
             )
             manifest["images"].append(summary)
 
     (args.out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
-    print(f"Done. Outputs in {args.out_dir}")
-    for stem in [s["image"] for s in manifest["images"]]:
-        print(f"  {args.out_dir / stem}/step1_gt_labels.jpg … step5_severity_compare.jpg")
+    print(f"\nDone. Outputs in {args.out_dir}/")
+    for step, folder in STEP_FOLDERS.items():
+        print(f"  {folder}/  ({args.n_images} images)")
+    print(f"  summaries/  ({len(manifest['images'])} json files)")
 
 
 if __name__ == "__main__":
