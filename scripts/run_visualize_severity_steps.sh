@@ -6,6 +6,14 @@ export PYTHONPATH=.
 
 pick_python() {
   local py
+  # Project venv (documented in docs/CLONE_AND_TRAIN.md)
+  if [[ -x "$(pwd)/venv/bin/python" ]]; then
+    py="$(pwd)/venv/bin/python"
+    if "$py" -c "import torch, albumentations, cv2, ultralytics" 2>/dev/null; then
+      echo "$py"
+      return 0
+    fi
+  fi
   for py in python python3; do
     if command -v "$py" >/dev/null 2>&1 && "$py" -c "import torch, albumentations, cv2, ultralytics" 2>/dev/null; then
       echo "$py"
