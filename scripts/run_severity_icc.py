@@ -58,6 +58,12 @@ def main():
         help="Use GT boxes as ROI proposals for all teeth (keypoint-only diagnostic)",
     )
     parser.add_argument(
+        "--inference-mode",
+        choices=["full", "roi"],
+        default="full",
+        help="full = OKS-test path (RPN then match box); roi = fixed YOLO/GT ROI",
+    )
+    parser.add_argument(
         "--out",
         type=Path,
         default=Path("research_log/severity_icc_end_to_end.json"),
@@ -76,6 +82,7 @@ def main():
         match_iou=args.match_iou,
         require_yolo=not args.no_require_yolo,
         gt_proposals=args.gt_proposals,
+        inference_mode=args.inference_mode,
     )
 
     gt_vals: list[float] = []
@@ -137,6 +144,7 @@ def main():
         "match_iou": args.match_iou,
         "require_yolo": not args.no_require_yolo,
         "gt_proposals": args.gt_proposals,
+        "inference_mode": args.inference_mode,
         "icc": icc,
         "mae_pct": mae,
         "n_pairs": len(gt_vals),

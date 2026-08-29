@@ -499,21 +499,24 @@ def process_image(
     valid_idx = [i for i, b in enumerate(proposals) if b is not None]
     kps_by_tooth: dict = {}
     if valid_idx:
-        from src.keypoint.inference_utils import predict_keypoints_on_proposals
+        from src.keypoint.inference_utils import predict_keypoints_for_boxes
 
         prop_tensor = torch.stack([proposals[i] for i in valid_idx])
         labels = torch.tensor(merged["labels"], dtype=torch.int64)[valid_idx]
-        cej_list = predict_keypoints_on_proposals(
+        cej_list = predict_keypoints_for_boxes(
             pipeline.models["cej"], image_tensor, prop_tensor, pipeline.device,
-            pipeline.score_thresh, pipeline.nms_thresh, labels,
+            pipeline.inference_mode, pipeline.score_thresh, pipeline.nms_thresh,
+            labels, pipeline.keypoint_match_iou,
         )
-        int_list = predict_keypoints_on_proposals(
+        int_list = predict_keypoints_for_boxes(
             pipeline.models["intersection"], image_tensor, prop_tensor, pipeline.device,
-            pipeline.score_thresh, pipeline.nms_thresh, labels,
+            pipeline.inference_mode, pipeline.score_thresh, pipeline.nms_thresh,
+            labels, pipeline.keypoint_match_iou,
         )
-        apex_list = predict_keypoints_on_proposals(
+        apex_list = predict_keypoints_for_boxes(
             pipeline.models["apex"], image_tensor, prop_tensor, pipeline.device,
-            pipeline.score_thresh, pipeline.nms_thresh, labels,
+            pipeline.inference_mode, pipeline.score_thresh, pipeline.nms_thresh,
+            labels, pipeline.keypoint_match_iou,
         )
         for row, tooth_idx in enumerate(valid_idx):
             kps_by_tooth[tooth_idx] = (cej_list[row], int_list[row], apex_list[row])
@@ -567,6 +570,13 @@ def main():
     parser.add_argument("--nms-thresh", type=float, default=0.6)
     parser.add_argument("--match-iou", type=float, default=0.5)
     parser.add_argument(
+        "--inference-mode",
+        choices=["full", "roi"],
+        default="full",
+        help="full = same as OKS test (RPN+match to box); roi = YOLO box as ROI only",
+    )
+    parser.add_argument("--gt-proposals", action="store_true", help="Use GT boxes instead of YOLO for keypoints")
+    parser.add_argument(
         "--out-dir",
         type=Path,
         default=Path("research_log/figures/severity_pipeline_steps"),
@@ -616,6 +626,8 @@ def main():
             score_thresh=args.score_thresh,
             nms_thresh=args.nms_thresh,
             match_iou=args.match_iou,
+            inference_mode=args.inference_mode,
+            gt_proposals=args.gt_proposals,
         )
         for img_path in chosen:
             print(f"Processing {img_path.stem} (steps 1-5)...")

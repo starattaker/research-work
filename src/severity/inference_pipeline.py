@@ -12,7 +12,7 @@ from torchvision.ops import box_iou
 from torchvision.transforms import functional as F
 from ultralytics import YOLO
 
-from src.keypoint.inference_utils import predict_keypoints_on_proposals
+from src.keypoint.inference_utils import predict_keypoints_for_boxes
 from src.keypoint.model import get_keypoint_model
 from src.severity.bone_loss import compute_bone_loss_severity
 
@@ -138,6 +138,8 @@ class SeverityPipeline:
         score_thresh: float = 0.5,
         nms_thresh: float = 0.6,
         match_iou: float = 0.5,
+        keypoint_match_iou: float = 0.3,
+        inference_mode: str = "full",
         require_yolo: bool = True,
         gt_proposals: bool = False,
     ):
@@ -145,6 +147,8 @@ class SeverityPipeline:
         self.score_thresh = score_thresh
         self.nms_thresh = nms_thresh
         self.match_iou = match_iou
+        self.keypoint_match_iou = keypoint_match_iou
+        self.inference_mode = inference_mode
         self.require_yolo = require_yolo
         self.gt_proposals = gt_proposals
         self.yolo = YOLO(str(yolo_weights))
@@ -204,32 +208,17 @@ class SeverityPipeline:
             prop_tensor = torch.stack([tooth_proposals[i] for i in valid_idx])
             gt_labels = torch.tensor(gt_merged["labels"], dtype=torch.int64)
             label_tensor = gt_labels[valid_idx]
-            cej_list = predict_keypoints_on_proposals(
-                self.models["cej"],
-                image_tensor,
-                prop_tensor,
-                self.device,
-                self.score_thresh,
-                self.nms_thresh,
-                label_tensor,
+            cej_list = predict_keypoints_for_boxes(
+                self.models["cej"], image_tensor, prop_tensor, self.device,
+                self.inference_mode, self.score_thresh, self.nms_thresh, label_tensor, self.keypoint_match_iou,
             )
-            int_list = predict_keypoints_on_proposals(
-                self.models["intersection"],
-                image_tensor,
-                prop_tensor,
-                self.device,
-                self.score_thresh,
-                self.nms_thresh,
-                label_tensor,
+            int_list = predict_keypoints_for_boxes(
+                self.models["intersection"], image_tensor, prop_tensor, self.device,
+                self.inference_mode, self.score_thresh, self.nms_thresh, label_tensor, self.keypoint_match_iou,
             )
-            apex_list = predict_keypoints_on_proposals(
-                self.models["apex"],
-                image_tensor,
-                prop_tensor,
-                self.device,
-                self.score_thresh,
-                self.nms_thresh,
-                label_tensor,
+            apex_list = predict_keypoints_for_boxes(
+                self.models["apex"], image_tensor, prop_tensor, self.device,
+                self.inference_mode, self.score_thresh, self.nms_thresh, label_tensor, self.keypoint_match_iou,
             )
             for row, tooth_idx in enumerate(valid_idx):
                 kps_by_tooth[tooth_idx] = (cej_list[row], int_list[row], apex_list[row])
