@@ -314,39 +314,92 @@ def torchvision_iou(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     return box_iou(a.unsqueeze(0), b.unsqueeze(0))[0, 0]
 
 
+def clahe_bgr(img_bgr: np.ndarray) -> np.ndarray:
+    """Same CLAHE as keypoint inference (model input appearance)."""
+    from src.severity.inference_pipeline import build_clahe_transform
+
+    rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+    out = build_clahe_transform()(image=rgb)["image"]
+    return cv2.cvtColor(out, cv2.COLOR_RGB2BGR)
+
+
+def draw_dashed_rect(canvas, x1, y1, x2, y2, color, thickness=2) -> None:
+    pts = [
+        ((x1, y1), (x2, y1)),
+        ((x2, y1), (x2, y2)),
+        ((x2, y2), (x1, y2)),
+        ((x1, y2), (x1, y1)),
+    ]
+    for (a, b) in pts:
+        cv2.line(canvas, a, b, color, thickness, cv2.LINE_AA)
+
+
 def step4_keypoints(
     img_bgr: np.ndarray,
     merged: dict,
     kps_by_tooth: dict[int, tuple],
+    proposal_by_tooth: dict[int, list[float] | None],
 ) -> np.ndarray:
-    canvas = img_bgr.copy()
+    """GT vs YOLO ROI vs predicted keypoints on CLAHE image (matches model input)."""
+    canvas = clahe_bgr(img_bgr)
     for i, bbox in enumerate(merged["bboxes"]):
-        if i not in kps_by_tooth:
-            continue
         color = tooth_color(i)
         x1, y1, x2, y2 = [int(v) for v in bbox]
-        cv2.rectangle(canvas, (x1, y1), (x2, y2), color, 1, cv2.LINE_AA)
+        draw_dashed_rect(canvas, x1, y1, x2, y2, color, 2)
+
+        roi = proposal_by_tooth.get(i)
+        if roi is not None:
+            rx1, ry1, rx2, ry2 = [int(v) for v in roi]
+            cv2.rectangle(canvas, (rx1, ry1), (rx2, ry2), (0, 255, 255), 2, cv2.LINE_AA)
+
+        for s in (0, 1):
+            for pts, shape, tag in (
+                (merged["cej"][i], "cej", f"G C{s}"),
+                (merged["intersection"][i], "inter", f"G I{s}"),
+                (merged["apex"][i], "apex", f"G A{s}"),
+            ):
+                pt = vis_pt(pts, s)
+                if pt:
+                    draw_kp(canvas, pt, color, shape, tag)
+
+        if i not in kps_by_tooth:
+            continue
         cej_kps, int_kps, apex_kps = kps_by_tooth[i]
-        for kps, shape, prefix in ((cej_kps, "cej", "pC"), (int_kps, "inter", "pI"), (apex_kps, "apex", "pA")):
+        for kps, shape, prefix in ((cej_kps, "cej", "P C"), (int_kps, "inter", "P I"), (apex_kps, "apex", "P A")):
             if kps is None:
                 continue
             for s in range(kps.shape[0]):
                 pt = slot_xy_from_tensor(kps, s)
                 if pt:
                     draw_kp(canvas, pt, (255, 255, 255), shape, f"{prefix}{s}")
-                    draw_kp(canvas, pt, color, shape, "")
+                    cv2.circle(canvas, (int(pt[0]), int(pt[1])), 10, color, 2, cv2.LINE_AA)
+
+        cv2.putText(
+            canvas,
+            f"T{i}",
+            (x1, min(y2 + 16, canvas.shape[0] - 4)),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.45,
+            color,
+            1,
+            cv2.LINE_AA,
+        )
+
     legend = [
-        "STEP 4 — Predicted keypoints (3 models)",
+        "STEP 4 — GT vs predicted keypoints (CLAHE image)",
         "",
-        "ROI = YOLO-matched box (Step 3)",
-        "Keypoint R-CNN ×3 on each ROI:",
-        "  pC = predicted CEJ",
-        "  pI = predicted intersection",
-        "  pA = predicted apex",
-        "Slots 0/1 from each model independently",
-        "(CLAHE preproc, score>=0.5, NMS 0.6)",
+        "Dashed box = GT tooth bbox",
+        "Yellow solid = YOLO ROI used for models",
+        "G C/I/A = ground-truth keypoints (slots 0/1)",
+        "P C/I/A = model predictions (white + color ring)",
+        "",
+        "If P points drift from G points:",
+        "  • YOLO box shifted vs GT (see Step 3)",
+        "  • or model error on that ROI",
+        "",
+        "Models see CLAHE — this panel matches that input.",
     ]
-    return compose(canvas, "Step 4: Predicted keypoints", legend)
+    return compose(canvas, "Step 4: GT vs pred keypoints", legend)
 
 
 def step5_severity(
@@ -465,7 +518,11 @@ def process_image(
         for row, tooth_idx in enumerate(valid_idx):
             kps_by_tooth[tooth_idx] = (cej_list[row], int_list[row], apex_list[row])
 
-    s4_img = step4_keypoints(img_bgr, merged, kps_by_tooth)
+    proposal_by_tooth: dict[int, list[float] | None] = {
+        i: (proposals[i].tolist() if proposals[i] is not None else None) for i in range(len(proposals))
+    }
+
+    s4_img = step4_keypoints(img_bgr, merged, kps_by_tooth, proposal_by_tooth)
     cv2.imwrite(str(dirs[4] / f"{stem}.jpg"), s4_img)
 
     s5_img, compare_rows = step5_severity(img_bgr, merged, tooth_rows, kps_by_tooth)
