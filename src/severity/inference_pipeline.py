@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import albumentations as A
@@ -14,92 +13,63 @@ from ultralytics import YOLO
 
 from src.keypoint.inference_utils import predict_keypoints_for_boxes
 from src.keypoint.model import get_keypoint_model
-from src.severity.bone_loss import compute_bone_loss_severity
+from src.severity.gt_labels import (
+    gt_severities_for_tooth,
+    load_gt_annotations,
+    point_from_slot,
+    severities_from_gt_lists,
+    severity_from_slots_pca,
+)
+from src.severity.pred_combine import (
+    pred_severities_from_tensors,
+    pred_severity_from_tensors,
+    severity_from_tensor_slots,
+    slot_xy_from_tensor,
+)
+
+__all__ = [
+    "SeverityPipeline",
+    "load_gt_annotations",
+    "gt_severity_for_tooth",
+    "gt_severities_for_tooth",
+    "severity_from_slots",
+    "severity_from_tensor_slots",
+    "point_from_slot",
+    "slot_xy_from_tensor",
+    "pred_severity_from_tensors",
+    "pred_severities_from_tensors",
+]
 
 
 def build_clahe_transform():
     return A.Compose([A.CLAHE(clip_limit=40.0, tile_grid_size=(8, 8), p=1.0)])
 
 
-def point_from_slot(keypoints: list, slot: int) -> tuple[float, float]:
-    if slot >= len(keypoints):
-        return 0.0, 0.0
-    kp = keypoints[slot]
-    if len(kp) > 2 and int(kp[2]) == 0:
-        return 0.0, 0.0
-    x, y = float(kp[0]), float(kp[1])
-    if x == 0.0 and y == 0.0:
-        return 0.0, 0.0
-    return x, y
-
-
 def severity_from_slots(
     cej_pts: list,
     inter_pts: list,
     apex_pts: list,
+    *,
+    slot_convention: str = "pca",
+    merge_radius_px: float = 20.0,
 ) -> float | None:
-    """v6: try aligned slot 0 then slot 1 (PCA / L-R slots)."""
-    for slot in (0, 1):
-        sev = compute_bone_loss_severity(
-            point_from_slot(cej_pts, slot),
-            point_from_slot(inter_pts, slot),
-            point_from_slot(apex_pts, slot),
-        )
-        if sev is not None:
-            return sev
-    return None
+    if slot_convention == "paper_x":
+        sides = severities_from_gt_lists(cej_pts, inter_pts, apex_pts, merge_radius_px)
+        return sides[0][1] if sides else None
+    return severity_from_slots_pca(cej_pts, inter_pts, apex_pts)
 
 
-def slot_xy_from_tensor(kps: torch.Tensor | None, slot: int) -> tuple[float, float] | None:
-    if kps is None or kps.numel() == 0:
-        return None
-    if slot >= kps.shape[0]:
-        return None
-    x, y, v = float(kps[slot, 0]), float(kps[slot, 1]), float(kps[slot, 2])
-    if v <= 0 or (x == 0.0 and y == 0.0):
-        return None
-    return x, y
-
-
-def severity_from_tensor_slots(
-    cej_kps: torch.Tensor | None,
-    inter_kps: torch.Tensor | None,
-    apex_kps: torch.Tensor | None,
+def gt_severity_for_tooth(
+    merged: dict,
+    tooth_idx: int,
+    *,
+    slot_convention: str = "pca",
 ) -> float | None:
-    if cej_kps is None or inter_kps is None or apex_kps is None:
-        return None
-    for slot in (0, 1):
-        c = slot_xy_from_tensor(cej_kps, slot)
-        t = slot_xy_from_tensor(inter_kps, slot)
-        a = slot_xy_from_tensor(apex_kps, slot)
-        if c is None or t is None or a is None:
-            continue
-        sev = compute_bone_loss_severity(c, t, a)
-        if sev is not None:
-            return sev
-    return None
-
-
-def load_gt_annotations(data_root: Path, split: str, stem: str) -> dict | None:
-    """Merge CEJ / intersection / apex GT JSON for one image."""
-    merged: dict = {"bboxes": None, "labels": None, "cej": [], "intersection": [], "apex": []}
-    for kpt_type in ("cej", "intersection", "apex"):
-        ann_path = data_root / "keypoints" / kpt_type / split / "annotations" / f"{stem}.json"
-        if not ann_path.exists():
-            return None
-        data = json.loads(ann_path.read_text(encoding="utf-8"))
-        if merged["bboxes"] is None:
-            merged["bboxes"] = data["bboxes"]
-            merged["labels"] = data["labels"]
-        merged[kpt_type] = data["keypoints"]
-    return merged
-
-
-def gt_severity_for_tooth(merged: dict, tooth_idx: int) -> float | None:
     return severity_from_slots(
         merged["cej"][tooth_idx],
         merged["intersection"][tooth_idx],
         merged["apex"][tooth_idx],
+        slot_convention=slot_convention,
     )
 
 
@@ -139,9 +109,13 @@ class SeverityPipeline:
         nms_thresh: float = 0.6,
         match_iou: float = 0.5,
         keypoint_match_iou: float = 0.3,
-        inference_mode: str = "full",
+        inference_mode: str = "roi",
         require_yolo: bool = True,
         gt_proposals: bool = False,
+        combine_mode: str = "paper_x",
+        gt_slot_convention: str = "paper_x",
+        severity_protocol: str = "both_sides",
+        apex_merge_px: float = 20.0,
     ):
         self.device = torch.device(device if torch.cuda.is_available() or device == "cpu" else "cpu")
         self.score_thresh = score_thresh
@@ -151,6 +125,10 @@ class SeverityPipeline:
         self.inference_mode = inference_mode
         self.require_yolo = require_yolo
         self.gt_proposals = gt_proposals
+        self.combine_mode = combine_mode
+        self.gt_slot_convention = gt_slot_convention
+        self.severity_protocol = severity_protocol
+        self.apex_merge_px = apex_merge_px
         self.yolo = YOLO(str(yolo_weights))
         self.transform = build_clahe_transform()
         self.models = {
@@ -188,7 +166,6 @@ class SeverityPipeline:
         image_path: Path,
         gt_merged: dict,
     ) -> list[dict]:
-        """Per-tooth GT vs predicted severity using YOLO boxes as Keypoint R-CNN proposals."""
         yolo_result = self.yolo.predict(
             source=str(image_path),
             imgsz=640,
@@ -225,17 +202,29 @@ class SeverityPipeline:
 
         rows = []
         for i in range(len(gt_merged["bboxes"])):
-            gt_sev = gt_severity_for_tooth(gt_merged, i)
-            pred_sev = None
+            gt_sides = gt_severities_for_tooth(
+                gt_merged, i, slot_convention=self.gt_slot_convention, merge_radius_px=self.apex_merge_px
+            )
+            pred_sides: list[tuple[int, float]] = []
             if i in kps_by_tooth:
                 cej_kps, int_kps, apex_kps = kps_by_tooth[i]
                 if cej_kps is not None and int_kps is not None and apex_kps is not None:
-                    pred_sev = severity_from_tensor_slots(cej_kps, int_kps, apex_kps)
+                    pred_sides = pred_severities_from_tensors(
+                        cej_kps,
+                        int_kps,
+                        apex_kps,
+                        combine_mode=self.combine_mode,
+                        merge_radius_px=self.apex_merge_px,
+                    )
+            gt_sev = gt_sides[0][1] if gt_sides else None
+            pred_sev = pred_sides[0][1] if pred_sides else None
             rows.append(
                 {
                     "tooth_idx": i,
                     "gt_severity": gt_sev,
                     "pred_severity": pred_sev,
+                    "gt_sides": gt_sides,
+                    "pred_sides": pred_sides,
                     "yolo_matched": yolo_flags[i],
                 }
             )

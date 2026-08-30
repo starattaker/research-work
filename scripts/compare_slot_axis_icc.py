@@ -22,6 +22,7 @@ from src.severity.inference_pipeline import (
     load_image_tensor,
     yolo_boxes,
 )
+from src.severity.pred_combine import pred_severities_from_tensors
 from src.severity.slot_matching import AxisMethod, severity_with_axis_method
 
 def image_paths(data_root: Path, split: str) -> list[Path]:
@@ -120,6 +121,7 @@ def main():
     )
 
     method_results = {m.value: {"gt": [], "pred": []} for m in AxisMethod}
+    method_results["paper_x"] = {"gt": [], "pred": []}
     mask_hits = mask_miss = 0
 
     for img_path in tqdm(paths, desc="slot-axis ICC"):
@@ -155,6 +157,14 @@ def main():
                 method_results[method.value]["gt"].append(gt_sev)
                 method_results[method.value]["pred"].append(pred_sev)
 
+            sides = pred_severities_from_tensors(
+                k.get("cej"), k.get("intersection"), k.get("apex"),
+                combine_mode="paper_x", merge_radius_px=args.merge_radius,
+            )
+            if sides:
+                method_results["paper_x"]["gt"].append(gt_sev)
+                method_results["paper_x"]["pred"].append(sides[0][1])
+
     report = {
         "paper_target_icc": 0.801,
         "split": args.split,
@@ -167,6 +177,7 @@ def main():
             "mask_pca": "Mask PCA axis; LR fallback if mask missing",
             "points_axis": "PCA on pred CEJ + intersection (no apex)",
             "lr_position": "Left/right by x; bbox center if 1 CEJ + 1 INT",
+            "paper_x": "Paper dataset.py: sort each model's keypoints by x, pair slot i",
             "apex_rule": "One apex → both sides; two close apices → merged; else per side",
             "severity_rule": "Try side 0 then side 1; all three points required per side",
         },
@@ -176,15 +187,13 @@ def main():
     print("=" * 60)
     print(f"  images/GT: {args.data_root}  |  masks: {report['raw_root']}")
     print(f"  tooth masks found: {mask_hits}  missing: {mask_miss}")
-    for method in AxisMethod:
-        m = metric_icc_mae(
-            method_results[method.value]["gt"],
-            method_results[method.value]["pred"],
-        )
-        report["methods"][method.value] = m
+    for name in list(AxisMethod) + ["paper_x"]:
+        key = name.value if hasattr(name, "value") else name
+        m = metric_icc_mae(method_results[key]["gt"], method_results[key]["pred"])
+        report["methods"][key] = m
         icc = m["icc"]
         icc_s = f"{icc:.4f}" if icc is not None else "n/a"
-        print(f"  {method.value:14s}  ICC={icc_s}  n={m['n_pairs']}")
+        print(f"  {key:14s}  ICC={icc_s}  n={m['n_pairs']}")
     if not resolve_denpar_root(args.raw_root).joinpath("Testing").is_dir():
         print("\n  Warning: DenPAR Testing/ not found under raw-root; mask_pca falls back to LR.")
 

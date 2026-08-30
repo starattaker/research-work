@@ -12,6 +12,7 @@ from tqdm import tqdm
 import scripts._bootstrap  # noqa: F401
 
 from src.severity.icc import icc21
+from src.severity.icc_pairs import collect_severity_pairs
 from src.severity.inference_pipeline import SeverityPipeline, load_gt_annotations
 
 
@@ -60,9 +61,28 @@ def main():
     parser.add_argument(
         "--inference-mode",
         choices=["full", "roi"],
-        default="full",
-        help="full = OKS-test path (RPN then match box); roi = fixed YOLO/GT ROI",
+        default="roi",
+        help="roi = YOLO box → RoI heads (paper); full = RPN + match box (OKS eval path)",
     )
+    parser.add_argument(
+        "--combine-mode",
+        choices=["paper_x", "tensor", "geom_consistent"],
+        default="paper_x",
+        help="How to pair CEJ/INT/APEX slots (paper_x = sort by x, no masks)",
+    )
+    parser.add_argument(
+        "--gt-slot-convention",
+        choices=["paper_x", "pca"],
+        default="paper_x",
+        help="GT severity slot order: paper_x (left→right) or pca (v6 labels)",
+    )
+    parser.add_argument(
+        "--severity-protocol",
+        choices=["one_per_tooth", "both_sides", "match_by_slot"],
+        default="both_sides",
+        help="ICC rows: first valid side, all valid sides, or paired by slot index",
+    )
+    parser.add_argument("--apex-merge-px", type=float, default=20.0)
     parser.add_argument(
         "--out",
         type=Path,
@@ -83,6 +103,10 @@ def main():
         require_yolo=not args.no_require_yolo,
         gt_proposals=args.gt_proposals,
         inference_mode=args.inference_mode,
+        combine_mode=args.combine_mode,
+        gt_slot_convention=args.gt_slot_convention,
+        severity_protocol=args.severity_protocol,
+        apex_merge_px=args.apex_merge_px,
     )
 
     gt_vals: list[float] = []
@@ -106,22 +130,19 @@ def main():
         if merged is None:
             continue
         rows = pipeline.predict_image_severities(img_path, merged)
-        img_stats = {"image": stem, "teeth": len(rows), "pairs": 0}
+        img_gt, img_pred = collect_severity_pairs(rows, args.severity_protocol)
+        img_stats = {"image": stem, "teeth": len(rows), "pairs": len(img_gt)}
         for row in rows:
             stats["teeth_total"] += 1
             if row["yolo_matched"]:
                 stats["yolo_matched"] += 1
-            gt_sev = row["gt_severity"]
-            pred_sev = row["pred_severity"]
-            if gt_sev is not None:
+            if row.get("gt_sides"):
                 stats["gt_only_valid"] += 1
-            if pred_sev is not None:
+            if row.get("pred_sides"):
                 stats["pred_only_valid"] += 1
-            if gt_sev is not None and pred_sev is not None:
-                gt_vals.append(gt_sev)
-                pred_vals.append(pred_sev)
-                stats["both_valid"] += 1
-                img_stats["pairs"] += 1
+        gt_vals.extend(img_gt)
+        pred_vals.extend(img_pred)
+        stats["both_valid"] += len(img_gt)
         per_image.append(img_stats)
 
     icc = None
@@ -145,14 +166,18 @@ def main():
         "require_yolo": not args.no_require_yolo,
         "gt_proposals": args.gt_proposals,
         "inference_mode": args.inference_mode,
+        "combine_mode": args.combine_mode,
+        "gt_slot_convention": args.gt_slot_convention,
+        "severity_protocol": args.severity_protocol,
+        "apex_merge_px": args.apex_merge_px,
         "icc": icc,
         "mae_pct": mae,
         "n_pairs": len(gt_vals),
         "stats": stats,
         "note": (
-            "GT severity from v6 label JSON (aligned slots). "
-            "Pred: inference_mode full|roi; YOLO-matched boxes; 3 models; Eq. 1. "
-            "--gt-proposals uses GT boxes for all teeth."
+            "GT severity computed on-the-fly from keypoint JSON (not a separate expert file). "
+            "paper_x = sort CEJ/INT/APEX by x per tooth; both_sides = ICC row per root side. "
+            "NMS 0.6 applies to Keypoint R-CNN detection boxes before picking the YOLO-matched ROI."
         ),
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
