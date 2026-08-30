@@ -350,6 +350,63 @@ def severity_from_sides(sides: Iterable[SideAssignment]) -> float | None:
     return None
 
 
+def severity_from_side_index(sides: list[SideAssignment], side_idx: int) -> float | None:
+    """Severity for one PCA side only (0=neg, 1=pos in v6 labels)."""
+    if side_idx < 0 or side_idx >= len(sides):
+        return None
+    side = sides[side_idx]
+    if side.cej is None or side.intersection is None or side.apex is None:
+        return None
+    return compute_bone_loss_severity(side.cej, side.intersection, side.apex)
+
+
+def flip_axis(axis: AxisInfo) -> AxisInfo:
+    """Reverse PCA direction (tests sign ambiguity vs GT slot 0/1)."""
+    return AxisInfo(
+        method=axis.method,
+        origin=axis.origin,
+        direction=(-axis.direction[0], -axis.direction[1]),
+        reference_x=axis.reference_x,
+    )
+
+
+def oracle_best_severity(
+    cej_kps: torch.Tensor | None,
+    int_kps: torch.Tensor | None,
+    apex_kps: torch.Tensor | None,
+    gt_sev: float,
+) -> tuple[float | None, tuple[int, int, int] | None]:
+    """Best of 8 tensor-slot combos vs GT (diagnostic ceiling; uses GT severity)."""
+    best_sev = None
+    best_slots = None
+    best_err = float("inf")
+    for cs in (0, 1):
+        for is_ in (0, 1):
+            for as_ in (0, 1):
+                c = slot_xy_from_tensor(cej_kps, cs)
+                t = slot_xy_from_tensor(int_kps, is_)
+                a = slot_xy_from_tensor(apex_kps, as_)
+                if c is None or t is None or a is None:
+                    continue
+                sev = compute_bone_loss_severity(c, t, a)
+                if sev is None:
+                    continue
+                err = abs(sev - gt_sev)
+                if err < best_err:
+                    best_err = err
+                    best_sev = sev
+                    best_slots = (cs, is_, as_)
+    return best_sev, best_slots
+
+
+def first_valid_side_index(sides: list[SideAssignment]) -> int | None:
+    for i, side in enumerate(sides):
+        if side.cej and side.intersection and side.apex:
+            if compute_bone_loss_severity(side.cej, side.intersection, side.apex) is not None:
+                return i
+    return None
+
+
 def severity_with_axis_method(
     cej_kps: torch.Tensor | None,
     int_kps: torch.Tensor | None,
