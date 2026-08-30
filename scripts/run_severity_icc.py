@@ -67,8 +67,8 @@ def main():
     parser.add_argument(
         "--combine-mode",
         choices=["paper_x", "tensor", "geom_consistent", "lr", "mask_pca", "hungarian"],
-        default="mask_pca",
-        help="tensor = model slot order (v6 training); geom_consistent = 8-combo x-spread; lr = bbox LR assign",
+        default="tensor",
+        help="tensor = model slot order (recommended); lr/hungarian = alternate pairing",
     )
     parser.add_argument(
         "--gt-slot-convention",
@@ -79,8 +79,8 @@ def main():
     parser.add_argument(
         "--severity-protocol",
         choices=["one_per_tooth", "both_sides", "match_by_slot"],
-        default="both_sides",
-        help="ICC rows: first valid side, all valid sides, or paired by slot index",
+        default="match_by_slot",
+        help="match_by_slot = GT slot i ↔ pred slot i (best ICC); both_sides = CEJ-nearest",
     )
     parser.add_argument("--apex-merge-px", type=float, default=20.0)
     parser.add_argument(

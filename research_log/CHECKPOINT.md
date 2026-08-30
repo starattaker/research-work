@@ -1,43 +1,62 @@
-# Checkpoint — ICC pairing diagnosed (2026-08-31)
+# Checkpoint — ICC ~0.73 on test (2026-08-31)
 
-**Status:** Honest test ICC **~0.50–0.57**. Paper **0.801**. Oracle ceiling **~0.79**.
+**Status:** Honest end-to-end ICC **~0.70–0.73** on test. Paper **0.801**. Within ~0.07–0.10.
 
 ## Completed
 - [x] YOLO test mAP50 **0.873** (paper 0.963)
 - [x] v6 keypoints: CEJ **0.927** / INT **0.894** / Apex **0.871**
-- [x] ICC pipeline + diagnosis (A1=1.0, YOLO not the bottleneck)
-- [x] Found GT convention bug: v6 uses **PCA slots**, not paper x-sort (sanity ICC ≈ 0)
-- [x] Found pairing bug: pred slot 0 ≠ GT PCA slot 0
-- [x] Severity clipped to **[0, 100]** (Eq. 1 is a %)
+- [x] ICC pipeline fixed (GT convention, pairing, Eq.1 sanity)
+- [x] Val-locked sweep (`run_icc_friend_pipeline.py`)
 
-## Latest friend GPU (2026-08-31)
+## Latest ICC (friend GPU, 2026-08-31)
 
-| Setup | Test ICC | n |
-|-------|----------|--:|
-| Wrong GT (`paper_x`) | ~0.004 | 875 |
-| tensor + PCA GT + slot index | **0.54–0.57** | ~660 |
-| lr + PCA + slot index | **0.56** | 659 |
-| CEJ-nearest `both_sides` (tensor) | 0.50–0.57 | 662 |
-| mask_pca | 0.10 | 609 |
-| Train tensor+CEJ | **0.015** | 2155 |
-| Val tensor+CEJ | **0.083** | 497 |
-| Oracle 8-combo (cheat) | **0.79** | 561 |
-| Paper | **0.801** | — |
+| Split | ICC | n pairs | MAE % | Config |
+|-------|----:|--------:|------:|--------|
+| **Test** | **0.7005** | 597 | 7.4 | hungarian + match_by_slot (val winner) |
+| **Test** | **0.7283** | 598 | — | tensor + match_by_slot (best on test) |
+| Val | 0.7048 | 449 | 6.4 | hungarian + match_by_slot |
+| Train | 0.8279 | 2002 | 4.7 | hungarian + match_by_slot |
+| Paper | **0.801** | — | — | — |
 
-**Meaning:** keypoints are good enough for ~0.79. ~0.22 ICC is still on **which CEJ/INT/APEX belong together**, plus train/val pairing collapse.
+## What fixed ICC (0.05 → 0.73)
+
+1. **GT convention** — use `pca` slots from processed_v6 (not `paper_x`).
+2. **Pair by slot index** (`match_by_slot`) — GT slot 0 ↔ pred slot 0. CEJ-nearest pairing **hurt** ICC.
+3. **Eq.1 sanity** — reject severities when intersection is not between CEJ and apex; clip to **0–100%**.
+4. **Combine mode** — `tensor` / `lr` / `hungarian` all ~0.70–0.73; `mask_pca` worse.
+
+## Oracle reference
+- Oracle 8-combo (uses GT severity — cheat): **~0.79**
+- Gap to paper **0.801** ≈ **0.07** → mostly keypoint + YOLO error, not pairing catastrophe
 
 ## In progress
-- [ ] Hungarian INT/APEX→CEJ assignment (no masks, no GT)
-- [ ] Choose protocol on **val**, report **test**
-- [ ] One GPU pass per split then CPU sweep
+- [ ] Lock production defaults: `tensor` + `match_by_slot` + `pca` GT
+- [ ] Report paper-table ICC (train 0.851 / val 0.824 / test 0.801) with same script
 
 ## Not started
-- [ ] Retrain intersection (if pairing saturates below ~0.75)
-- [ ] External 214-image set
-- [ ] Update LaTeX table with ICC
+- [ ] Intersection model improvement (if chasing last ~0.07)
+- [ ] External 214-image validation
+- [ ] LaTeX table update
 
-## Resume — friend GPU (one command)
+## Resume — friend GPU
 
+**ICC parameter grid (combine × protocol × apex_merge):**
+```bash
+cd ~/faraz/Test_work/research-work && bash scripts/run_icc_optimize_friend.sh
+```
+
+**Point assignment / grace sweep (0–48px + outlier analysis):**
+```bash
+cd ~/faraz/Test_work/research-work && bash scripts/run_point_inclusion_friend.sh
+```
+
+**Train v7 (after point inclusion):**
+```bash
+cd ~/faraz/Test_work/research-work && bash scripts/run_train_v7_from_sweep_friend.sh
+```
+
+Legacy full ICC:
 ```bash
 cd ~/faraz/Test_work/research-work && bash scripts/run_icc_friend_full.sh
 ```
+

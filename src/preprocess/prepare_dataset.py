@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
@@ -286,6 +287,29 @@ def assign_points_to_teeth_mask(
         if best_d <= grace_px:
             assigned[best_i].append(pt)
     return assigned
+
+
+def bbox_margin_distance(pt: list[float], bbox: list[float]) -> float:
+    """Min distance from point to bbox rectangle (0 if inside)."""
+    x, y = pt[0], pt[1]
+    x1, y1, x2, y2 = bbox
+    dx = max(x1 - x, 0.0, x - x2)
+    dy = max(y1 - y, 0.0, y - y2)
+    return math.hypot(dx, dy)
+
+
+def filter_assigned_bbox_outliers(
+    assigned: list[list[list[float]]],
+    bboxes: list[list[float]],
+    max_margin_px: float | None,
+) -> list[list[list[float]]]:
+    if not max_margin_px or max_margin_px <= 0:
+        return assigned
+    out: list[list[list[float]]] = []
+    for i, bucket in enumerate(assigned):
+        bbox = bboxes[i]
+        out.append([pt for pt in bucket if bbox_margin_distance(pt, bbox) <= max_margin_px])
+    return out
 
 
 def assign_points_to_teeth_mask_region_grow(
@@ -595,6 +619,7 @@ def build_tooth_records(
     grace_px: float = 4.0,
     grace_step_px: int = 1,
     max_grace_px: int = 8,
+    bbox_outlier_margin_px: float | None = None,
 ) -> list[ToothRecord]:
     bboxes_all = kp_json["bboxes"]
     needs_masks = strategy in ("v3", "v4", "v5", "v6")
@@ -626,6 +651,9 @@ def build_tooth_records(
             step_px=grace_step_px,
             max_radius_px=max_grace_px,
         )
+        if bbox_outlier_margin_px:
+            cej_assign = filter_assigned_bbox_outliers(cej_assign, bboxes, bbox_outlier_margin_px)
+            apex_assign = filter_assigned_bbox_outliers(apex_assign, bboxes, bbox_outlier_margin_px)
     elif strategy == "v3" and use_masks:
         cej_assign = assign_points_to_teeth_mask(
             kp_json.get("CEJ_Points", []), bboxes, mask_paths, grace_px=grace_px
@@ -715,6 +743,7 @@ def process_split(
     grace_px: float = 4.0,
     grace_step_px: int = 1,
     max_grace_px: int = 8,
+    bbox_outlier_margin_px: float | None = None,
 ) -> dict:
     split_alias = SPLIT_ALIASES[split]
     images_dir = raw_root / split / "Images"
@@ -757,6 +786,7 @@ def process_split(
             grace_px=grace_px,
             grace_step_px=grace_step_px,
             max_grace_px=max_grace_px,
+            bbox_outlier_margin_px=bbox_outlier_margin_px,
         )
         if not records:
             continue
@@ -829,6 +859,12 @@ def main() -> None:
     parser.add_argument("--grace-px", type=float, default=4.0, help="v3: max distance to mask (px)")
     parser.add_argument("--grace-step-px", type=int, default=1, help="v4: ring step size (px)")
     parser.add_argument("--max-grace-px", type=int, default=8, help="v4: max outward rings (px)")
+    parser.add_argument(
+        "--bbox-outlier-margin-px",
+        type=float,
+        default=None,
+        help="Drop assigned CEJ/apex farther than this from tooth bbox (v7 sweep)",
+    )
     args = parser.parse_args()
 
     args.output_root.mkdir(parents=True, exist_ok=True)
@@ -842,6 +878,7 @@ def main() -> None:
             args.grace_px,
             args.grace_step_px,
             args.max_grace_px,
+            args.bbox_outlier_margin_px,
         )
 
     write_yolo_data_yaml(args.output_root)
