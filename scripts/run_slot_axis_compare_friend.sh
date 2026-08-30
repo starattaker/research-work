@@ -5,8 +5,15 @@ cd "$(dirname "$0")/.."
 export PYTHONPATH=.
 source venv/bin/activate 2>/dev/null || true
 
-# DenPAR on friend machine: data/DenPAR/Dataset/{Training,Validation,Testing}
-RAW_ROOT="${RAW_ROOT:-data/DenPAR/Dataset}"
+DEFAULT_RAW="data/DenPAR/Dataset"
+if [[ -z "${RAW_ROOT:-}" ]] || [[ ! -d "${RAW_ROOT}/Testing/Key Points Annotations" ]]; then
+  if [[ -n "${RAW_ROOT:-}" ]]; then
+    echo "WARN: RAW_ROOT='$RAW_ROOT' not valid; using $DEFAULT_RAW"
+  fi
+  RAW_ROOT="$DEFAULT_RAW"
+fi
+
+echo "Using RAW_ROOT=$RAW_ROOT"
 
 python scripts/compare_slot_axis_icc.py \
   --yolo-weights runs/detect/runs/detection/yolov8x_tooth/weights/best.pt \

@@ -4,11 +4,19 @@ cd "$(dirname "$0")/.."
 export PYTHONPATH=.
 source venv/bin/activate 2>/dev/null || true
 
-RAW_ROOT="${RAW_ROOT:-data/DenPAR/Dataset}"
+DEFAULT_RAW="data/DenPAR/Dataset"
+# Ignore stale shell exports (e.g. RAW_ROOT=/actual/path/to/DenPAR placeholder)
+if [[ -z "${RAW_ROOT:-}" ]] || [[ ! -d "${RAW_ROOT}/Testing/Key Points Annotations" ]]; then
+  if [[ -n "${RAW_ROOT:-}" ]]; then
+    echo "WARN: RAW_ROOT='$RAW_ROOT' not valid; using $DEFAULT_RAW"
+  fi
+  RAW_ROOT="$DEFAULT_RAW"
+fi
 
 if [[ ! -d "$RAW_ROOT/Testing/Key Points Annotations" ]]; then
   echo "ERROR: DenPAR not at $RAW_ROOT"
   echo "Expected: $RAW_ROOT/Testing/Key Points Annotations/*.json"
+  echo "Fix: unset RAW_ROOT   # then re-run this script"
   exit 1
 fi
 
