@@ -33,7 +33,7 @@ def severity_from_tensor_slots(
     inter_kps: torch.Tensor | None,
     apex_kps: torch.Tensor | None,
 ) -> float | None:
-    sides = pred_side_details_from_tensors(cej_kps, int_kps, apex_kps, combine_mode="tensor")
+    sides = pred_side_details_from_tensors(cej_kps, inter_kps, apex_kps, combine_mode="tensor")
     return sides[0].severity if sides else None
 
 
