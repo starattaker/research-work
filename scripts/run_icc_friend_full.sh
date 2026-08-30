@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
-# Friend GPU: pull + ICC pipeline (v6 PCA GT + tensor combine + both sides).
+# Friend GPU: sync repo + ICC pipeline (v6 PCA GT + tensor combine + both sides).
 set -euo pipefail
 cd "$(dirname "$0")/.."
+
+bash scripts/sync_friend_repo.sh
+
 export PYTHONPATH=.
 unset RAW_ROOT 2>/dev/null || true
 source venv/bin/activate
