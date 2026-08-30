@@ -1,46 +1,19 @@
-# ICC replication — compact context (updated after friend GPU run)
+# ICC — compact notes (2026-08-31)
 
-## Paper target
-Test ICC **0.801** | train 0.851 | val 0.824
+## Target
+Test ICC **0.801**. Honest now **~0.50–0.57**. Oracle **~0.79**.
 
-## Critical finding (v6 labels)
-- `processed_v6` GT uses **PCA mask slots** at preprocess time, **not** paper x-sort.
-- GT sanity: ICC(PCA vs paper_x) ≈ **0** on test → never use `gt_slot_convention=paper_x` with v6.
-- **Correct GT**: `--gt-slot-convention pca`
+## Do not use
+- `gt_slot_convention=paper_x` with processed_v6 (GT is PCA).
+- Oracle 8-combo at inference (cheats with GT severity).
 
-## Best results so far (friend GPU, test)
-| Config | ICC | n pairs |
-|--------|-----|---------|
-| paper_x GT + paper_x pred (wrong) | ~0.004 | 875 |
-| **pca GT + tensor + both_sides + roi** | **~0.505** | 663 |
-| pca GT + geom_consistent + both_sides | ~0.692 | 108 (few double-side pairs) |
-| Oracle 8-combo (uses GT severity — cheat) | ~0.728 | 561 |
-| Tensor slot 0/1 (broken pairing) | ~0.059 | 561 |
+## Guards in Eq. 1
+Clip [0, 100]; drop INT not between CEJ and apex (cross-side combos).
 
-## Production defaults (after fix)
-```bash
---inference-mode roi --combine-mode tensor \
---gt-slot-convention pca --severity-protocol both_sides
-```
+## Combine modes
+`hungarian` (assign INT/APEX to CEJs by distance) · `tensor` · `lr` · `mask_pca` · `paper_x`
 
-## NMS
-IoU 0.6 on Keypoint R-CNN **detection boxes** (not cross-model keypoint fusion).
-
-## GT severity storage
-Not a separate file — computed from `data/processed_v6/keypoints/{cej,intersection,apex}/{split}/annotations/*.json`.
-
-## Gap to 0.801
-Oracle ceiling ~0.73 → keypoint error + slot pairing still cost ~0.07–0.08 vs paper. Next: improve intersection keypoints (largest oracle lift).
-
-## One command (friend GPU)
+## One command
 ```bash
 cd ~/faraz/Test_work/research-work && bash scripts/run_icc_friend_full.sh
 ```
-
-Runs: sync repo → audit → compare mask_pca/lr/tensor/geom on test → best mode on train/val/test with **CEJ anatomical pairing** (not broken slot-index matching).
-
-## Bug fixed (Aug 2026)
-`both_sides` used to pair GT slot 0 with pred slot 0, but pred slot 0 ≠ GT PCA slot 0 on many teeth. Now pairs by **nearest CEJ** (anatomical correspondence).
-
-## Current best (before CEJ fix)
-Test ICC ~0.57 with tensor+pca+slot-index. Oracle ~0.79.

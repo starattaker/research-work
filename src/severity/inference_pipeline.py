@@ -176,15 +176,12 @@ class SeverityPipeline:
                 proposals.append(None)
         return proposals, yolo_matched
 
-    def predict_image_severities(
+    def extract_kps_for_image(
         self,
         image_path: Path,
         gt_merged: dict,
-        *,
-        split: str = "test",
-        stem: str | None = None,
-    ) -> list[dict]:
-        stem = stem or image_path.stem
+    ) -> tuple[dict[int, tuple], list[bool]]:
+        """YOLO + 3 keypoint models once; combine modes applied later on CPU."""
         yolo_result = self.yolo.predict(
             source=str(image_path),
             imgsz=640,
@@ -193,17 +190,13 @@ class SeverityPipeline:
         )[0]
         yolo_boxes_xyxy = yolo_boxes(yolo_result)
         image_tensor = load_image_tensor(image_path, self.transform)
-
         gt_boxes = torch.tensor(gt_merged["bboxes"], dtype=torch.float32)
         tooth_proposals, yolo_flags = self._proposal_boxes_for_teeth(gt_boxes, yolo_boxes_xyxy)
-
         valid_idx = [i for i, box in enumerate(tooth_proposals) if box is not None]
-        kps_by_tooth: dict[int, tuple[torch.Tensor | None, torch.Tensor | None, torch.Tensor | None]] = {}
-
+        kps_by_tooth: dict[int, tuple] = {}
         if valid_idx:
             prop_tensor = torch.stack([tooth_proposals[i] for i in valid_idx])
-            gt_labels = torch.tensor(gt_merged["labels"], dtype=torch.int64)
-            label_tensor = gt_labels[valid_idx]
+            label_tensor = torch.tensor(gt_merged["labels"], dtype=torch.int64)[valid_idx]
             cej_list = predict_keypoints_for_boxes(
                 self.models["cej"], image_tensor, prop_tensor, self.device,
                 self.inference_mode, self.score_thresh, self.nms_thresh, label_tensor, self.keypoint_match_iou,
@@ -218,6 +211,18 @@ class SeverityPipeline:
             )
             for row, tooth_idx in enumerate(valid_idx):
                 kps_by_tooth[tooth_idx] = (cej_list[row], int_list[row], apex_list[row])
+        return kps_by_tooth, yolo_flags
+
+    def predict_image_severities(
+        self,
+        image_path: Path,
+        gt_merged: dict,
+        *,
+        split: str = "test",
+        stem: str | None = None,
+    ) -> list[dict]:
+        stem = stem or image_path.stem
+        kps_by_tooth, yolo_flags = self.extract_kps_for_image(image_path, gt_merged)
 
         rows = []
         for i in range(len(gt_merged["bboxes"])):

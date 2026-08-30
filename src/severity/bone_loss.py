@@ -55,4 +55,15 @@ def compute_bone_loss_severity(
     den = euclidean(cej_proj, apex_proj)
     if den < 1e-6:
         return None
-    return (num / den) * 100.0
+    # Intersection should lie between CEJ and apex on the root axis.
+    dx = apex_proj[0] - cej_proj[0]
+    dy = apex_proj[1] - cej_proj[1]
+    n2 = dx * dx + dy * dy
+    if n2 > 1e-12:
+        t = ((inter_proj[0] - cej_proj[0]) * dx + (inter_proj[1] - cej_proj[1]) * dy) / n2
+        if t < -0.08 or t > 1.08:
+            return None
+    sev = (num / den) * 100.0
+    if sev < 0.0:
+        return None
+    return min(sev, 100.0)

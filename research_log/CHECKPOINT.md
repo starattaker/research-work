@@ -1,46 +1,43 @@
-# Checkpoint — v6 selected, ICC script ready (2026-08-27)
+# Checkpoint — ICC pairing + severity guards (2026-08-31)
 
-**Status:** v6 keypoints **best** on all three heads. Run end-to-end ICC next.
+**Status:** Honest test ICC **~0.50–0.57**. Paper **0.801**. Oracle ceiling **~0.79**.
 
 ## Completed
 
-- [x] YOLO — test mAP50 **0.873** (paper 0.963)
-- [x] Keypoint ablations v2–v6; **v6 wins all three**
-- [x] v5 intersection **0.859** · v6 intersection **0.894** (paper 0.912)
-- [x] **`scripts/run_severity_icc.py`** — YOLO + 3× Keypoint R-CNN + Eq. 1
+- [x] YOLO test mAP50 **0.873** (paper 0.963)
+- [x] Keypoints v6: CEJ **0.927** / INT **0.894** / Apex **0.871**
+- [x] ICC pipeline: YOLO ROI + 3× Keypoint R-CNN + Eq. 1
+- [x] Diagnosed low ICC: **not YOLO**. Main issues were **wrong GT convention** (paper_x vs v6 PCA) and **slot-index pairing**
+- [x] Friend GPU audit 2026-08-31 (commit `7e0783d` era)
 
-## v6 test OKS (friend GPU, 2026-08-27)
+## Latest ICC numbers (friend GPU, 2026-08-31)
 
-| Model | v4 | v6 | Paper |
-|-------|---:|---:|------:|
-| CEJ | 0.921 | **0.927** | 0.954 |
-| Intersection | 0.822 | **0.894** | 0.912 |
-| Apex | 0.853 | **0.871** | 0.815 |
+| Setup | Test ICC | n | Notes |
+|-------|----------|--:|-------|
+| paper_x GT (wrong) | ~0.00 | 875 | v6 labels are PCA slots |
+| tensor + pca GT + slot-index | **0.54–0.57** | ~660 | best honest high-n |
+| lr + pca + slot-index | 0.56 | 659 | |
+| tensor + CEJ-match (STEP 3) | 0.50 | 662 | CEJ match can hurt |
+| mask_pca preds | 0.10 | 609 | axis sign ≠ GT |
+| Oracle 8-combo (uses GT sev) | **0.79** | 561 | not for publication |
+| **Paper** | **0.801** | — | |
 
-**Selected stack:** `data/processed_v6/` + `runs/keypoints/v6_{cej,intersection,apex}/best.pt`
+Train/val ICC **0.01–0.17** with same models — likely unbounded / cross-side Eq. 1 outliers. Guards now: clip **[0, 100]** + drop INT not between CEJ and apex.
 
 ## In progress
 
-- [ ] **End-to-end ICC** on DenPAR test (target **0.801**)
+- [ ] Hungarian INT/APEX→CEJ assignment + clip/between-axis (this push)
+- [ ] Get **train ≈ val ≈ test** ICC (if train stays ~0, pairing/outliers still broken)
 
 ## Not started
 
-- [ ] Team 214-image external validation
-- [ ] Update progress paper (LaTeX) with v6 table
+- [ ] Retrain intersection (largest remaining error vs paper)
+- [ ] Team 214-image external set
 
-## Resume — friend GPU
+## Resume — friend GPU (one command)
 
 ```bash
-cd ~/faraz/Test_work/research-work
-git pull origin denpar-severity-replication
-export PYTHONPATH=.
-python scripts/run_severity_icc.py \
-  --yolo-weights runs/detect/runs/detection/yolov8x_tooth/weights/best.pt \
-  --cej-weights runs/keypoints/v6_cej/best.pt \
-  --intersection-weights runs/keypoints/v6_intersection/best.pt \
-  --apex-weights runs/keypoints/v6_apex/best.pt \
-  --data-root data/processed_v6 \
-  --split test
+cd ~/faraz/Test_work/research-work && bash scripts/run_icc_friend_full.sh
 ```
 
-Results → `research_log/severity_icc_end_to_end.json`
+Extracts test keypoints once, sweeps hungarian/tensor/lr/mask_pca × pairing, then train/val/test on the winner. Report: `research_log/icc_final_report.json`

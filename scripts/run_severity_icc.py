@@ -66,7 +66,7 @@ def main():
     )
     parser.add_argument(
         "--combine-mode",
-        choices=["paper_x", "tensor", "geom_consistent", "lr", "mask_pca"],
+        choices=["paper_x", "tensor", "geom_consistent", "lr", "mask_pca", "hungarian"],
         default="mask_pca",
         help="tensor = model slot order (v6 training); geom_consistent = 8-combo x-spread; lr = bbox LR assign",
     )

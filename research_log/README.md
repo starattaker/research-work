@@ -13,7 +13,7 @@ Paper: *AI-assisted radiographic analysis in detecting alveolar bone-loss severi
 | Detection training | [05_detection_training.md](05_detection_training.md) | Done (test mAP50 **0.873**) |
 | Preproc comparison | [preprocessing_comparison.md](preprocessing_comparison.md) | v1–v4 stats |
 | Keypoint training | [06_keypoint_training.md](06_keypoint_training.md) | **v6 best** (int OKS **0.894**) |
-| Severity / ICC | [07_severity_icc.md](07_severity_icc.md) | **Run ICC** (`run_severity_icc.py`) |
+| Severity / ICC | [07_severity_icc.md](07_severity_icc.md) | **In progress** — test ICC ~0.50–0.57 (paper 0.801) |
 | Experiment registry | [experiments/README.md](experiments/README.md) | v2–v4 in `paper_table.json` |
 
 **Resume here:** [CHECKPOINT.md](CHECKPOINT.md)
