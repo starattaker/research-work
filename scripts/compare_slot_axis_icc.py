@@ -13,7 +13,7 @@ from tqdm import tqdm
 import scripts._bootstrap  # noqa: F401
 
 from src.keypoint.inference_utils import predict_keypoints_for_boxes
-from src.preprocess.prepare_dataset import load_tooth_mask
+from src.denpar_paths import DEFAULT_DENPAR_ROOT, denpar_mask_path, resolve_denpar_root
 from src.severity.icc import icc21
 from src.severity.inference_pipeline import (
     SeverityPipeline,
@@ -23,9 +23,6 @@ from src.severity.inference_pipeline import (
     yolo_boxes,
 )
 from src.severity.slot_matching import AxisMethod, severity_with_axis_method
-
-RAW_SPLIT = {"train": "Training", "val": "Validation", "test": "Testing"}
-
 
 def image_paths(data_root: Path, split: str) -> list[Path]:
     img_dir = data_root / "yolo_detection" / split / "images"
@@ -46,12 +43,11 @@ def resolve_yolo_weights(path: Path | None) -> Path:
 
 
 def mask_for_tooth(raw_root: Path | None, split: str, stem: str, tooth_idx: int):
-    if raw_root is None:
-        return None
-    raw_split = RAW_SPLIT.get(split, split)
-    mask_path = raw_root / raw_split / "Masks (Tooth-wise)" / stem / f"mask{tooth_idx + 1}.png"
+    mask_path = denpar_mask_path(raw_root, split, stem, tooth_idx)
     if not mask_path.exists():
         return None
+    from src.preprocess.prepare_dataset import load_tooth_mask
+
     return load_tooth_mask(mask_path)
 
 
@@ -100,7 +96,7 @@ def collect_predictions(pipeline: SeverityPipeline, img_path: Path, merged: dict
 def main():
     parser = argparse.ArgumentParser(description="ICC for mask PCA vs points-axis vs LR slot methods")
     parser.add_argument("--data-root", type=Path, default=Path("data/processed_v6"))
-    parser.add_argument("--raw-root", type=Path, default=None, help="DenPAR raw root (for tooth masks)")
+    parser.add_argument("--raw-root", type=Path, default=DEFAULT_DENPAR_ROOT, help="DenPAR root (…/Dataset)")
     parser.add_argument("--split", default="test")
     parser.add_argument("--yolo-weights", type=Path, default=None)
     parser.add_argument("--cej-weights", type=Path, required=True)
@@ -163,7 +159,7 @@ def main():
         "paper_target_icc": 0.801,
         "split": args.split,
         "data_root": args.data_root.as_posix(),
-        "raw_root": args.raw_root.as_posix() if args.raw_root else None,
+        "raw_root": resolve_denpar_root(args.raw_root).as_posix(),
         "merge_radius_px": args.merge_radius,
         "mask_available": {"hits": mask_hits, "misses": mask_miss},
         "methods": {},
@@ -187,8 +183,8 @@ def main():
         icc = m["icc"]
         icc_s = f"{icc:.4f}" if icc is not None else "n/a"
         print(f"  {method.value:14s}  ICC={icc_s}  n={m['n_pairs']}")
-    if args.raw_root is None:
-        print("\n  Note: pass --raw-root for real mask PCA (else mask method falls back to LR).")
+    if not resolve_denpar_root(args.raw_root).joinpath("Testing").is_dir():
+        print("\n  Warning: DenPAR Testing/ not found under raw-root; mask_pca falls back to LR.")
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, indent=2), encoding="utf-8")

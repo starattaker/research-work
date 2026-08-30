@@ -5,8 +5,8 @@ cd "$(dirname "$0")/.."
 export PYTHONPATH=.
 source venv/bin/activate 2>/dev/null || true
 
-# Set RAW_ROOT to your DenPAR download (Training/Validation/Testing + Masks)
-RAW_ROOT="${RAW_ROOT:-data/DenPAR}"
+# DenPAR on friend machine: data/DenPAR/Dataset/{Training,Validation,Testing}
+RAW_ROOT="${RAW_ROOT:-data/DenPAR/Dataset}"
 
 python scripts/compare_slot_axis_icc.py \
   --yolo-weights runs/detect/runs/detection/yolov8x_tooth/weights/best.pt \

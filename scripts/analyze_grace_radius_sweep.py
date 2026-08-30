@@ -15,15 +15,13 @@ from tqdm import tqdm
 
 import scripts._bootstrap  # noqa: F401
 
+from src.denpar_paths import DEFAULT_DENPAR_ROOT, denpar_keypoints_dir, resolve_denpar_root
 from src.preprocess.prepare_dataset import (
-    SPLITS,
-    SPLIT_ALIASES,
     assign_points_to_teeth_mask,
     assign_points_to_teeth_mask_region_grow,
     distance_to_mask,
     load_tooth_mask,
     resolve_tooth_masks,
-    tooth_anchor_center,
 )
 
 POINT_TYPES = ("CEJ_Points", "Apex_Points")
@@ -117,30 +115,21 @@ def eval_grace_v4_max_ring(
 
 
 def discover_denpar_split_dirs(raw_root: Path, split: str) -> tuple[Path, Path] | None:
-    """Find Key Points Annotations + Masks folders (DenPAR naming variants)."""
-    split_raw = split if split in SPLITS else SPLIT_ALIASES.get(split, split)
-    if split_raw not in SPLITS:
-        alias_inv = {v: k for k, v in SPLIT_ALIASES.items()}
-        split_raw = alias_inv.get(split, split)
-
-    bases = [raw_root, raw_root / "DenPAR", raw_root / "denpar"]
-    split_names = [split_raw, split_raw.lower(), split.lower()]
-    for base in bases:
-        for name in split_names:
-            kp_dir = base / name / "Key Points Annotations"
-            mask_root = base / name / "Masks (Tooth-wise)"
-            if kp_dir.is_dir() and any(kp_dir.glob("*.json")):
-                return kp_dir, mask_root
-    return None
+    """Find Key Points Annotations + Masks folders."""
+    root = resolve_denpar_root(raw_root)
+    kp_dir = denpar_keypoints_dir(root, split)
+    if not kp_dir.is_dir() or not any(kp_dir.glob("*.json")):
+        return None
+    mask_root = kp_dir.parent / "Masks (Tooth-wise)"
+    return kp_dir, mask_root
 
 
 def sweep_raw_split(raw_root: Path, split: str, max_radius: int) -> dict:
     discovered = discover_denpar_split_dirs(raw_root, split)
     if discovered is None:
         raise FileNotFoundError(
-            f"DenPAR not found under {raw_root}. "
-            "Set RAW_ROOT to the folder containing Training/, Validation/, Testing/. "
-            "Example: export RAW_ROOT=~/data/DenPAR_dataset"
+            f"DenPAR not found. Tried resolve_denpar_root({raw_root}). "
+            "Default: data/DenPAR/Dataset (contains Training/, Testing/, Validation/)."
         )
     kp_dir, mask_root = discovered
 
@@ -243,7 +232,7 @@ def plot_curves(v3: dict, v4: dict, out_path: Path, max_radius: int):
 
 def main():
     parser = argparse.ArgumentParser(description="Grace radius sweep for preprocessing justification")
-    parser.add_argument("--raw-root", type=Path, required=True, help="DenPAR raw root")
+    parser.add_argument("--raw-root", type=Path, default=DEFAULT_DENPAR_ROOT)
     parser.add_argument("--split", default="Testing", help="Training | Validation | Testing")
     parser.add_argument("--max-radius", type=int, default=24, help="Max px to sweep (avoid neighbor bleed)")
     parser.add_argument("--out-dir", type=Path, default=Path("research_log/figures/grace_radius_sweep"))

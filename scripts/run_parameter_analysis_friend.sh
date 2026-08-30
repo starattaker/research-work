@@ -4,12 +4,11 @@ cd "$(dirname "$0")/.."
 export PYTHONPATH=.
 source venv/bin/activate 2>/dev/null || true
 
-RAW_ROOT="${RAW_ROOT:-data/DenPAR}"
+RAW_ROOT="${RAW_ROOT:-data/DenPAR/Dataset}"
 
-if [[ ! -d "$RAW_ROOT" ]]; then
-  echo "ERROR: RAW_ROOT not found: $RAW_ROOT"
-  echo "Find DenPAR on disk:  find ~ -maxdepth 4 -type d -name 'Testing' 2>/dev/null | head"
-  echo "Then: export RAW_ROOT=/path/to/parent  (parent contains Training/, Testing/, ...)"
+if [[ ! -d "$RAW_ROOT/Testing/Key Points Annotations" ]]; then
+  echo "ERROR: DenPAR not at $RAW_ROOT"
+  echo "Expected: $RAW_ROOT/Testing/Key Points Annotations/*.json"
   exit 1
 fi
 
@@ -24,7 +23,7 @@ echo ""
 echo "=== 2/3 Grace radius sweep (raw DenPAR) ==="
 python scripts/analyze_grace_radius_sweep.py \
   --raw-root "$RAW_ROOT" \
-  --split Testing \
+  --split test \
   --max-radius 24
 
 echo ""

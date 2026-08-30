@@ -11,7 +11,13 @@ import numpy as np
 
 import scripts._bootstrap  # noqa: F401
 
-from scripts.compare_slot_axis_icc import collect_predictions, image_paths, mask_for_tooth, resolve_yolo_weights
+from scripts.compare_slot_axis_icc import (
+    collect_predictions,
+    image_paths,
+    mask_for_tooth,
+    resolve_yolo_weights,
+)
+from src.denpar_paths import DEFAULT_DENPAR_ROOT
 from src.severity.inference_pipeline import SeverityPipeline, load_gt_annotations
 from src.severity.slot_matching import AxisMethod, severity_with_axis_method
 
@@ -56,7 +62,7 @@ def draw_side_points(panel: np.ndarray, sides, method_name: str, sev: float | No
 def main():
     parser = argparse.ArgumentParser(description="Draw PCA / points / LR axis on sample teeth")
     parser.add_argument("--data-root", type=Path, default=Path("data/processed_v6"))
-    parser.add_argument("--raw-root", type=Path, default=None)
+    parser.add_argument("--raw-root", type=Path, default=DEFAULT_DENPAR_ROOT)
     parser.add_argument("--split", default="test")
     parser.add_argument("--yolo-weights", type=Path, default=None)
     parser.add_argument("--cej-weights", type=Path, required=True)
