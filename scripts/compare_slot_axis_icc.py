@@ -83,7 +83,7 @@ def collect_predictions(pipeline: SeverityPipeline, img_path: Path, merged: dict
             image_tensor,
             prop_tensor,
             pipeline.device,
-            "full",
+            pipeline.inference_mode,
             pipeline.score_thresh,
             pipeline.nms_thresh,
             labels,
