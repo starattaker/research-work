@@ -1,0 +1,270 @@
+"""Assign CEJ / intersection / apex predictions to tooth sides for severity (Eq. 1)."""
+
+from __future__ import annotations
+
+import math
+from dataclasses import dataclass
+from enum import Enum
+from typing import Iterable
+
+import numpy as np
+import torch
+
+from src.preprocess.prepare_dataset import mask_pca_axis
+from src.severity.bone_loss import compute_bone_loss_severity
+
+
+class AxisMethod(str, Enum):
+    MASK_PCA = "mask_pca"
+    POINTS_AXIS = "points_axis"
+    LR_POSITION = "lr_position"
+
+
+@dataclass
+class SideAssignment:
+    """Two sides: index 0 tried before index 1 (matches GT slot 0 then slot 1)."""
+
+    cej: tuple[float, float] | None
+    intersection: tuple[float, float] | None
+    apex: tuple[float, float] | None
+
+
+@dataclass
+class AxisInfo:
+    method: AxisMethod
+    origin: tuple[float, float]
+    direction: tuple[float, float]
+    reference_x: float | None = None
+
+
+def slot_xy_from_tensor(kps: torch.Tensor | None, slot: int) -> tuple[float, float] | None:
+    if kps is None or kps.numel() == 0 or slot >= kps.shape[0]:
+        return None
+    x, y, v = float(kps[slot, 0]), float(kps[slot, 1]), float(kps[slot, 2])
+    if v <= 0 or (x == 0.0 and y == 0.0):
+        return None
+    return x, y
+
+
+def visible_points_from_tensor(kps: torch.Tensor | None) -> list[tuple[float, float]]:
+    if kps is None:
+        return []
+    out: list[tuple[float, float]] = []
+    for i in range(kps.shape[0]):
+        pt = slot_xy_from_tensor(kps, i)
+        if pt is not None:
+            out.append(pt)
+    return out
+
+
+def _unit_direction(dx: float, dy: float) -> tuple[float, float] | None:
+    norm = math.hypot(dx, dy)
+    if norm < 1e-8:
+        return None
+    return dx / norm, dy / norm
+
+
+def _pca_side_sign(pt: tuple[float, float], origin: np.ndarray, direction: np.ndarray) -> int:
+    rel = np.array([pt[0] - origin[0], pt[1] - origin[1]], dtype=np.float64)
+    cross = direction[0] * rel[1] - direction[1] * rel[0]
+    return 0 if cross < 0 else 1
+
+
+def _side_from_x(pt: tuple[float, float], reference_x: float) -> int:
+    return 0 if pt[0] < reference_x else 1
+
+
+def axis_from_mask(mask: np.ndarray | None) -> AxisInfo | None:
+    axis = mask_pca_axis(mask)
+    if axis is None:
+        return None
+    mean, direction = axis
+    return AxisInfo(
+        method=AxisMethod.MASK_PCA,
+        origin=(float(mean[0]), float(mean[1])),
+        direction=(float(direction[0]), float(direction[1])),
+    )
+
+
+def axis_from_points(
+    cej_pts: list[tuple[float, float]],
+    int_pts: list[tuple[float, float]],
+    bbox: list[float],
+) -> AxisInfo | None:
+    """PCA on CEJ + intersection points only (no apex)."""
+    pts = list(cej_pts) + list(int_pts)
+    if len(pts) < 2:
+        cx = (bbox[0] + bbox[2]) / 2.0
+        cy = (bbox[1] + bbox[3]) / 2.0
+        return AxisInfo(
+            method=AxisMethod.POINTS_AXIS,
+            origin=(cx, cy),
+            direction=(0.0, 1.0),
+            reference_x=cx,
+        )
+    coords = np.array(pts, dtype=np.float64)
+    mean = coords.mean(axis=0)
+    centered = coords - mean
+    if len(pts) == 2:
+        d = centered[1] - centered[0]
+        direction = _unit_direction(float(d[0]), float(d[1]))
+        if direction is None:
+            direction = (0.0, 1.0)
+    else:
+        _, _, vt = np.linalg.svd(centered, full_matrices=False)
+        d = vt[0]
+        norm = float(np.linalg.norm(d))
+        direction = (float(d[0] / norm), float(d[1] / norm)) if norm > 1e-8 else (0.0, 1.0)
+    return AxisInfo(
+        method=AxisMethod.POINTS_AXIS,
+        origin=(float(mean[0]), float(mean[1])),
+        direction=direction,
+    )
+
+
+def axis_from_lr_position(
+    cej_pts: list[tuple[float, float]],
+    int_pts: list[tuple[float, float]],
+    bbox: list[float],
+) -> AxisInfo:
+    """Left/right split by x; if only one CEJ + one INT, use bbox vertical centerline."""
+    cx = (bbox[0] + bbox[2]) / 2.0
+    cy = (bbox[1] + bbox[3]) / 2.0
+    if len(cej_pts) >= 2:
+        reference_x = (min(p[0] for p in cej_pts) + max(p[0] for p in cej_pts)) / 2.0
+    elif len(cej_pts) == 1 and len(int_pts) == 1:
+        reference_x = cx
+    elif len(int_pts) >= 2:
+        reference_x = (min(p[0] for p in int_pts) + max(p[0] for p in int_pts)) / 2.0
+    else:
+        reference_x = cx
+    return AxisInfo(
+        method=AxisMethod.LR_POSITION,
+        origin=(reference_x, cy),
+        direction=(0.0, 1.0),
+        reference_x=reference_x,
+    )
+
+
+def assign_point_to_side(pt: tuple[float, float], axis: AxisInfo) -> int:
+    if axis.method == AxisMethod.LR_POSITION and axis.reference_x is not None:
+        return _side_from_x(pt, axis.reference_x)
+    origin = np.array(axis.origin, dtype=np.float64)
+    direction = np.array(axis.direction, dtype=np.float64)
+    return _pca_side_sign(pt, origin, direction)
+
+
+def _pick_best_for_side(
+    points: list[tuple[float, float]],
+    side: int,
+    axis: AxisInfo,
+) -> tuple[float, float] | None:
+    if not points:
+        return None
+    on_side = [p for p in points if assign_point_to_side(p, axis) == side]
+    if not on_side:
+        return None
+    if len(on_side) == 1:
+        return on_side[0]
+    origin = np.array(axis.origin, dtype=np.float64)
+    direction = np.array(axis.direction, dtype=np.float64)
+    rel = lambda p: np.array([p[0] - origin[0], p[1] - origin[1]], dtype=np.float64)
+    perp = lambda p: abs(direction[0] * rel(p)[1] - direction[1] * rel(p)[0])
+    return min(on_side, key=perp)
+
+
+def resolve_shared_apex(
+    apex_pts: list[tuple[float, float]],
+    merge_radius_px: float = 12.0,
+) -> tuple[tuple[float, float] | None, tuple[float, float] | None]:
+    """Return (apex_for_side0, apex_for_side1); duplicate when only one apex."""
+    if not apex_pts:
+        return None, None
+    if len(apex_pts) == 1:
+        return apex_pts[0], apex_pts[0]
+    d = math.hypot(apex_pts[0][0] - apex_pts[1][0], apex_pts[0][1] - apex_pts[1][1])
+    if d < merge_radius_px:
+        shared = (
+            (apex_pts[0][0] + apex_pts[1][0]) / 2.0,
+            (apex_pts[0][1] + apex_pts[1][1]) / 2.0,
+        )
+        return shared, shared
+    return apex_pts[0], apex_pts[1]
+
+
+def build_side_assignments(
+    cej_kps: torch.Tensor | None,
+    int_kps: torch.Tensor | None,
+    apex_kps: torch.Tensor | None,
+    axis: AxisInfo,
+    merge_radius_px: float = 12.0,
+) -> list[SideAssignment]:
+    cej_pts = visible_points_from_tensor(cej_kps)
+    int_pts = visible_points_from_tensor(int_kps)
+    apex_pts = visible_points_from_tensor(apex_kps)
+
+    if not apex_pts:
+        apex_by_side: list[tuple[float, float] | None] = [None, None]
+    elif len(apex_pts) == 1:
+        apex_by_side = [apex_pts[0], apex_pts[0]]
+    else:
+        d = math.hypot(apex_pts[0][0] - apex_pts[1][0], apex_pts[0][1] - apex_pts[1][1])
+        if d < merge_radius_px:
+            shared = (
+                (apex_pts[0][0] + apex_pts[1][0]) / 2.0,
+                (apex_pts[0][1] + apex_pts[1][1]) / 2.0,
+            )
+            apex_by_side = [shared, shared]
+        else:
+            apex_by_side = [
+                _pick_best_for_side(apex_pts, 0, axis),
+                _pick_best_for_side(apex_pts, 1, axis),
+            ]
+
+    sides: list[SideAssignment] = []
+    for side in (0, 1):
+        sides.append(
+            SideAssignment(
+                cej=_pick_best_for_side(cej_pts, side, axis),
+                intersection=_pick_best_for_side(int_pts, side, axis),
+                apex=apex_by_side[side],
+            )
+        )
+    return sides
+
+
+def severity_from_sides(sides: Iterable[SideAssignment]) -> float | None:
+    """First valid side (0 then 1), same convention as GT severity_from_slots."""
+    for side in sides:
+        if side.cej is None or side.intersection is None or side.apex is None:
+            continue
+        sev = compute_bone_loss_severity(side.cej, side.intersection, side.apex)
+        if sev is not None:
+            return sev
+    return None
+
+
+def severity_with_axis_method(
+    cej_kps: torch.Tensor | None,
+    int_kps: torch.Tensor | None,
+    apex_kps: torch.Tensor | None,
+    method: AxisMethod,
+    bbox: list[float],
+    mask: np.ndarray | None = None,
+    merge_radius_px: float = 12.0,
+) -> tuple[float | None, AxisInfo | None, list[SideAssignment]]:
+    cej_pts = visible_points_from_tensor(cej_kps)
+    int_pts = visible_points_from_tensor(int_kps)
+
+    axis: AxisInfo | None
+    if method == AxisMethod.MASK_PCA:
+        axis = axis_from_mask(mask)
+        if axis is None:
+            axis = axis_from_lr_position(cej_pts, int_pts, bbox)
+    elif method == AxisMethod.POINTS_AXIS:
+        axis = axis_from_points(cej_pts, int_pts, bbox)
+    else:
+        axis = axis_from_lr_position(cej_pts, int_pts, bbox)
+
+    sides = build_side_assignments(cej_kps, int_kps, apex_kps, axis, merge_radius_px)
+    return severity_from_sides(sides), axis, sides
