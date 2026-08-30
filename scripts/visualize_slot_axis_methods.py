@@ -71,7 +71,7 @@ def main():
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--n-images", type=int, default=5)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--merge-radius", type=float, default=70.0)
+    parser.add_argument("--merge-radius", type=float, default=20.0)
     parser.add_argument(
         "--out-dir",
         type=Path,

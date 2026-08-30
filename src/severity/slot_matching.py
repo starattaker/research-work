@@ -13,8 +13,8 @@ import torch
 from src.preprocess.prepare_dataset import mask_pca_axis
 from src.severity.bone_loss import compute_bone_loss_severity
 
-# GT double-root apex–apex distance p10 ≈ 70px (see analyze_apex_merge_radius.py)
-DEFAULT_APEX_MERGE_PX = 70.0
+# Merge predicted apex pair when closer than this (px). User choice: 20px at inference.
+DEFAULT_APEX_MERGE_PX = 20.0
 
 
 class AxisMethod(str, Enum):

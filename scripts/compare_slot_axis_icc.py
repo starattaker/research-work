@@ -104,7 +104,7 @@ def main():
     parser.add_argument("--apex-weights", type=Path, required=True)
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--match-iou", type=float, default=0.5)
-    parser.add_argument("--merge-radius", type=float, default=70.0, help="Merge two apex preds if closer (px); GT p10≈70")
+    parser.add_argument("--merge-radius", type=float, default=20.0, help="Merge two apex preds if closer (px)")
     parser.add_argument("--out", type=Path, default=Path("research_log/slot_axis_icc_comparison.json"))
     args = parser.parse_args()
 
@@ -174,6 +174,8 @@ def main():
     print("=" * 60)
     print("SLOT-AXIS ICC COMPARISON")
     print("=" * 60)
+    print(f"  images/GT: {args.data_root}  |  masks: {report['raw_root']}")
+    print(f"  tooth masks found: {mask_hits}  missing: {mask_miss}")
     for method in AxisMethod:
         m = metric_icc_mae(
             method_results[method.value]["gt"],

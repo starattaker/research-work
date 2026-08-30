@@ -1,4 +1,20 @@
-"""Resolve DenPAR raw dataset layout (friend GPU: data/DenPAR/Dataset/)."""
+"""Resolve DenPAR raw dataset layout.
+
+Friend GPU layout (repo root = ~/faraz/Test_work/research-work):
+
+  data/DenPAR/Dataset/
+    Training/   Validation/   Testing/
+      Images/
+      Key Points Annotations/   *.json
+      Masks (Tooth-wise)/       <stem>/mask1.png, mask2.png, ...
+      Bone Level Annotations/
+
+  data/processed_v6/            # training + ICC GT (not raw)
+    yolo_detection/test/images/
+    keypoints/{cej,intersection,apex}/test/
+
+ICC slot-axis script uses processed_v6 for images/GT/predictions; raw masks only for mask_pca.
+"""
 
 from __future__ import annotations
 
