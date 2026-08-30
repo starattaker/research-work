@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
-# Friend GPU: parameter analysis (apex merge radius + grace sweep) + slot-axis ICC.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 export PYTHONPATH=.
 source venv/bin/activate 2>/dev/null || true
 
 RAW_ROOT="${RAW_ROOT:-data/DenPAR}"
+
+if [[ ! -d "$RAW_ROOT" ]]; then
+  echo "ERROR: RAW_ROOT not found: $RAW_ROOT"
+  echo "Find DenPAR on disk:  find ~ -maxdepth 4 -type d -name 'Testing' 2>/dev/null | head"
+  echo "Then: export RAW_ROOT=/path/to/parent  (parent contains Training/, Testing/, ...)"
+  exit 1
+fi
+
+echo "Using RAW_ROOT=$RAW_ROOT"
 
 echo "=== 1/3 Apex distance on double-root teeth (GT v6) ==="
 python scripts/analyze_apex_merge_radius.py \

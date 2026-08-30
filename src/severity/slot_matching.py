@@ -13,6 +13,9 @@ import torch
 from src.preprocess.prepare_dataset import mask_pca_axis
 from src.severity.bone_loss import compute_bone_loss_severity
 
+# GT double-root apex–apex distance p10 ≈ 70px (see analyze_apex_merge_radius.py)
+DEFAULT_APEX_MERGE_PX = 70.0
+
 
 class AxisMethod(str, Enum):
     MASK_PCA = "mask_pca"
@@ -175,7 +178,7 @@ def _pick_best_for_side(
 
 def resolve_shared_apex(
     apex_pts: list[tuple[float, float]],
-    merge_radius_px: float = 12.0,
+    merge_radius_px: float = DEFAULT_APEX_MERGE_PX,
 ) -> tuple[tuple[float, float] | None, tuple[float, float] | None]:
     """Return (apex_for_side0, apex_for_side1); duplicate when only one apex."""
     if not apex_pts:
@@ -233,7 +236,7 @@ def build_lr_side_assignments(
     int_pts: list[tuple[float, float]],
     apex_pts: list[tuple[float, float]],
     bbox: list[float],
-    merge_radius_px: float = 12.0,
+    merge_radius_px: float = DEFAULT_APEX_MERGE_PX,
 ) -> list[SideAssignment]:
     """LR by x when possible; line-distance fallback for 2+1 point patterns."""
     cx = (bbox[0] + bbox[2]) / 2.0
@@ -300,7 +303,7 @@ def build_side_assignments(
     int_kps: torch.Tensor | None,
     apex_kps: torch.Tensor | None,
     axis: AxisInfo,
-    merge_radius_px: float = 12.0,
+    merge_radius_px: float = DEFAULT_APEX_MERGE_PX,
 ) -> list[SideAssignment]:
     cej_pts = visible_points_from_tensor(cej_kps)
     int_pts = visible_points_from_tensor(int_kps)
@@ -354,7 +357,7 @@ def severity_with_axis_method(
     method: AxisMethod,
     bbox: list[float],
     mask: np.ndarray | None = None,
-    merge_radius_px: float = 12.0,
+    merge_radius_px: float = DEFAULT_APEX_MERGE_PX,
 ) -> tuple[float | None, AxisInfo | None, list[SideAssignment]]:
     cej_pts = visible_points_from_tensor(cej_kps)
     int_pts = visible_points_from_tensor(int_kps)

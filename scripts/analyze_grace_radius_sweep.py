@@ -116,19 +116,38 @@ def eval_grace_v4_max_ring(
     }
 
 
-def sweep_raw_split(raw_root: Path, split: str, max_radius: int) -> dict:
-    split_raw = split if split in SPLITS else split
+def discover_denpar_split_dirs(raw_root: Path, split: str) -> tuple[Path, Path] | None:
+    """Find Key Points Annotations + Masks folders (DenPAR naming variants)."""
+    split_raw = split if split in SPLITS else SPLIT_ALIASES.get(split, split)
     if split_raw not in SPLITS:
         alias_inv = {v: k for k, v in SPLIT_ALIASES.items()}
         split_raw = alias_inv.get(split, split)
 
-    kp_dir = raw_root / split_raw / "Key Points Annotations"
-    mask_root = raw_root / split_raw / "Masks (Tooth-wise)"
+    bases = [raw_root, raw_root / "DenPAR", raw_root / "denpar"]
+    split_names = [split_raw, split_raw.lower(), split.lower()]
+    for base in bases:
+        for name in split_names:
+            kp_dir = base / name / "Key Points Annotations"
+            mask_root = base / name / "Masks (Tooth-wise)"
+            if kp_dir.is_dir() and any(kp_dir.glob("*.json")):
+                return kp_dir, mask_root
+    return None
+
+
+def sweep_raw_split(raw_root: Path, split: str, max_radius: int) -> dict:
+    discovered = discover_denpar_split_dirs(raw_root, split)
+    if discovered is None:
+        raise FileNotFoundError(
+            f"DenPAR not found under {raw_root}. "
+            "Set RAW_ROOT to the folder containing Training/, Validation/, Testing/. "
+            "Example: export RAW_ROOT=~/data/DenPAR_dataset"
+        )
+    kp_dir, mask_root = discovered
 
     totals_v3 = {r: {"assigned": 0, "unassigned": 0, "wrong_tooth": 0, "total_points": 0} for r in range(max_radius + 1)}
     totals_v4 = {r: {"assigned": 0, "unassigned": 0, "wrong_tooth": 0, "total_points": 0} for r in range(max_radius + 1)}
 
-    for kp_path in tqdm(sorted(kp_dir.glob("*.json")), desc=f"sweep {split_raw}"):
+    for kp_path in tqdm(sorted(kp_dir.glob("*.json")), desc=f"sweep {kp_dir.parent.name}"):
         kp_json = json.loads(kp_path.read_text(encoding="utf-8"))
         bboxes = kp_json.get("bboxes", [])
         if not bboxes:
@@ -149,7 +168,7 @@ def sweep_raw_split(raw_root: Path, split: str, max_radius: int) -> dict:
                     for k in ("assigned", "unassigned", "wrong_tooth", "total_points"):
                         bucket[r][k] += s[k]
 
-    return {"v3_grace": totals_v3, "v4_max_ring": totals_v4}
+    return {"v3_grace": totals_v3, "v4_max_ring": totals_v4, "kp_dir": kp_dir.as_posix()}
 
 
 def to_curves(totals: dict) -> dict:
@@ -231,6 +250,9 @@ def main():
     args = parser.parse_args()
 
     raw = sweep_raw_split(args.raw_root, args.split, args.max_radius)
+    if raw["v3_grace"][0]["total_points"] == 0:
+        raise RuntimeError(f"No points processed from {raw['kp_dir']} — check masks exist per image.")
+
     v3_curves = to_curves(raw["v3_grace"])
     v4_curves = to_curves(raw["v4_max_ring"])
 
@@ -241,6 +263,7 @@ def main():
         "raw_root": args.raw_root.as_posix(),
         "split": args.split,
         "max_radius_px": args.max_radius,
+        "kp_dir": raw["kp_dir"],
         "at_4px_v3": {k: v3_curves[k][4] for k in ("pct_assigned", "pct_unassigned", "pct_wrong_tooth")},
         "at_8px_v3": {k: v3_curves[k][8] for k in ("pct_assigned", "pct_unassigned", "pct_wrong_tooth")},
         "at_8px_v4": {k: v4_curves[k][8] for k in ("pct_assigned", "pct_unassigned", "pct_wrong_tooth")},

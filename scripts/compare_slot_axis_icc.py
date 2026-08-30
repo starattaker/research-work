@@ -108,7 +108,7 @@ def main():
     parser.add_argument("--apex-weights", type=Path, required=True)
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--match-iou", type=float, default=0.5)
-    parser.add_argument("--merge-radius", type=float, default=12.0)
+    parser.add_argument("--merge-radius", type=float, default=70.0, help="Merge two apex preds if closer (px); GT p10≈70")
     parser.add_argument("--out", type=Path, default=Path("research_log/slot_axis_icc_comparison.json"))
     args = parser.parse_args()
 
@@ -184,6 +184,7 @@ def main():
             method_results[method.value]["pred"],
         )
         report["methods"][method.value] = m
+        icc = m["icc"]
         icc_s = f"{icc:.4f}" if icc is not None else "n/a"
         print(f"  {method.value:14s}  ICC={icc_s}  n={m['n_pairs']}")
     if args.raw_root is None:
