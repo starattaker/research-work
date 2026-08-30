@@ -192,6 +192,109 @@ def resolve_shared_apex(
     return apex_pts[0], apex_pts[1]
 
 
+def _dist_point_to_segment(
+    p: tuple[float, float],
+    a: tuple[float, float],
+    b: tuple[float, float],
+) -> float:
+    ax, ay = a
+    bx, by = b
+    px, py = p
+    dx, dy = bx - ax, by - ay
+    if dx == 0 and dy == 0:
+        return math.hypot(px - ax, py - ay)
+    t = ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)
+    t = max(0.0, min(1.0, t))
+    proj_x = ax + t * dx
+    proj_y = ay + t * dy
+    return math.hypot(px - proj_x, py - proj_y)
+
+
+def _assign_singleton_by_anchor_lines(
+    pt: tuple[float, float],
+    anchor0: list[tuple[float, float]],
+    anchor1: list[tuple[float, float]],
+) -> int:
+    """Pick side 0 or 1 by min distance to line between two anchors on that side."""
+    def side_cost(anchors: list[tuple[float, float]]) -> float:
+        if len(anchors) >= 2:
+            return _dist_point_to_segment(pt, anchors[0], anchors[1])
+        if len(anchors) == 1:
+            return math.hypot(pt[0] - anchors[0][0], pt[1] - anchors[0][1])
+        return float("inf")
+
+    c0 = side_cost(anchor0)
+    c1 = side_cost(anchor1)
+    return 0 if c0 <= c1 else 1
+
+
+def build_lr_side_assignments(
+    cej_pts: list[tuple[float, float]],
+    int_pts: list[tuple[float, float]],
+    apex_pts: list[tuple[float, float]],
+    bbox: list[float],
+    merge_radius_px: float = 12.0,
+) -> list[SideAssignment]:
+    """LR by x when possible; line-distance fallback for 2+1 point patterns."""
+    cx = (bbox[0] + bbox[2]) / 2.0
+    sides = [SideAssignment(None, None, None), SideAssignment(None, None, None)]
+
+    if len(cej_pts) >= 2:
+        ordered = sorted(cej_pts, key=lambda p: p[0])
+        sides[0].cej, sides[1].cej = ordered[0], ordered[1]
+    elif len(cej_pts) == 1:
+        s = 0 if cej_pts[0][0] < cx else 1
+        sides[s].cej = cej_pts[0]
+
+    if len(int_pts) >= 2:
+        ordered = sorted(int_pts, key=lambda p: p[0])
+        sides[0].intersection, sides[1].intersection = ordered[0], ordered[1]
+    elif len(int_pts) == 1:
+        a0 = [p for p in (sides[0].cej, sides[0].apex) if p]
+        a1 = [p for p in (sides[1].cej, sides[1].apex) if p]
+        if a0 or a1:
+            s = _assign_singleton_by_anchor_lines(int_pts[0], a0, a1)
+        else:
+            s = 0 if int_pts[0][0] < cx else 1
+        sides[s].intersection = int_pts[0]
+
+    if not apex_pts:
+        pass
+    elif len(apex_pts) == 1:
+        a0 = [p for p in (sides[0].cej, sides[0].intersection) if p]
+        a1 = [p for p in (sides[1].cej, sides[1].intersection) if p]
+        if a0 and a1:
+            s = _assign_singleton_by_anchor_lines(apex_pts[0], a0, a1)
+            sides[s].apex = apex_pts[0]
+            sides[1 - s].apex = apex_pts[0]
+        else:
+            sides[0].apex = sides[1].apex = apex_pts[0]
+    else:
+        d = math.hypot(apex_pts[0][0] - apex_pts[1][0], apex_pts[0][1] - apex_pts[1][1])
+        if d < merge_radius_px:
+            shared = (
+                (apex_pts[0][0] + apex_pts[1][0]) / 2.0,
+                (apex_pts[0][1] + apex_pts[1][1]) / 2.0,
+            )
+            sides[0].apex = sides[1].apex = shared
+        else:
+            ordered = sorted(apex_pts, key=lambda p: p[0])
+            sides[0].apex, sides[1].apex = ordered[0], ordered[1]
+
+    # 1 CEJ + 1 INT: severity only if both on same side of bbox center
+    if len(cej_pts) == 1 and len(int_pts) == 1 and len(apex_pts) <= 1:
+        s_cej = 0 if cej_pts[0][0] < cx else 1
+        s_int = 0 if int_pts[0][0] < cx else 1
+        if s_cej != s_int:
+            return [SideAssignment(None, None, None), SideAssignment(None, None, None)]
+        apx = apex_pts[0] if apex_pts else None
+        empty = SideAssignment(None, None, None)
+        valid = SideAssignment(cej_pts[0], int_pts[0], apx)
+        return [valid, empty] if s_cej == 0 else [empty, valid]
+
+    return sides
+
+
 def build_side_assignments(
     cej_kps: torch.Tensor | None,
     int_kps: torch.Tensor | None,
@@ -266,5 +369,8 @@ def severity_with_axis_method(
     else:
         axis = axis_from_lr_position(cej_pts, int_pts, bbox)
 
-    sides = build_side_assignments(cej_kps, int_kps, apex_kps, axis, merge_radius_px)
+    if method == AxisMethod.LR_POSITION:
+        sides = build_lr_side_assignments(cej_pts, int_pts, visible_points_from_tensor(apex_kps), bbox, merge_radius_px)
+    else:
+        sides = build_side_assignments(cej_kps, int_kps, apex_kps, axis, merge_radius_px)
     return severity_from_sides(sides), axis, sides
