@@ -66,15 +66,15 @@ def main():
     )
     parser.add_argument(
         "--combine-mode",
-        choices=["paper_x", "tensor", "geom_consistent"],
-        default="paper_x",
-        help="How to pair CEJ/INT/APEX slots (paper_x = sort by x, no masks)",
+        choices=["paper_x", "tensor", "geom_consistent", "lr"],
+        default="tensor",
+        help="tensor = model slot order (v6 training); geom_consistent = 8-combo x-spread; lr = bbox LR assign",
     )
     parser.add_argument(
         "--gt-slot-convention",
         choices=["paper_x", "pca"],
-        default="paper_x",
-        help="GT severity slot order: paper_x (left→right) or pca (v6 labels)",
+        default="pca",
+        help="GT severity slots: pca = v6 preprocess labels (required for processed_v6)",
     )
     parser.add_argument(
         "--severity-protocol",
@@ -175,9 +175,8 @@ def main():
         "n_pairs": len(gt_vals),
         "stats": stats,
         "note": (
-            "GT severity computed on-the-fly from keypoint JSON (not a separate expert file). "
-            "paper_x = sort CEJ/INT/APEX by x per tooth; both_sides = ICC row per root side. "
-            "NMS 0.6 applies to Keypoint R-CNN detection boxes before picking the YOLO-matched ROI."
+            "GT severity computed on-the-fly from v6 keypoint JSON (PCA slots at preprocess). "
+            "Use gt_slot_convention=pca for processed_v6. both_sides = ICC row per root side."
         ),
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)

@@ -51,7 +51,7 @@ def main():
     combos = list(
         itertools.product(
             ["roi", "full"],
-            ["paper_x", "tensor", "geom_consistent"],
+            ["paper_x", "tensor", "geom_consistent", "lr"],
             ["one_per_tooth", "both_sides"],
             ["paper_x", "pca"],
         )

@@ -78,6 +78,7 @@ def main():
         "D2_oracle_8combo": ([], []),
         "E_paper_x": ([], []),
         "E_geom": ([], []),
+        "E_lr": ([], []),
     }
 
     for img_path in tqdm(paths, desc="diagnose ICC"):
@@ -122,9 +123,11 @@ def main():
             for key, mode in (
                 ("E_paper_x", "paper_x"),
                 ("E_geom", "geom_consistent"),
+                ("E_lr", "lr"),
             ):
                 pred = pred_severity_from_tensors(
-                    cej, inter, apex, combine_mode=mode, merge_radius_px=20.0
+                    cej, inter, apex, combine_mode=mode, merge_radius_px=20.0,
+                    bbox=merged["bboxes"][i],
                 )
                 if pred is not None:
                     buckets[key][0].append(gt_sev)
@@ -137,10 +140,11 @@ def main():
         "tests": {name: run_icc(g, p) for name, (g, p) in buckets.items()},
         "interpretation": [
             "A1≈1.0: GT labels + ICC code OK",
-            "D1 low: tensor slot 0/1 order ≠ anatomical side (main bug)",
-            "D3 ~0.55: correct slot if we knew GT side (not usable at inference)",
-            "D2 ~0.78: oracle 8-combo ceiling with current keypoint error",
-            "E_*: mask-free combine modes; best E_* is production candidate",
+            "D1 low: tensor slot 0/1 order ≠ PCA GT side",
+            "D3 ~0.39: pred at GT PCA slot (not usable at inference)",
+            "D2 ~0.73: oracle picks 8-combo using GT severity magnitude (ceiling)",
+            "Use gt_slot_convention=pca for processed_v6; paper_x GT is wrong for v6",
+            "Best honest sweep: tensor+pca+both_sides ~0.50; geom ~0.69 but n≈108",
         ],
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)

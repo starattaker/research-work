@@ -112,8 +112,8 @@ class SeverityPipeline:
         inference_mode: str = "roi",
         require_yolo: bool = True,
         gt_proposals: bool = False,
-        combine_mode: str = "paper_x",
-        gt_slot_convention: str = "paper_x",
+        combine_mode: str = "tensor",
+        gt_slot_convention: str = "pca",
         severity_protocol: str = "both_sides",
         apex_merge_px: float = 20.0,
     ):
@@ -215,6 +215,7 @@ class SeverityPipeline:
                         apex_kps,
                         combine_mode=self.combine_mode,
                         merge_radius_px=self.apex_merge_px,
+                        bbox=gt_merged["bboxes"][i],
                     )
             gt_sev = gt_sides[0][1] if gt_sides else None
             pred_sev = pred_sides[0][1] if pred_sides else None

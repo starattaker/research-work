@@ -211,8 +211,34 @@ def severity_geom_consistent(
     apex_kps: torch.Tensor | None,
 ) -> float | None:
     """Pick valid 8-combo with smallest x-spread (same-side geometry, no GT cheat)."""
-    best_sev = None
-    best_cost = float("inf")
+    ranked = _rank_combos_by_x_spread(cej_kps, int_kps, apex_kps)
+    return ranked[0][1] if ranked else None
+
+
+def severities_geom_both_sides(
+    cej_kps: torch.Tensor | None,
+    int_kps: torch.Tensor | None,
+    apex_kps: torch.Tensor | None,
+) -> list[tuple[int, float]]:
+    """Up to two sides: best x-coherent combo per distinct CEJ slot."""
+    ranked = _rank_combos_by_x_spread(cej_kps, int_kps, apex_kps)
+    if not ranked:
+        return []
+    out: list[tuple[int, float]] = [(0, ranked[0][1])]
+    best_cs = ranked[0][2]
+    for _spread, sev, cs, _is, _as in ranked[1:]:
+        if cs != best_cs:
+            out.append((1, sev))
+            break
+    return out
+
+
+def _rank_combos_by_x_spread(
+    cej_kps: torch.Tensor | None,
+    int_kps: torch.Tensor | None,
+    apex_kps: torch.Tensor | None,
+) -> list[tuple[float, float, int, int, int]]:
+    ranked: list[tuple[float, float, int, int, int]] = []
     for cs in (0, 1):
         for is_ in (0, 1):
             for as_ in (0, 1):
@@ -222,11 +248,9 @@ def severity_geom_consistent(
                 sev = compute_bone_loss_severity(c, t, a)
                 if sev is None:
                     continue
-                cost = float(np_std([c[0], t[0], a[0]]))
-                if cost < best_cost:
-                    best_cost = cost
-                    best_sev = sev
-    return best_sev
+                ranked.append((float(np_std([c[0], t[0], a[0]])), sev, cs, is_, as_))
+    ranked.sort(key=lambda row: row[0])
+    return ranked
 
 
 def np_std(xs: list[float]) -> float:

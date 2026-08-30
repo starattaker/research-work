@@ -21,8 +21,8 @@ for split in train val test; do
     --data-root "$DATA" \
     --split "$split" \
     --inference-mode roi \
-    --combine-mode paper_x \
-    --gt-slot-convention paper_x \
+    --combine-mode tensor \
+    --gt-slot-convention pca \
     --severity-protocol both_sides \
     --out "research_log/severity_icc_${split}.json"
 done

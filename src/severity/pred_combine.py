@@ -8,8 +8,14 @@ from src.severity.bone_loss import compute_bone_loss_severity
 from src.severity.paper_combine import (
     severity_geom_consistent,
     severity_paper_first_valid,
+    severities_geom_both_sides,
     severities_paper_aligned,
     slot_xy_from_tensor,
+)
+from src.severity.slot_matching import (
+    build_lr_side_assignments,
+    severity_from_side_index,
+    visible_points_from_tensor,
 )
 
 
@@ -32,6 +38,28 @@ def severity_from_tensor_slots(
     return None
 
 
+def severities_from_lr(
+    cej_kps: torch.Tensor | None,
+    int_kps: torch.Tensor | None,
+    apex_kps: torch.Tensor | None,
+    bbox: list[float],
+    merge_radius_px: float,
+) -> list[tuple[int, float]]:
+    sides = build_lr_side_assignments(
+        visible_points_from_tensor(cej_kps),
+        visible_points_from_tensor(int_kps),
+        visible_points_from_tensor(apex_kps),
+        bbox,
+        merge_radius_px,
+    )
+    out: list[tuple[int, float]] = []
+    for slot in (0, 1):
+        sev = severity_from_side_index(sides, slot)
+        if sev is not None:
+            out.append((slot, sev))
+    return out
+
+
 def pred_severity_from_tensors(
     cej_kps: torch.Tensor | None,
     int_kps: torch.Tensor | None,
@@ -39,12 +67,13 @@ def pred_severity_from_tensors(
     *,
     combine_mode: str = "tensor",
     merge_radius_px: float = 20.0,
+    bbox: list[float] | None = None,
 ) -> float | None:
-    if combine_mode == "paper_x":
-        return severity_paper_first_valid(cej_kps, int_kps, apex_kps, merge_radius_px)
-    if combine_mode == "geom_consistent":
-        return severity_geom_consistent(cej_kps, int_kps, apex_kps)
-    return severity_from_tensor_slots(cej_kps, int_kps, apex_kps)
+    sides = pred_severities_from_tensors(
+        cej_kps, int_kps, apex_kps,
+        combine_mode=combine_mode, merge_radius_px=merge_radius_px, bbox=bbox,
+    )
+    return sides[0][1] if sides else None
 
 
 def pred_severities_from_tensors(
@@ -54,12 +83,16 @@ def pred_severities_from_tensors(
     *,
     combine_mode: str = "tensor",
     merge_radius_px: float = 20.0,
+    bbox: list[float] | None = None,
 ) -> list[tuple[int, float]]:
     if combine_mode == "paper_x":
         return severities_paper_aligned(cej_kps, int_kps, apex_kps, merge_radius_px)
     if combine_mode == "geom_consistent":
-        sev = severity_geom_consistent(cej_kps, int_kps, apex_kps)
-        return [(0, sev)] if sev is not None else []
+        return severities_geom_both_sides(cej_kps, int_kps, apex_kps)
+    if combine_mode == "lr":
+        if bbox is None:
+            return []
+        return severities_from_lr(cej_kps, int_kps, apex_kps, bbox, merge_radius_px)
     out: list[tuple[int, float]] = []
     for slot in (0, 1):
         c = slot_xy_from_tensor(cej_kps, slot)
