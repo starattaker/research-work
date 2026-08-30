@@ -6,11 +6,13 @@ from pathlib import Path
 
 import albumentations as A
 import cv2
+import numpy as np
 import torch
 from torchvision.ops import box_iou
 from torchvision.transforms import functional as F
 from ultralytics import YOLO
 
+from src.denpar_paths import denpar_mask_path, resolve_denpar_root
 from src.keypoint.inference_utils import predict_keypoints_for_boxes
 from src.keypoint.model import get_keypoint_model
 from src.severity.gt_labels import (
@@ -23,9 +25,11 @@ from src.severity.gt_labels import (
 from src.severity.pred_combine import (
     pred_severities_from_tensors,
     pred_severity_from_tensors,
+    pred_side_details_from_tensors,
     severity_from_tensor_slots,
     slot_xy_from_tensor,
 )
+from src.severity.side_details import gt_side_details_for_tooth
 
 __all__ = [
     "SeverityPipeline",
@@ -97,6 +101,15 @@ def best_match_idx(ref: torch.Tensor, boxes: torch.Tensor, min_iou: float) -> in
     return j
 
 
+def load_tooth_mask(raw_root: Path | None, split: str, stem: str, tooth_idx: int) -> np.ndarray | None:
+    mask_path = denpar_mask_path(raw_root, split, stem, tooth_idx)
+    if not mask_path.exists():
+        return None
+    from src.preprocess.prepare_dataset import load_tooth_mask
+
+    return load_tooth_mask(mask_path)
+
+
 class SeverityPipeline:
     def __init__(
         self,
@@ -112,10 +125,11 @@ class SeverityPipeline:
         inference_mode: str = "roi",
         require_yolo: bool = True,
         gt_proposals: bool = False,
-        combine_mode: str = "tensor",
+        combine_mode: str = "mask_pca",
         gt_slot_convention: str = "pca",
         severity_protocol: str = "both_sides",
         apex_merge_px: float = 20.0,
+        raw_root: Path | None = None,
     ):
         self.device = torch.device(device if torch.cuda.is_available() or device == "cpu" else "cpu")
         self.score_thresh = score_thresh
@@ -129,6 +143,7 @@ class SeverityPipeline:
         self.gt_slot_convention = gt_slot_convention
         self.severity_protocol = severity_protocol
         self.apex_merge_px = apex_merge_px
+        self.raw_root = resolve_denpar_root(raw_root)
         self.yolo = YOLO(str(yolo_weights))
         self.transform = build_clahe_transform()
         self.models = {
@@ -165,7 +180,11 @@ class SeverityPipeline:
         self,
         image_path: Path,
         gt_merged: dict,
+        *,
+        split: str = "test",
+        stem: str | None = None,
     ) -> list[dict]:
+        stem = stem or image_path.stem
         yolo_result = self.yolo.predict(
             source=str(image_path),
             imgsz=640,
@@ -202,21 +221,27 @@ class SeverityPipeline:
 
         rows = []
         for i in range(len(gt_merged["bboxes"])):
-            gt_sides = gt_severities_for_tooth(
-                gt_merged, i, slot_convention=self.gt_slot_convention, merge_radius_px=self.apex_merge_px
+            gt_side_details = gt_side_details_for_tooth(
+                gt_merged, i, slot_convention=self.gt_slot_convention
             )
-            pred_sides: list[tuple[int, float]] = []
+            gt_sides = [(d.slot, d.severity) for d in gt_side_details]
+            pred_side_details = []
             if i in kps_by_tooth:
                 cej_kps, int_kps, apex_kps = kps_by_tooth[i]
                 if cej_kps is not None and int_kps is not None and apex_kps is not None:
-                    pred_sides = pred_severities_from_tensors(
+                    mask = None
+                    if self.combine_mode == "mask_pca":
+                        mask = load_tooth_mask(self.raw_root, split, stem, i)
+                    pred_side_details = pred_side_details_from_tensors(
                         cej_kps,
                         int_kps,
                         apex_kps,
                         combine_mode=self.combine_mode,
                         merge_radius_px=self.apex_merge_px,
                         bbox=gt_merged["bboxes"][i],
+                        mask=mask,
                     )
+            pred_sides = [(d.slot, d.severity) for d in pred_side_details]
             gt_sev = gt_sides[0][1] if gt_sides else None
             pred_sev = pred_sides[0][1] if pred_sides else None
             rows.append(
@@ -226,6 +251,8 @@ class SeverityPipeline:
                     "pred_severity": pred_sev,
                     "gt_sides": gt_sides,
                     "pred_sides": pred_sides,
+                    "gt_side_details": gt_side_details,
+                    "pred_side_details": pred_side_details,
                     "yolo_matched": yolo_flags[i],
                 }
             )

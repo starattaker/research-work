@@ -66,8 +66,8 @@ def main():
     )
     parser.add_argument(
         "--combine-mode",
-        choices=["paper_x", "tensor", "geom_consistent", "lr"],
-        default="tensor",
+        choices=["paper_x", "tensor", "geom_consistent", "lr", "mask_pca"],
+        default="mask_pca",
         help="tensor = model slot order (v6 training); geom_consistent = 8-combo x-spread; lr = bbox LR assign",
     )
     parser.add_argument(
@@ -129,7 +129,7 @@ def main():
         merged = load_gt_annotations(args.data_root, args.split, stem)
         if merged is None:
             continue
-        rows = pipeline.predict_image_severities(img_path, merged)
+        rows = pipeline.predict_image_severities(img_path, merged, split=args.split, stem=stem)
         img_gt, img_pred = collect_severity_pairs(rows, args.severity_protocol)
         img_stats = {"image": stem, "teeth": len(rows), "pairs": len(img_gt)}
         for row in rows:

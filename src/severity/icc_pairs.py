@@ -2,22 +2,34 @@
 
 from __future__ import annotations
 
+from src.severity.side_details import (
+    SideDetail,
+    pair_sides_by_cej,
+    pair_sides_by_slot_index,
+)
+
 
 def collect_severity_pairs(rows: list[dict], protocol: str) -> tuple[list[float], list[float]]:
     gt_out: list[float] = []
     pred_out: list[float] = []
     for row in rows:
-        if protocol in ("match_by_slot", "both_sides"):
-            pred_map = {s: v for s, v in row.get("pred_sides", [])}
-            for slot, gt_sev in row.get("gt_sides", []):
-                pred_sev = pred_map.get(slot)
-                if pred_sev is not None:
-                    gt_out.append(gt_sev)
-                    pred_out.append(pred_sev)
+        gt_details: list[SideDetail] = row.get("gt_side_details", [])
+        pred_details: list[SideDetail] = row.get("pred_side_details", [])
+
+        if protocol in ("both_sides", "match_by_slot") and gt_details and pred_details:
+            if protocol == "match_by_slot":
+                pairs = pair_sides_by_slot_index(gt_details, pred_details)
+            else:
+                pairs = pair_sides_by_cej(gt_details, pred_details)
         else:
+            pairs = []
             gt_sev = row.get("gt_severity")
             pred_sev = row.get("pred_severity")
             if gt_sev is not None and pred_sev is not None:
-                gt_out.append(gt_sev)
-                pred_out.append(pred_sev)
+                pairs = [(gt_sev, pred_sev)]
+
+        for g, p in pairs:
+            gt_out.append(g)
+            pred_out.append(p)
+
     return gt_out, pred_out

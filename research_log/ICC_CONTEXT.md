@@ -34,5 +34,13 @@ Oracle ceiling ~0.73 → keypoint error + slot pairing still cost ~0.07–0.08 v
 
 ## One command (friend GPU)
 ```bash
-cd ~/faraz/Test_work/research-work && git pull && source venv/bin/activate && export PYTHONPATH=. && unset RAW_ROOT && bash scripts/run_icc_friend_full.sh
+cd ~/faraz/Test_work/research-work && bash scripts/run_icc_friend_full.sh
 ```
+
+Runs: sync repo → audit → compare mask_pca/lr/tensor/geom on test → best mode on train/val/test with **CEJ anatomical pairing** (not broken slot-index matching).
+
+## Bug fixed (Aug 2026)
+`both_sides` used to pair GT slot 0 with pred slot 0, but pred slot 0 ≠ GT PCA slot 0 on many teeth. Now pairs by **nearest CEJ** (anatomical correspondence).
+
+## Current best (before CEJ fix)
+Test ICC ~0.57 with tensor+pca+slot-index. Oracle ~0.79.

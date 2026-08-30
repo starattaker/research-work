@@ -51,7 +51,7 @@ def main():
     combos = list(
         itertools.product(
             ["roi", "full"],
-            ["paper_x", "tensor", "geom_consistent", "lr"],
+            ["paper_x", "tensor", "geom_consistent", "lr", "mask_pca"],
             ["one_per_tooth", "both_sides"],
             ["paper_x", "pca"],
         )
@@ -76,7 +76,7 @@ def main():
             merged = load_gt_annotations(args.data_root, args.split, img_path.stem)
             if merged is None:
                 continue
-            rows = pipeline.predict_image_severities(img_path, merged)
+            rows = pipeline.predict_image_severities(img_path, merged, split=args.split, stem=stem)
             g, pr = collect_severity_pairs(rows, protocol)
             gt_vals.extend(g)
             pred_vals.extend(pr)
