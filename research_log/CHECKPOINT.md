@@ -1,62 +1,50 @@
 # Checkpoint — ICC ~0.73 on test (2026-08-31)
 
-**Status:** Honest end-to-end ICC **~0.70–0.73** on test. Paper **0.801**. Within ~0.07–0.10.
+**Status:** Ready for parameter sweep + v7 preprocess. Test ICC **~0.73** (paper **0.801**).
 
 ## Completed
 - [x] YOLO test mAP50 **0.873** (paper 0.963)
 - [x] v6 keypoints: CEJ **0.927** / INT **0.894** / Apex **0.871**
-- [x] ICC pipeline fixed (GT convention, pairing, Eq.1 sanity)
-- [x] Val-locked sweep (`run_icc_friend_pipeline.py`)
+- [x] ICC pipeline fixed (PCA GT, match_by_slot, Eq.1 clip + geom filter)
+- [x] Val-locked sweep `861dfca` → `research_log/icc_final_report.json`
+- [x] Friend scripts: ICC grid, point-assignment sweep, v7 train (`402e0bc`)
 
-## Latest ICC (friend GPU, 2026-08-31)
+## Latest ICC (friend GPU, 2026-08-31, commit `861dfca`)
 
-| Split | ICC | n pairs | MAE % | Config |
-|-------|----:|--------:|------:|--------|
-| **Test** | **0.7005** | 597 | 7.4 | hungarian + match_by_slot (val winner) |
-| **Test** | **0.7283** | 598 | — | tensor + match_by_slot (best on test) |
+| Split | ICC | n | MAE % | Config |
+|-------|----:|--:|------:|--------|
+| Test (val-locked) | **0.7005** | 597 | 7.4 | hungarian + match_by_slot |
+| Test (best on test) | **0.7283** | 598 | — | tensor + match_by_slot |
 | Val | 0.7048 | 449 | 6.4 | hungarian + match_by_slot |
 | Train | 0.8279 | 2002 | 4.7 | hungarian + match_by_slot |
 | Paper | **0.801** | — | — | — |
 
-## What fixed ICC (0.05 → 0.73)
-
-1. **GT convention** — use `pca` slots from processed_v6 (not `paper_x`).
-2. **Pair by slot index** (`match_by_slot`) — GT slot 0 ↔ pred slot 0. CEJ-nearest pairing **hurt** ICC.
-3. **Eq.1 sanity** — reject severities when intersection is not between CEJ and apex; clip to **0–100%**.
-4. **Combine mode** — `tensor` / `lr` / `hungarian` all ~0.70–0.73; `mask_pca` worse.
-
-## Oracle reference
-- Oracle 8-combo (uses GT severity — cheat): **~0.79**
-- Gap to paper **0.801** ≈ **0.07** → mostly keypoint + YOLO error, not pairing catastrophe
+Oracle 8-combo ~**0.79** (ceiling with GT pairing cheat).
 
 ## In progress
-- [ ] Lock production defaults: `tensor` + `match_by_slot` + `pca` GT
-- [ ] Report paper-table ICC (train 0.851 / val 0.824 / test 0.801) with same script
+- [ ] ICC parameter grid: combine × protocol × apex_merge_px
+- [ ] Grace sweep 0–48px + bbox outlier → v7 preprocess
 
 ## Not started
-- [ ] Intersection model improvement (if chasing last ~0.07)
+- [ ] v7 keypoint retrain (`processed_v7`)
 - [ ] External 214-image validation
-- [ ] LaTeX table update
 
-## Resume — friend GPU
+## Resume — friend GPU (merge pull, keeps local files)
 
-**ICC parameter grid (combine × protocol × apex_merge):**
 ```bash
-cd ~/faraz/Test_work/research-work && bash scripts/run_icc_optimize_friend.sh
+cd ~/faraz/Test_work/research-work && bash scripts/run_improvement_friend.sh
 ```
 
-**Point assignment / grace sweep (0–48px + outlier analysis):**
-```bash
-cd ~/faraz/Test_work/research-work && bash scripts/run_point_inclusion_friend.sh
-```
+After that finishes:
 
-**Train v7 (after point inclusion):**
 ```bash
 cd ~/faraz/Test_work/research-work && bash scripts/run_train_v7_from_sweep_friend.sh
 ```
 
-Legacy full ICC:
+Manual merge only:
+
 ```bash
-cd ~/faraz/Test_work/research-work && bash scripts/run_icc_friend_full.sh
+cd ~/faraz/Test_work/research-work && git fetch origin && git checkout denpar-severity-replication && git merge origin/denpar-severity-replication --no-edit
 ```
 
+Outputs: `research_log/icc_parameter_sweep.json`, `research_log/figures/point_assignment_full/`

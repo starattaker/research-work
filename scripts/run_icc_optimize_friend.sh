@@ -3,7 +3,7 @@
 # Optional: SWEEP_YOLO_NMS=1 for score_thresh × nms GPU pass on val.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-bash scripts/sync_friend_repo.sh
+SYNC_MODE=merge bash scripts/sync_friend_repo.sh
 source venv/bin/activate
 export PYTHONPATH=.
 unset RAW_ROOT 2>/dev/null || true
