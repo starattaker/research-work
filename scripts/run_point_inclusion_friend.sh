@@ -4,7 +4,7 @@
 # Also re-runs legacy 0–24px grace sweep for comparison.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-bash scripts/sync_friend_repo.sh
+SYNC_MODE=merge bash scripts/sync_friend_repo.sh
 source venv/bin/activate
 export PYTHONPATH=.
 

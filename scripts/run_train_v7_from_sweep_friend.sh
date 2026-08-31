@@ -2,7 +2,7 @@
 # Train v7 after point_assignment_report.json exists (run run_point_inclusion_friend.sh first).
 set -euo pipefail
 cd "$(dirname "$0")/.."
-bash scripts/sync_friend_repo.sh
+SYNC_MODE=merge bash scripts/sync_friend_repo.sh
 source venv/bin/activate
 export PYTHONPATH=.
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
