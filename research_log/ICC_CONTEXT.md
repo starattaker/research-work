@@ -1,19 +1,23 @@
-# ICC — compact notes (2026-08-31)
+# ICC — compact notes (2026-09-03)
 
 ## Target
-Test ICC **0.801**. Honest now **~0.50–0.57**. Oracle **~0.79**.
+Test ICC **0.801**. Honest **~0.73** (v6). Oracle **~0.79**.
+
+## Production config
+```
+tensor + match_by_slot + apex_merge_px=8 + gt_slot_convention=pca
+inference_mode=roi, data=processed_v6, weights=v6_*
+```
 
 ## Do not use
-- `gt_slot_convention=paper_x` with processed_v6 (GT is PCA).
-- Oracle 8-combo at inference (cheats with GT severity).
+- `paper_x` GT on processed_v6
+- Val-locked hungarian apex28 for test reporting (test drops to ~0.69)
+- Oracle 8-combo at inference
 
-## Guards in Eq. 1
-Clip [0, 100]; drop INT not between CEJ and apex (cross-side combos).
+## v7
+Trained on processed_v7. Intersection OKS **down** vs v6 → ICC unlikely to improve. Run optional check → `icc_v7_report.json`.
 
-## Combine modes
-`hungarian` (assign INT/APEX to CEJs by distance) · `tensor` · `lr` · `mask_pca` · `paper_x`
-
-## One command
-```bash
-cd ~/faraz/Test_work/research-work && bash scripts/run_icc_friend_full.sh
-```
+## Key files
+- `research_log/icc_parameter_sweep.json`
+- `research_log/icc_final_report.json`
+- `scripts/run_icc_friend_full.sh`

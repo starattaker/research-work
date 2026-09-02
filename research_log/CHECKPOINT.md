@@ -1,28 +1,51 @@
-# Checkpoint — v7 train partial (2026-09-02)
+# Checkpoint — v7 complete; v6 production (2026-09-03)
 
-**Status:** v7 CEJ + intersection done; apex interrupted epoch 2. **Use v6 for ICC** until apex done.
+**Status:** v7 trained (all 3 heads). **Use v6 for ICC/paper numbers.** v7 ablation complete — no ICC gain expected.
 
 ## Completed
-- [x] Improvement sweep (`icc_parameter_sweep.json`, point assignment)
-- [x] v7 preprocess: grace **12px**, bbox outlier **7.6px** → `processed_v7`
-- [x] v7 CEJ + intersection trained (`best.pt`)
+- [x] Improvement sweep → `icc_parameter_sweep.json`, `point_assignment_report.json`
+- [x] v7 preprocess: grace **12px**, bbox outlier **7.6px** → `data/processed_v7`
+- [x] v7 keypoints trained (CEJ, intersection, apex) — `runs/keypoints/v7_*`
 
-## v7 keypoint OKS (test)
+## v7 vs v6 test OKS (`best.pt`)
 
-| Model | v6 | v7 | Δ | Best val epoch |
-|-------|---:|---:|--:|----------------|
-| CEJ | 0.927 | **0.928** | +0.001 | ~5 |
-| Intersection | 0.894 | **0.882** | −0.012 | ~4 |
-| Apex | 0.871 | — | — | interrupted @ ep 2 |
+| Model | v6 | v7 | Δ | Paper |
+|-------|---:|---:|--:|------:|
+| CEJ | 0.927 | 0.928 | +0.001 | 0.954 |
+| Intersection | 0.894 | **0.882** | **−0.012** | 0.912 |
+| Apex | 0.871 | 0.881 | +0.010 | 0.815 |
+| **Mean** | — | — | mixed | — |
 
-Overfit: val loss best ~epoch 4–5, then rose to 8+ by epoch 35. Early stopping kept `best.pt`.
+Best val epoch: CEJ ~5, INT ~4, Apex ~5. Heavy overfit (val loss ↑ after epoch 5).
 
-## ICC (v6, production)
+## ICC (production: v6)
 
-Honest test **~0.73** (`tensor + match_by_slot + apex 8px`). Paper **0.801**.
+| Split | ICC | Config |
+|-------|----:|--------|
+| Test | **~0.73** | tensor + match_by_slot + apex 8px |
+| Val | 0.7338 | parameter grid |
+| Paper | **0.801** | — |
 
-## Resume apex only
+**Decision:** v7 does not replace v6. Optional one-shot v7 ICC to confirm (~30 min GPU).
+
+## Resume — v7 ICC check (optional)
 
 ```bash
-cd ~/faraz/Test_work/research-work && git fetch origin && git merge origin/denpar-severity-replication --no-edit && SKIP_PREPROCESS=1 SKIP_DONE=1 bash scripts/run_train_v7_from_sweep_friend.sh
+cd ~/faraz/Test_work/research-work && python scripts/run_icc_parameter_sweep.py \
+  --data-root data/processed_v6 \
+  --cej-weights runs/keypoints/v7_cej/best.pt \
+  --intersection-weights runs/keypoints/v7_intersection/best.pt \
+  --apex-weights runs/keypoints/v7_apex/best.pt \
+  --out research_log/icc_v7_report.json
 ```
+
+## Paper / handoff
+
+- Progress LaTeX: `paper/replication_progress.tex` (**stale — v4 only; needs v5–v7 + ICC section**)
+- Agent onboarding: `research_log/README.md` → `CHECKPOINT.md` → `07_severity_icc.md` → `ICC_CONTEXT.md`
+
+## Not started (minimum for paper)
+
+- [ ] Update `paper/replication_progress.tex` (v6, axis severity, ICC ~0.73)
+- [ ] v7 ICC confirm (optional)
+- [ ] 1–2 axis-method comparison figures (PCA vs CEJ–INT axis) if pitching axis-constrained severity
