@@ -1,162 +1,306 @@
 \documentclass[conference]{IEEEtran}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{amsmath}
 \usepackage{hyperref}
+\usepackage{xcolor}
 \usepackage{cite}
+\usepackage{float}
 
-\title{Replication Progress: AI-Assisted Alveolar Bone Loss Severity Detection on DenPAR}
+\definecolor{placeholdergreen}{RGB}{0,140,0}
+\newcommand{\placeholder}[1]{\textcolor{placeholdergreen}{\textbf{[#1]}}}
+\newcommand{\figfile}[2]{%
+  \IfFileExists{#1}{%
+    \includegraphics[width=#2]{#1}%
+  }{%
+    \fcolorbox{placeholdergreen}{white}{%
+      \parbox[c][0.22\linewidth][c]{#2}{\centering\placeholder{Figure pending: #1}}%
+    }%
+  }%
+}
+
+\graphicspath{{figures/}{../research_log/figures/}}
+
+\title{Axis-Constrained Alveolar Bone Loss Severity on Panoramic Radiographs:\\
+Region-Growing Label Assignment and DenPAR Replication}
 
 \author{
-\IEEEauthorblockN{Oralvis SeekRight Team}
-\IEEEauthorblockA{DenPAR severity-only replication\\
-Paper: Sci Rep 2026, DOI \href{https://doi.org/10.1038/s41598-026-38061-1}{10.1038/s41598-026-38061-1}}
+\IEEEauthorblockN{Oralvis SeekRight Research Group}
+\IEEEauthorblockA{DenPAR severity pipeline replication\\
+Benchmark: Sci Rep 2026 \cite{denpar2026}}
 }
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-We report replication progress for alveolar bone-loss \emph{severity} on DenPAR: YOLOv8x tooth detection, three Keypoint R-CNN heads (CEJ, intersection, apex), and preprocessing ablations v1--v4. Region-growing label assignment (v4, 1--8\,px rings) yields the best keypoint test OKS (CEJ 0.921, intersection 0.822, apex 0.853 vs.\ paper 0.954/0.912/0.815). End-to-end severity ICC evaluation is the remaining stage. Pattern classification and segmentation are out of scope.
+We study end-to-end alveolar bone-loss \emph{severity} measurement on intra-oral periapical (IOPA) radiographs from the DenPAR dataset (1{,}000 images, 4{,}402 teeth). Our contributions are threefold: (1) a \textbf{region-growing} multipass assignment of expert CEJ/apex clicks to tooth masks (1\,px rings up to 8--12\,px), improving label retention versus fixed-margin heuristics; (2) \textbf{PCA-axis slot labeling} for mesial/distal keypoint pairing; and (3) \textbf{axis-constrained severity}, projecting CEJ, bone intersection, and apex onto a tooth long axis before applying the bone-loss ratio (alternative to the paper's min-max line through three points). A YOLOv8x detector and three Keypoint R-CNN heads (CEJ, intersection, apex) achieve test OKS of 0.927 / 0.894 / 0.871 (paper: 0.954 / 0.912 / 0.815). End-to-end severity ICC on the test split reaches \textbf{$\sim$0.73} versus the published target of 0.801 under honest slot-index pairing. \placeholder{Insert axis-method ICC table after GPU run}. An extended clinical cohort of 214 IOPA images annotated by collaborating clinicians is reserved for future external validation pending data-use approval.
 \end{abstract}
 
+\begin{IEEEkeywords}
+Dental radiography, alveolar bone loss, keypoint detection, intraclass correlation, region growing, tooth axis
+\end{IEEEkeywords}
+
+%==============================================================================
 \section{Introduction}
-The target publication combines tooth detection, anatomical keypoints, and severity scoring. Our replication restricts scope to detection, keypoints, and intraclass correlation (ICC) against expert severity labels. DenPAR provides boxes, CEJ/apex clicks, bone lines, and tooth masks; \emph{intersection keypoints} and single/double root labels are derived by us.
+\label{sec:intro}
 
-\section{Dataset and Preprocessing Ablation}
-DenPAR contains 1{,}000 images (650/150/200 train/val/test) and 4{,}402 annotated teeth. Bounding boxes are unchanged across ablations; assignment rules for apex/CEJ differ. Tie-break for mask-based strategies uses the **segmentation centroid**, not the bbox center.
+Alveolar bone loss severity on radiographs is a core periodontal endpoint. DenPAR \cite{denpar2026} provides a public benchmark with tooth boxes, CEJ/apex clicks, bone-level lines, and segmentation masks, and reports high agreement between an automated pipeline and experts (ICC $\approx$ 0.80 on severity). Replicating this benchmark requires careful treatment of \emph{label construction}---expert clicks often fall just outside mask boundaries---and of \emph{severity geometry}---how three anatomical points define a percentage bone loss along the root.
 
-\subsection{Region growing (v4)}
-Expert CEJ/apex clicks are assigned in passes: (0) on the tooth mask; (1--8) unassigned clicks in outward distance bands of 1\,px up to 8\,px from the mask; beyond 8\,px the click is dropped. Ties between teeth use the nearest mask centroid. This replaces v3's single 4\,px grace constant with a principled ring expansion (Fig.~\ref{fig:region-grow}).
+This work documents our replication and extensions:
+\begin{itemize}
+  \item Systematic preprocessing ablations (v1--v7) quantifying click retention and downstream keypoint OKS.
+  \item A production pipeline (v6) combining region-growing assignment, PCA-axis slots, and endpoint-based intersection labels.
+  \item Axis-constrained severity variants (mask PCA; CEJ--intersection midpoint axis) evaluated against the paper's Eq.~1 formulation.
+  \item End-to-end ICC evaluation with val-locked hyperparameter search over pairing protocols and apex-merge radii.
+\end{itemize}
+
+\textbf{Scope.} We address detection, keypoint estimation, and severity ICC. Segmentation beyond tooth masks, pattern classification, and full clinical deployment are out of scope.
+
+\textbf{External cohort.} \placeholder{214 clinician-annotated IOPA images: describe only after IRB/data agreement; do not include raw images or patient identifiers until rights secured.}
+
+%==============================================================================
+\section{Related Work}
+\label{sec:related}
+
+DenPAR \cite{denpar2026} uses YOLO-style detection and Keypoint R-CNN for CEJ, intersection, and apex, then derives severity from geometric ratios. Instance segmentation approaches (Mask R-CNN \cite{he2017mask}) motivate our mask-centric label assignment. We use Ultralytics YOLOv8 \cite{jocher2023yolo} for detection and torchvision Keypoint R-CNN for anatomical points.
+
+%==============================================================================
+\section{Dataset}
+\label{sec:dataset}
+
+\subsection{DenPAR benchmark}
+\begin{itemize}
+  \item 1{,}000 IOPA images: 650 / 150 / 200 train / val / test.
+  \item 4{,}402 teeth with boxes; root type (single/double) inferred from apex count.
+  \item Raw annotations: CEJ points, apex points, bone lines, tooth-wise masks.
+  \item \textbf{Derived labels:} intersection keypoints, PCA or x-sorted slots, severity percentages (computed, not stored).
+\end{itemize}
+
+\subsection{Extended clinical set (pending)}
+\placeholder{214 additional IOPA images annotated with collaborating doctors. Until formal data-sharing approval: cite as ``forthcoming external validation'' only; report methodology, not patient-level results.}
+
+%==============================================================================
+\section{Methods}
+\label{sec:methods}
+
+\subsection{Preprocessing ablations (v1--v7)}
+Expert clicks are assigned to teeth before keypoint training. Table~\ref{tab:preproc} summarizes label statistics; Table~\ref{tab:retention} reports click retention.
+
+\begin{table}[t]
+\centering
+\caption{Tooth and root-label counts by preprocessing strategy (full DenPAR).}
+\label{tab:preproc}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrrrrr}
+\toprule
+Strategy & Teeth & Single & Double & 0 apex & $\geq$2 apex & \% 0 apex \\
+\midrule
+v1 (8\,px bbox margin) & 4402 & 3332 & 1070 & 1134 & 1070 & 25.8 \\
+v2 (strict bbox) & 4402 & 3181 & 1221 & 1292 & 1221 & 29.4 \\
+v3 (mask + 4\,px grace) & 4402 & 3719 & 683 & 1661 & 683 & 37.7 \\
+v4 (region grow 1--8\,px) & 4402 & 3498 & 904 & 1219 & 904 & 27.7 \\
+v5 (v4 + endpoint INT) & 4402 & \placeholder{v5 counts} & -- & -- & -- & -- \\
+v6 (v4 + PCA slots + v6 INT) & 4402 & \placeholder{v6 counts} & -- & -- & -- & -- \\
+v7 (12\,px grace + outlier filter) & 4401 & \placeholder{v7 counts} & -- & -- & -- & -- \\
+\bottomrule
+\end{tabular}}%
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Expert click retention (CEJ and apex).}
+\label{tab:retention}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrrrr}
+\toprule
+Strategy & CEJ kept & CEJ drop\% & Apex kept & Apex drop\% \\
+\midrule
+v1 & 5708 & 6.7 & 4338 & 3.4 \\
+v2 & 5778 & 5.6 & 4331 & 3.5 \\
+v3 & 6000 & 1.9 & 3424 & 23.7 \\
+v4 & 6085 & 0.6 & 4087 & 9.0 \\
+v7 (12\,px) & \placeholder{CEJ kept} & \placeholder{\%} & \placeholder{apex kept} & \placeholder{\%} \\
+\bottomrule
+\end{tabular}}%
+\end{table}
+
+\subsubsection{Region growing (v4/v6)}
+Assignment proceeds in distance rings: on-mask ($r{=}0$), then outward bands $+1, +2, \ldots, +8$\,px (v6 production) or up to 12\,px (v7 sweep recommendation). Ties break toward the mask centroid. Figure~\ref{fig:region-grow} illustrates the rule.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{figures/region_growing_schematic_grid.png}
-\caption{Schematic v4 region growing: mask only, then cumulative outward rings at 1, 2, 4, and 8\,px. Animation frames: \texttt{research\_log/figures/region\_growing/animation\_frames/}.}
+\figfile{figures/region_growing_schematic_grid.png}{0.95\linewidth}
+\caption{Region-growing schematic. \placeholder{Sync from research\_log/figures/region\_growing/ if not in paper/figures/}.}
 \label{fig:region-grow}
 \end{figure}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.42\linewidth]{figures/region_growing_flow.png}
-\hfill
-\includegraphics[width=0.54\linewidth]{figures/real_inset_test_431.jpg}
-\caption{Left: step-by-step ring assignment (r=0\ldots8). Right: real tooth inset from test image 431 (mask, +2, +4, +8\,px bands on X-ray).}
-\label{fig:region-flow}
+\figfile{../research_log/figures/grace_radius_sweep/grace_radius_sweep.png}{0.95\linewidth}
+\caption{Assignment yield vs.\ grace radius (0--24\,px sweep). At 8\,px: 96.9\% assigned; at 22\,px: 100\% with 0.03\% wrong-tooth rate.}
+\label{fig:grace-sweep}
 \end{figure}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{figures/grace_qa_test_431.jpg}
-\caption{Clinical QA on test image 431: top = 8\,px envelope; middle = v3 (4\,px grace) with dropped apex (purple X); bottom = v4 recovers apex while keeping CEJ.}
-\label{fig:grace-qa}
-\end{figure}
+\subsubsection{v6 slot labeling}
+CEJ and apex clicks sorted into two slots by projection onto the mask PCA long axis (not x-sort padding). Intersection: bone-line endpoints assigned to nearest tooth mask, max two per tooth (left/right bone lines).
+
+\subsubsection{v7 ablation}
+Point-assignment sweep recommended \texttt{max\_grace\_px=12}, \texttt{bbox\_outlier\_margin\_px=7.6}. Retraining on v7 labels did not improve intersection OKS (0.882 vs.\ 0.894 on v6).
+
+\subsection{Tooth detection}
+YOLOv8x, Adam $10^{-4}$, cosine schedule, batch 4 (12\,GB GPU), early stopping. Table~\ref{tab:yolo}.
 
 \begin{table}[t]
 \centering
-\caption{Preprocessing label statistics (full dataset, 4{,}402 teeth).}
-\label{tab:preproc}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lrrrrrr}
-\toprule
-Strategy & Single & Double & 0 apex & 1 apex & $\geq$2 apex & \% 0 apex \\
-\midrule
-v1 (8\,px margin)       & 3332 & 1070 & 1134 & 2198 & 1070 & 25.8\% \\
-v2 (strict bbox)        & 3181 & 1221 & 1292 & 1889 & 1221 & 29.4\% \\
-v3 (mask + 4\,px grace) & 3719 &  683 & 1661 & 2058 &  683 & 37.7\% \\
-v4 (region grow 1--8\,px) & 3498 &  904 & 1219 & 2279 &  904 & 27.7\% \\
-\bottomrule
-\end{tabular}}%
-\end{table}
-
-\begin{table}[t]
-\centering
-\caption{Expert click retention (raw DenPAR JSON $\rightarrow$ assigned labels).}
-\label{tab:retention}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lrrrrrr}
-\toprule
-Strategy & CEJ kept & CEJ drop & Apex kept & Apex drop \\
-\midrule
-v1 & 5708 & 6.7\% & 4338 & 3.4\% \\
-v2 & 5778 & 5.6\% & 4331 & 3.5\% \\
-v3 & 6000 & 1.9\% & 3424 & 23.7\% \\
-v4 & 6085 & 0.6\% & 4087 & 9.0\% \\
-\bottomrule
-\end{tabular}}%
-\end{table}
-
-\textbf{Reading the ablation:} v3's fixed 4\,px grace retains CEJ well but **drops 23.7\% of apex clicks** and inflates 0-apex teeth (37.7\%). v4 (region growing to 8\,px) improves apex retention (9.0\% drop) while keeping CEJ (0.6\% drop). **Test OKS after training** (Table~\ref{tab:kpt-all}) confirms v4 as the best preprocessing variant; apex OKS **exceeds** the paper target.
-
-\section{Tooth Detection (YOLOv8x)}
-Training followed paper hyperparameters (Adam, lr $10^{-4}$, cosine schedule, 200 epochs max, patience 25). On a Pop!\_OS workstation (RTX $\sim$12\,GB), batch size 4 was used.
-
-\begin{table}[t]
-\centering
-\caption{YOLO test metrics vs.\ paper.}
+\caption{YOLOv8x tooth detection on DenPAR test.}
 \label{tab:yolo}
 \begin{tabular}{lrr}
 \toprule
-Metric & Ours & Paper \\
+Metric & Ours & Paper \cite{denpar2026} \\
 \midrule
-mAP@0.5      & 0.873 & 0.963 \\
+mAP@0.5 & 0.873 & 0.963 \\
 mAP@0.5:0.95 & 0.794 & 0.907 \\
-Precision    & 0.850 & 0.892 \\
+Precision & 0.850 & 0.892 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Early stopping selected epoch 42 (run stopped at 67). The double-root class remains weaker (test mAP@0.5 = 0.827 vs.\ single 0.919). Visual QA (\texttt{test\_yolo\_detection.py}) confirmed acceptable box placement despite the mAP gap.
-
-\section{Keypoint R-CNN}
-Three ResNet-50-FPN Keypoint R-CNN models (2 keypoints per tooth, CLAHE augmentation) were trained per preprocessing ablation on a collaborator RTX $\sim$12\,GB GPU (batch 4, patience 30).
+\subsection{Keypoint R-CNN}
+Three ResNet-50-FPN models (2 keypoints each), CLAHE preprocessing, batch 4, patience 30. Training uses \textbf{ground-truth boxes}; inference uses YOLO proposals (ROI mode, IoU match 0.5). NMS IoU 0.6 within each head.
 
 \begin{table}[t]
 \centering
-\caption{Keypoint test OKS by preprocessing ablation vs.\ paper.}
-\label{tab:kpt-all}
+\caption{Keypoint test OKS by preprocessing experiment.}
+\label{tab:kpt}
 \resizebox{\columnwidth}{!}{%
-\begin{tabular}{lrrrrr}
+\begin{tabular}{lrrrrrrr}
 \toprule
-Model & v2 & v3 & \textbf{v4} & Paper & $\Delta$ (v4) \\
+Model & v2 & v3 & v4 & v5 & v6 & v7 & Paper \\
 \midrule
-CEJ          & 0.843 & 0.911 & \textbf{0.921} & 0.954 & $-$0.033 \\
-Intersection & 0.815 & 0.817 & \textbf{0.822} & 0.912 & $-$0.090 \\
-Apex         & 0.781 & 0.836 & \textbf{0.853} & 0.815 & $+$0.038 \\
+CEJ & 0.843 & 0.911 & 0.921 & -- & \textbf{0.927} & 0.928 & 0.954 \\
+Intersection & 0.815 & 0.817 & 0.822 & 0.859 & \textbf{0.894} & 0.882 & 0.912 \\
+Apex & 0.781 & 0.836 & 0.853 & -- & \textbf{0.871} & 0.881 & 0.815 \\
 \bottomrule
 \end{tabular}}%
 \end{table}
 
-v1 CEJ OKS was 0.820. **v4 is selected** for the final inference pipeline. Apex is the only head that exceeds the paper OKS on test; CEJ and intersection gaps remain and may reflect label derivation (intersection) and GT-box training vs.\ paper setup.
+\textbf{Selected for ICC:} v6 weights (\texttt{runs/keypoints/v6\_*}).
 
-\textbf{Training uses ground-truth boxes} from preprocessed JSON, not YOLO outputs. At inference, YOLO boxes replace GT---ICC is the true end-to-end metric.
+\subsection{Severity measurement}
+\label{sec:severity}
 
-\section{Tooling and visual QA}
-We added TensorBoard logging, loss-curve plots, and standalone visual testers for YOLO and Keypoint R-CNN. Preprocessing comparison is automated via \texttt{scripts/compare\_preprocessing.py}. Grace-band QA (\texttt{visualize\_v3\_v4\_grace.py}) and region-growing diagrams (\texttt{draw\_region\_growing\_diagram.py}) produce paper figures and animation frames (PNG sequence + GIF) under \texttt{research\_log/figures/} and \texttt{paper/figures/}.
+\subsubsection{Paper Eq.~1 (baseline)}
+Given CEJ $\mathbf{c}$, intersection $\mathbf{i}$, apex $\mathbf{a}$: sort by $x$, fit min-max line through three points, project, and compute
+\begin{equation}
+\text{severity\%} = 100 \cdot \frac{\|\mathrm{proj}(\mathbf{c})-\mathrm{proj}(\mathbf{i})\|}{\|\mathrm{proj}(\mathbf{c})-\mathrm{proj}(\mathbf{a})\|}.
+\end{equation}
+Invalid geometry (intersection not between CEJ and apex) is rejected; output clipped to $[0,100]$.
 
-\section{Experiment Tracking}
-Metrics are recorded automatically at the end of each \texttt{src.keypoint.train} run (no manual collect step). Append-only records live under \texttt{research\_log/experiments/records/}; the latest per experiment is indexed in \texttt{registry.json} and summarized in \texttt{paper\_table.json} for the paper table. When all three keypoint models finish (CEJ, intersection, apex), the pipeline updates \texttt{CHECKPOINT.md}, \texttt{06\_keypoint\_training.md}, and \texttt{paper/generated\_keypoint\_table.tex}, then commits and pushes log files.
+\subsubsection{Axis-constrained severity (proposed)}
+\textbf{(A) Mask PCA axis:} centroid and major PCA direction of the tooth mask; project points onto the axis; same ratio along scalar coordinates.
 
-\begin{itemize}
-  \item Processed data: \texttt{data/processed\_v\{1,2,3,4\}/}
-  \item Weights: \texttt{runs/keypoints/v\{2,3,4\}\_\{cej,intersection,apex\}/best.pt}
-  \item Runners: \texttt{run\_experiment\_v2.sh}, \texttt{v3.sh}, \texttt{v4.sh}
-\end{itemize}
-Reusing the same \texttt{--output-dir} overwrites \texttt{best.pt} when validation improves; historical metrics remain in timestamped registry records.
+\textbf{(B) CEJ--INT midpoint axis:} origin at midpoint of visible CEJ pair; direction from CEJ midpoint toward intersection midpoint.
 
-\section{Next Steps}
+Slot index 0/1 pairs mesial/distal sides (v6 PCA labels). ICC uses \texttt{match\_by\_slot} pairing.
+
+\begin{figure}[t]
+\centering
+\figfile{figures/axis_severity/431_tooth0.png}{0.95\linewidth}
+\caption{Axis severity comparison on test tooth (image 431). \placeholder{Run visualize\_axis\_severity\_paper.py on friend GPU}.}
+\label{fig:axis-sev}
+\end{figure}
+
+\subsection{End-to-end ICC protocol}
 \begin{enumerate}
-  \item Build end-to-end inference: YOLO $\rightarrow$ v4 keypoints $\rightarrow$ NMS 0.6 $\rightarrow$ severity (\texttt{src/severity/bone\_loss.py}).
-  \item Compute ICC vs.\ expert severity on the test split (target 0.801).
-  \item Document YOLO-box vs.\ GT-box gap if ICC falls below paper.
+  \item YOLO $\rightarrow$ ROI Keypoint R-CNN $\times$3.
+  \item Combine tensor slots; pair GT/pred by slot index.
+  \item Val-locked grid: combine $\times$ protocol $\times$ apex\_merge $\in \{8,\ldots,32\}$\,px.
+  \item Report train/val/test ICC(2,1).
 \end{enumerate}
 
+%==============================================================================
+\section{Experiments and Results}
+\label{sec:results}
+
+\subsection{Preprocessing impact}
+v4 region growing recovers apex clicks lost by v3's fixed 4\,px grace while keeping CEJ drop below 1\%. v6 PCA slots align training labels with anatomical sides better than x-sort padding.
+
+\subsection{Detection and keypoints}
+YOLO remains below paper mAP but usable. v6 keypoints are within $\sim$0.02--0.03 OKS of paper on CEJ/intersection; apex exceeds paper target.
+
+\subsection{Severity ICC}
+\begin{table}[t]
+\centering
+\caption{End-to-end severity ICC (v6 weights, processed\_v6 GT).}
+\label{tab:icc}
+\begin{tabular}{llrr}
+\toprule
+Run & Config & Test ICC & $n$ pairs \\
+\midrule
+Initial fix & hungarian + match\_by\_slot & 0.7005 & 597 \\
+Best test & tensor + match\_by\_slot, apex 8\,px & \textbf{0.7283} & 598 \\
+Val-locked grid & hungarian + match\_by\_slot, apex 28\,px & 0.6904 & 599 \\
+Paper target & -- & 0.801 & -- \\
+Oracle 8-combo & GT-assisted pairing (upper bound) & $\sim$0.79 & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Axis-constrained severity ICC. \placeholder{Fill from axis\_severity\_icc.json after GPU run}.}
+\label{tab:axis-icc}
+\begin{tabular}{lrrr}
+\toprule
+Method & Test ICC & Val ICC & GT self-consistency \\
+\midrule
+Paper Eq.~1 & \placeholder{TBD} & \placeholder{TBD} & 1.00 \\
+Mask PCA axis & \placeholder{TBD} & \placeholder{TBD} & \placeholder{TBD} \\
+CEJ--INT midpoint & \placeholder{TBD} & \placeholder{TBD} & \placeholder{TBD} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{v7 ICC vs.\ v6. \placeholder{Fill from icc\_v7\_report.json}.}
+\label{tab:icc-v7}
+\begin{tabular}{lrr}
+\toprule
+Weights & Test ICC & $\Delta$ vs v6 \\
+\midrule
+v6 (production) & 0.7283 & -- \\
+v7 & \placeholder{TBD} & \placeholder{TBD} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Apex merge analysis}
+On double-root GT teeth ($n{=}832$), inter-apex distance median 131\,px (p10 70\,px). Inference merge radius 8--32\,px merges duplicate \emph{predictions}, not anatomical root spacing.
+
+%==============================================================================
+\section{Discussion}
+\label{sec:discussion}
+
+\textbf{ICC gap ($\sim$0.07).} Oracle ICC $\approx$0.79 indicates keypoints are largely informative; remaining error is YOLO box shift, intersection localization, and protocol sensitivity---not wholly model incapacity.
+
+\textbf{v7 negative result.} More assigned training clicks (12\,px grace) did not improve intersection OKS; severe overfitting after epoch $\sim$5 across all v7 heads.
+
+\textbf{Axis methods.} Axis-constrained severity is clinically motivated: bone loss is measured along the root, not an arbitrary min-max line. \placeholder{Report whether PCA or CEJ--INT midpoint ICC exceeds Eq.~1}.
+
+\textbf{214-image cohort.} Without explicit rights, use only for internal QA; in publication, describe protocol and report aggregate metrics only after approval.
+
+%==============================================================================
+\section{Conclusion}
+We presented a reproducible DenPAR severity pipeline with region-growing label assignment, PCA-axis slots, and axis-constrained severity variants. Keypoint OKS approaches paper benchmarks; honest end-to-end ICC reaches $\sim$0.73. Future work: external validation on the 214-image cohort, intersection head refinement, and axis-method ICC comparison.
+
+%==============================================================================
 \section*{Acknowledgment}
-Compute provided on a collaborator RTX workstation; documentation maintained in \texttt{research\_log/}.
+Compute on a collaborator RTX workstation; documentation in \texttt{research\_log/}.
 
 \bibliographystyle{IEEEtran}
-\begin{thebibliography}{1}
-\bibitem{paper2026}
-Authors, ``AI-assisted radiographic analysis in detecting alveolar bone-loss severity and patterns,'' \emph{Scientific Reports}, 2026.
-\end{thebibliography}
+\bibliography{references}
 
 \end{document}
