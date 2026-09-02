@@ -48,3 +48,21 @@ bash scripts/run_v6_experiment.sh
 ## Next
 
 End-to-end ICC: `scripts/run_severity_icc.py` — see [07_severity_icc.md](07_severity_icc.md).
+
+## v7 (2026-09-02, friend GPU)
+
+Preprocess: `max_grace_px=12`, `bbox_outlier_margin_px=7.6` → `data/processed_v7`.
+
+| Model | test_oks | vs v6 |
+|-------|--------:|------:|
+| cej | **0.928** | +0.001 |
+| intersection | **0.882** | −0.012 |
+| apex | — | interrupted @ epoch 2 |
+
+Overfit after ~epoch 5; `best.pt` saved at lowest val_loss. **Intersection regressed vs v6.**
+
+```bash
+SKIP_PREPROCESS=1 SKIP_DONE=1 bash scripts/run_train_v7_from_sweep_friend.sh  # apex only
+```
+
+

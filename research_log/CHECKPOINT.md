@@ -1,50 +1,27 @@
-# Checkpoint — ICC ~0.73 on test (2026-08-31)
+# Checkpoint — v7 train partial (2026-09-02)
 
-**Status:** Ready for parameter sweep + v7 preprocess. Test ICC **~0.73** (paper **0.801**).
+**Status:** v7 CEJ + intersection done; apex interrupted epoch 2. **Use v6 for ICC** until apex done + ICC re-run.
 
-## Completed
-- [x] YOLO test mAP50 **0.873** (paper 0.963)
-- [x] v6 keypoints: CEJ **0.927** / INT **0.894** / Apex **0.871**
-- [x] ICC pipeline fixed (PCA GT, match_by_slot, Eq.1 clip + geom filter)
-- [x] Val-locked sweep `861dfca` → `research_log/icc_final_report.json`
-- [x] Friend scripts: ICC grid, point-assignment sweep, v7 train (`402e0bc`)
+## v7 preprocess (`processed_v7`)
 
-## Latest ICC (friend GPU, 2026-08-31, commit `861dfca`)
+`max_grace_px=12`, `bbox_outlier_margin_px=7.6` — 4401 teeth (1 skipped no mask).
 
-| Split | ICC | n | MAE % | Config |
-|-------|----:|--:|------:|--------|
-| Test (val-locked) | **0.7005** | 597 | 7.4 | hungarian + match_by_slot |
-| Test (best on test) | **0.7283** | 598 | — | tensor + match_by_slot |
-| Val | 0.7048 | 449 | 6.4 | hungarian + match_by_slot |
-| Train | 0.8279 | 2002 | 4.7 | hungarian + match_by_slot |
-| Paper | **0.801** | — | — | — |
+## v7 keypoint OKS (test, `best.pt`)
 
-Oracle 8-combo ~**0.79** (ceiling with GT pairing cheat).
+| Model | v6 | v7 | Δ | Best val epoch |
+|-------|---:|---:|--:|----------------|
+| CEJ | 0.927 | **0.928** | +0.001 | ~5 |
+| Intersection | 0.894 | **0.882** | −0.012 | ~4 |
+| Apex | 0.871 | — | — | interrupted |
 
-## In progress
-- [ ] ICC parameter grid: combine × protocol × apex_merge_px
-- [ ] Grace sweep 0–48px + bbox outlier → v7 preprocess
+Severe overfit: train loss ↓, val loss ↑ after epoch ~5–6. Early stopping used `best.pt` correctly.
 
-## Not started
-- [ ] v7 keypoint retrain (`processed_v7`)
-- [ ] External 214-image validation
-
-## Resume — friend GPU (merge pull, keeps local files)
+## Resume apex only
 
 ```bash
-cd ~/faraz/Test_work/research-work && bash scripts/run_improvement_friend.sh
+cd ~/faraz/Test_work/research-work && SKIP_PREPROCESS=1 SKIP_DONE=1 bash scripts/run_train_v7_from_sweep_friend.sh
 ```
 
-After that finishes:
+## ICC (v6, still production)
 
-```bash
-cd ~/faraz/Test_work/research-work && bash scripts/run_train_v7_from_sweep_friend.sh
-```
-
-Manual merge only:
-
-```bash
-cd ~/faraz/Test_work/research-work && git fetch origin && git checkout denpar-severity-replication && git merge origin/denpar-severity-replication --no-edit
-```
-
-Outputs: `research_log/icc_parameter_sweep.json`, `research_log/figures/point_assignment_full/`
+Honest test **~0.73** (`tensor + match_by_slot + apex 8px`). v7 unlikely to beat v6 on intersection.

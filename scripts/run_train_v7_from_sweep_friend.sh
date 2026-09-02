@@ -57,6 +57,10 @@ fi
 
 for KPT in cej intersection apex; do
   OUT="runs/keypoints/${EXPERIMENT}_${KPT}"
+  if [[ "${SKIP_DONE:-1}" == "1" ]] && [[ -f "$OUT/metrics.json" ]]; then
+    echo "--- SKIP $EXPERIMENT / $KPT (metrics.json exists) ---"
+    continue
+  fi
   echo "--- $EXPERIMENT / $KPT -> $OUT ---"
   python -m src.keypoint.train \
     --data-root "$DATA_ROOT/keypoints/$KPT" \
