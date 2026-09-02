@@ -113,6 +113,44 @@
         "paper_oks_target": 0.815,
         "run_dir": "runs/keypoints/v4_apex"
       }
+    },
+    "v7": {
+      "cej": {
+        "record_file": "research_log/experiments/records/20260901T115748Z_v7_cej.json",
+        "keypoint_type": "cej",
+        "test_oks": 0.9280323497951031,
+        "val_oks": 0.917940155416727,
+        "test_map_50": 0.852982223033905,
+        "best_epoch": 5,
+        "best_val_loss": 3.429485492290308,
+        "epochs_run": 35,
+        "paper_oks_target": 0.954,
+        "run_dir": "runs/keypoints/v7_cej"
+      },
+      "intersection": {
+        "record_file": "research_log/experiments/records/20260901T125424Z_v7_intersection.json",
+        "keypoint_type": "intersection",
+        "test_oks": 0.8824105253815651,
+        "val_oks": 0.8745990959492822,
+        "test_map_50": 0.8727189898490906,
+        "best_epoch": 6,
+        "best_val_loss": 3.8523775812936947,
+        "epochs_run": 36,
+        "paper_oks_target": 0.912,
+        "run_dir": "runs/keypoints/v7_intersection"
+      },
+      "apex": {
+        "record_file": "research_log/experiments/records/20260902T012953Z_v7_apex.json",
+        "keypoint_type": "apex",
+        "test_oks": 0.8809459374845028,
+        "val_oks": 0.8400991918643316,
+        "test_map_50": 0.8593261241912842,
+        "best_epoch": 5,
+        "best_val_loss": 4.463977845956882,
+        "epochs_run": 35,
+        "paper_oks_target": 0.815,
+        "run_dir": "runs/keypoints/v7_apex"
+      }
     }
   },
   "record_index": [
@@ -169,6 +207,24 @@
       "experiment_id": "v4",
       "keypoint_type": "apex",
       "at": "2026-08-20 07:03 UTC"
+    },
+    {
+      "file": "research_log/experiments/records/20260901T115748Z_v7_cej.json",
+      "experiment_id": "v7",
+      "keypoint_type": "cej",
+      "at": "2026-09-01 11:57 UTC"
+    },
+    {
+      "file": "research_log/experiments/records/20260901T125424Z_v7_intersection.json",
+      "experiment_id": "v7",
+      "keypoint_type": "intersection",
+      "at": "2026-09-01 12:54 UTC"
+    },
+    {
+      "file": "research_log/experiments/records/20260902T012953Z_v7_apex.json",
+      "experiment_id": "v7",
+      "keypoint_type": "apex",
+      "at": "2026-09-02 01:29 UTC"
     }
   ]
 }

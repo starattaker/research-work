@@ -1,0 +1,13 @@
+{
+  "recorded_at": "2026-09-01 12:54 UTC",
+  "experiment_id": "v7",
+  "keypoint_type": "intersection",
+  "run_dir": "runs/keypoints/v7_intersection",
+  "test_oks": 0.8824105253815651,
+  "val_oks": 0.8745990959492822,
+  "test_map_50": 0.8727189898490906,
+  "best_epoch": 6,
+  "best_val_loss": 3.8523775812936947,
+  "epochs_run": 36,
+  "paper_oks_target": 0.912
+}

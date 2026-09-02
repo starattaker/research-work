@@ -65,4 +65,12 @@ Overfit after ~epoch 5; `best.pt` saved at lowest val_loss. **Intersection regre
 SKIP_PREPROCESS=1 SKIP_DONE=1 bash scripts/run_train_v7_from_sweep_friend.sh  # apex only
 ```
 
+## v7 keypoints (auto)
 
+Recorded: 2026-09-02 01:29 UTC
+
+| Model | test_oks | Paper | best epoch | run_dir |
+|-------|----------:|------:|-----------:|---------|
+| cej | 0.9280323497951031 | 0.954 | 5 | `runs/keypoints/v7_cej` |
+| intersection | 0.8824105253815651 | 0.912 | 6 | `runs/keypoints/v7_intersection` |
+| apex | 0.8809459374845028 | 0.815 | 5 | `runs/keypoints/v7_apex` |

@@ -1,0 +1,13 @@
+{
+  "recorded_at": "2026-09-02 01:29 UTC",
+  "experiment_id": "v7",
+  "keypoint_type": "apex",
+  "run_dir": "runs/keypoints/v7_apex",
+  "test_oks": 0.8809459374845028,
+  "val_oks": 0.8400991918643316,
+  "test_map_50": 0.8593261241912842,
+  "best_epoch": 5,
+  "best_val_loss": 4.463977845956882,
+  "epochs_run": 35,
+  "paper_oks_target": 0.815
+}

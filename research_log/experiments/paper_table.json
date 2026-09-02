@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-27",
+  "updated": "2026-09-02 01:29 UTC",
   "experiments": [
     {
       "experiment_id": "v2",
@@ -78,39 +78,32 @@
           "run_dir": "runs/keypoints/v4_apex"
         }
       }
-    }
-    ,
-    {
-      "experiment_id": "v5",
-      "models": {
-        "intersection": {
-          "test_oks": 0.8591,
-          "paper_target": 0.912,
-          "run_dir": "runs/keypoints/v5_intersection",
-          "note": "intersection-only run"
-        }
-      }
     },
     {
-      "experiment_id": "v6",
+      "experiment_id": "v7",
       "models": {
         "cej": {
-          "test_oks": 0.9271,
+          "test_oks": 0.9280323497951031,
           "paper_target": 0.954,
-          "run_dir": "runs/keypoints/v6_cej"
+          "best_epoch": 5,
+          "epochs_run": 35,
+          "run_dir": "runs/keypoints/v7_cej"
         },
         "intersection": {
-          "test_oks": 0.8938,
+          "test_oks": 0.8824105253815651,
           "paper_target": 0.912,
-          "run_dir": "runs/keypoints/v6_intersection"
+          "best_epoch": 6,
+          "epochs_run": 36,
+          "run_dir": "runs/keypoints/v7_intersection"
         },
         "apex": {
-          "test_oks": 0.8711,
+          "test_oks": 0.8809459374845028,
           "paper_target": 0.815,
-          "run_dir": "runs/keypoints/v6_apex"
+          "best_epoch": 5,
+          "epochs_run": 35,
+          "run_dir": "runs/keypoints/v7_apex"
         }
       }
     }
-  ],
-  "selected_for_icc": "v6"
+  ]
 }

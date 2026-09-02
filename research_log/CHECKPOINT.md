@@ -1,6 +1,6 @@
 # Checkpoint — v7 train partial (2026-09-02)
 
-**Status:** v7 CEJ + intersection done; apex interrupted epoch 2. **Use v6 for ICC** until apex done.
+**Status:** Keypoint training **v7 complete** (2026-09-02 01:29 UTC).
 
 ## Completed
 - [x] Improvement sweep (`icc_parameter_sweep.json`, point assignment)
@@ -26,3 +26,9 @@ Honest test **~0.73** (`tensor + match_by_slot + apex 8px`). Paper **0.801**.
 ```bash
 cd ~/faraz/Test_work/research-work && git fetch origin && git merge origin/denpar-severity-replication --no-edit && SKIP_PREPROCESS=1 SKIP_DONE=1 bash scripts/run_train_v7_from_sweep_friend.sh
 ```
+
+## Latest metrics (auto)
+
+- **v7:** cej OKS=0.928; intersection OKS=0.882; apex OKS=0.881
+- Registry: `research_log/experiments/paper_table.json`
+
