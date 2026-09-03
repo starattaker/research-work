@@ -1,21 +1,33 @@
 #!/usr/bin/env bash
-# Sync friend machine to remote branch (avoids "divergent branches" pull error).
+# Sync friend machine — merge pull; on conflict prefer GitHub (theirs).
 # Usage:
-#   bash scripts/sync_friend_repo.sh              # default: fetch + merge (keeps local commits/files)
-#   SYNC_MODE=reset bash scripts/sync_friend_repo.sh   # discard local commits, match remote exactly
+#   bash scripts/sync_friend_repo.sh
+#   SYNC_MODE=reset bash scripts/sync_friend_repo.sh   # discard ALL local commits
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 BRANCH="${BRANCH:-denpar-severity-replication}"
 SYNC_MODE="${SYNC_MODE:-merge}"
 
-git fetch origin
-git checkout "$BRANCH" 2>/dev/null || git checkout -b "$BRANCH" "origin/$BRANCH"
+# Clean up a stuck merge from a previous failed pull
+if [[ -f .git/MERGE_HEAD ]]; then
+  echo "Aborting incomplete merge..."
+  git merge --abort || true
+fi
 
-if [ "$SYNC_MODE" = "reset" ]; then
+git fetch origin "$BRANCH"
+
+if ! git rev-parse --verify "$BRANCH" >/dev/null 2>&1; then
+  git checkout -b "$BRANCH" "origin/$BRANCH"
+elif [[ "$(git branch --show-current)" != "$BRANCH" ]]; then
+  git checkout "$BRANCH"
+fi
+
+if [[ "$SYNC_MODE" = "reset" ]]; then
   git reset --hard "origin/$BRANCH"
 else
-  git merge "origin/$BRANCH" --no-edit
+  # -X theirs: keep GitHub version when research_log auto-commits conflict
+  git pull origin "$BRANCH" --no-rebase -X theirs --no-edit
 fi
 
 echo "Synced to origin/$BRANCH ($(git rev-parse --short HEAD))"
