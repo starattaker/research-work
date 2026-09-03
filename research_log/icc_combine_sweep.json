@@ -1,0 +1,303 @@
+{
+  "paper_target": 0.801,
+  "split": "test",
+  "best": {
+    "inference_mode": "roi",
+    "combine_mode": "lr",
+    "severity_protocol": "both_sides",
+    "gt_slot_convention": "pca",
+    "icc": 0.57938064362468,
+    "mae_pct": 16.509110594948336,
+    "n_pairs": 661
+  },
+  "all": [
+    {
+      "inference_mode": "roi",
+      "combine_mode": "paper_x",
+      "severity_protocol": "one_per_tooth",
+      "gt_slot_convention": "paper_x",
+      "icc": -0.00014862911667475086,
+      "mae_pct": 35.66986000630809,
+      "n_pairs": 551
+    },
+    {
+      "inference_mode": "roi",
+      "combine_mode": "paper_x",
+      "severity_protocol": "one_per_tooth",
+      "gt_slot_convention": "pca",
+      "icc": 0.026874983505860726,
+      "mae_pct": 21.660090285841132,
+      "n_pairs": 549
+    },
+    {
+      "inference_mode": "roi",
+      "combine_mode": "paper_x",
+      "severity_protocol": "both_sides",
+      "gt_slot_convention": "paper_x",
+      "icc": 0.0019464384311577109,
+      "mae_pct": 27.19532831876258,
+      "n_pairs": 873
+    },
+    {
+      "inference_mode": "roi",
+      "combine_mode": "paper_x",
+      "severity_protocol": "both_sides",
+      "gt_slot_convention": "pca",
+      "icc": 0.5595610583293418,
+      "mae_pct": 16.774059036852336,
+      "n_pairs": 661
+    },
+    {
+      "inference_mode": "roi",
+      "combine_mode": "tensor",
+      "severity_protocol": "one_per_tooth",
+      "gt_slot_convention": "paper_x",
+      "icc": 0.0014131736043278547,
+      "mae_pct": 33.959318708359994,
+      "n_pairs": 553
+    },
+    {
+      "inference_mode": "roi",
+      "combine_mode": "tensor",
+      "severity_protocol": "one_per_tooth",
+      "gt_slot_convention": "pca",
+      "icc": -0.0013277480178443156,
+      "mae_pct": 75.80023829477341,
+      "n_pairs": 552
+    },
+    {
+      "inference_mode": "roi",
+      "combine_mode": "tensor",
+      "severity_protocol": "both_sides",
+      "gt_slot_convention": "paper_x",
+      "icc": 0.00391023381680578,
+      "mae_pct": 25.956473708294844,
+      "n_pairs": 876
+    },
+    {
+      "inference_mode": "roi",
+      "combine_mode": "tensor",
+      "severity_protocol": "both_sides",
+      "gt_slot_convention": "pca",
+      "icc": 0.5398675645221257,
+      "mae_pct": 17.30211165950939,
+      "n_pairs": 657
+    },
+    {
+      "inference_mode": "roi",
+      "combine_mode": "geom_consistent",
+      "severity_protocol": "one_per_tooth",
+      "gt_slot_convention": "paper_x",
+      "icc": 0.0011282202277202635,
+      "mae_pct": 32.938171823816965,
+      "n_pairs": 551
+    },
+    {
+      "inference_mode": "roi",
+      "combine_mode": "geom_consistent",
+      "severity_protocol": "one_per_tooth",
+      "gt_slot_convention": "pca",
+      "icc": 0.050708542206524064,
+      "mae_pct": 19.438706940282472,
+      "n_pairs": 554
+    },
+    {
+      "inference_mode": "roi",
+      "combine_mode": "geom_consistent",
+      "severity_protocol": "both_sides",
+      "gt_slot_convention": "paper_x",
+      "icc": 0.003729857730757494,
+      "mae_pct": 25.906278520781047,
+      "n_pairs": 878
+    },
+    {
+      "inference_mode": "roi",
+      "combine_mode": "geom_consistent",
+      "severity_protocol": "both_sides",
+      "gt_slot_convention": "pca",
+      "icc": 0.43650135711259797,
+      "mae_pct": 20.65204172690919,
+      "n_pairs": 664
+    },
+    {
+      "inference_mode": "roi",
+      "combine_mode": "lr",
+      "severity_protocol": "one_per_tooth",
+      "gt_slot_convention": "paper_x",
+      "icc": 0.001773427572275235,
+      "mae_pct": 33.9690263262513,
+      "n_pairs": 549
+    },
+    {
+      "inference_mode": "roi",
+      "combine_mode": "lr",
+      "severity_protocol": "one_per_tooth",
+      "gt_slot_convention": "pca",
+      "icc": 0.010511011687512957,
+      "mae_pct": 21.888151846421643,
+      "n_pairs": 554
+    },
+    {
+      "inference_mode": "roi",
+      "combine_mode": "lr",
+      "severity_protocol": "both_sides",
+      "gt_slot_convention": "paper_x",
+      "icc": 0.004812038048132613,
+      "mae_pct": 25.46526044794161,
+      "n_pairs": 874
+    },
+    {
+      "inference_mode": "roi",
+      "combine_mode": "lr",
+      "severity_protocol": "both_sides",
+      "gt_slot_convention": "pca",
+      "icc": 0.57938064362468,
+      "mae_pct": 16.509110594948336,
+      "n_pairs": 661
+    },
+    {
+      "inference_mode": "full",
+      "combine_mode": "paper_x",
+      "severity_protocol": "one_per_tooth",
+      "gt_slot_convention": "paper_x",
+      "icc": -0.004074440569572863,
+      "mae_pct": 39.11238287148897,
+      "n_pairs": 561
+    },
+    {
+      "inference_mode": "full",
+      "combine_mode": "paper_x",
+      "severity_protocol": "one_per_tooth",
+      "gt_slot_convention": "pca",
+      "icc": -0.0008077697366091757,
+      "mae_pct": 26.42959400364553,
+      "n_pairs": 560
+    },
+    {
+      "inference_mode": "full",
+      "combine_mode": "paper_x",
+      "severity_protocol": "both_sides",
+      "gt_slot_convention": "paper_x",
+      "icc": 0.0011176829355963416,
+      "mae_pct": 27.511463165518077,
+      "n_pairs": 892
+    },
+    {
+      "inference_mode": "full",
+      "combine_mode": "paper_x",
+      "severity_protocol": "both_sides",
+      "gt_slot_convention": "pca",
+      "icc": 0.5402181255203876,
+      "mae_pct": 18.700763865506445,
+      "n_pairs": 678
+    },
+    {
+      "inference_mode": "full",
+      "combine_mode": "tensor",
+      "severity_protocol": "one_per_tooth",
+      "gt_slot_convention": "paper_x",
+      "icc": -4.9276372009774447e-05,
+      "mae_pct": 34.02381593858612,
+      "n_pairs": 562
+    },
+    {
+      "inference_mode": "full",
+      "combine_mode": "tensor",
+      "severity_protocol": "one_per_tooth",
+      "gt_slot_convention": "pca",
+      "icc": 0.0095012549560082,
+      "mae_pct": 24.382605054835036,
+      "n_pairs": 562
+    },
+    {
+      "inference_mode": "full",
+      "combine_mode": "tensor",
+      "severity_protocol": "both_sides",
+      "gt_slot_convention": "paper_x",
+      "icc": 0.0008843539914686792,
+      "mae_pct": 27.31419491648664,
+      "n_pairs": 892
+    },
+    {
+      "inference_mode": "full",
+      "combine_mode": "tensor",
+      "severity_protocol": "both_sides",
+      "gt_slot_convention": "pca",
+      "icc": 0.4732098714787268,
+      "mae_pct": 19.190679806251726,
+      "n_pairs": 678
+    },
+    {
+      "inference_mode": "full",
+      "combine_mode": "geom_consistent",
+      "severity_protocol": "one_per_tooth",
+      "gt_slot_convention": "paper_x",
+      "icc": 0.00018532800225199274,
+      "mae_pct": 34.444313611393234,
+      "n_pairs": 561
+    },
+    {
+      "inference_mode": "full",
+      "combine_mode": "geom_consistent",
+      "severity_protocol": "one_per_tooth",
+      "gt_slot_convention": "pca",
+      "icc": 0.05840324938579283,
+      "mae_pct": 20.27150314385067,
+      "n_pairs": 562
+    },
+    {
+      "inference_mode": "full",
+      "combine_mode": "geom_consistent",
+      "severity_protocol": "both_sides",
+      "gt_slot_convention": "paper_x",
+      "icc": 0.010011314879905224,
+      "mae_pct": 26.801726127000016,
+      "n_pairs": 892
+    },
+    {
+      "inference_mode": "full",
+      "combine_mode": "geom_consistent",
+      "severity_protocol": "both_sides",
+      "gt_slot_convention": "pca",
+      "icc": 0.4429298494578173,
+      "mae_pct": 21.88814295085094,
+      "n_pairs": 678
+    },
+    {
+      "inference_mode": "full",
+      "combine_mode": "lr",
+      "severity_protocol": "one_per_tooth",
+      "gt_slot_convention": "paper_x",
+      "icc": -0.005688158998651994,
+      "mae_pct": 45.85162224031677,
+      "n_pairs": 561
+    },
+    {
+      "inference_mode": "full",
+      "combine_mode": "lr",
+      "severity_protocol": "one_per_tooth",
+      "gt_slot_convention": "pca",
+      "icc": 0.0012878348883898281,
+      "mae_pct": 25.61796767817159,
+      "n_pairs": 561
+    },
+    {
+      "inference_mode": "full",
+      "combine_mode": "lr",
+      "severity_protocol": "both_sides",
+      "gt_slot_convention": "paper_x",
+      "icc": 0.007944792438091448,
+      "mae_pct": 27.285713343692453,
+      "n_pairs": 892
+    },
+    {
+      "inference_mode": "full",
+      "combine_mode": "lr",
+      "severity_protocol": "both_sides",
+      "gt_slot_convention": "pca",
+      "icc": 0.431341402674666,
+      "mae_pct": 20.671521897050347,
+      "n_pairs": 677
+    }
+  ]
+}

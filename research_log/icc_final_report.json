@@ -1,0 +1,385 @@
+{
+  "paper_target_test_icc": 0.801,
+  "severity_clipped_0_100": true,
+  "best_on_val": {
+    "combine": "hungarian",
+    "protocol": "match_by_slot",
+    "icc": 0.7047665169637013,
+    "mae_pct": 6.422077667578255,
+    "n_pairs": 449,
+    "pred_p99": 81.44127346958076,
+    "pred_max": 100.0,
+    "gt_mean": 19.04102955823847,
+    "pred_mean": 19.17776959908451
+  },
+  "val_sweep": [
+    {
+      "combine": "tensor",
+      "protocol": "match_by_slot",
+      "icc": 0.6955121566446233,
+      "mae_pct": 6.621086182740269,
+      "n_pairs": 450,
+      "pred_p99": 81.43420287110939,
+      "pred_max": 100.0,
+      "gt_mean": 19.103533485034035,
+      "pred_mean": 19.387234861653543
+    },
+    {
+      "combine": "tensor",
+      "protocol": "both_sides",
+      "icc": 0.6680391701823409,
+      "mae_pct": 6.844399848384705,
+      "n_pairs": 456,
+      "pred_p99": 81.3917792802811,
+      "pred_max": 100.0,
+      "gt_mean": 19.19199162751531,
+      "pred_mean": 19.12583532356989
+    },
+    {
+      "combine": "tensor",
+      "protocol": "one_per_tooth",
+      "icc": 0.5768169924567256,
+      "mae_pct": 9.145060420171703,
+      "n_pairs": 393,
+      "pred_p99": 71.42484725100564,
+      "pred_max": 100.0,
+      "gt_mean": 20.144567437816562,
+      "pred_mean": 19.394888885004956
+    },
+    {
+      "combine": "lr",
+      "protocol": "match_by_slot",
+      "icc": 0.6941291860013397,
+      "mae_pct": 6.631839292659013,
+      "n_pairs": 449,
+      "pred_p99": 81.44127346958076,
+      "pred_max": 100.0,
+      "gt_mean": 19.038798757454188,
+      "pred_mean": 19.307739514917106
+    },
+    {
+      "combine": "lr",
+      "protocol": "both_sides",
+      "icc": 0.6701346462700813,
+      "mae_pct": 6.769089939292844,
+      "n_pairs": 455,
+      "pred_p99": 81.39884987875247,
+      "pred_max": 100.0,
+      "gt_mean": 19.12830495819472,
+      "pred_mean": 19.10217486985925
+    },
+    {
+      "combine": "lr",
+      "protocol": "one_per_tooth",
+      "icc": 0.5819729647367784,
+      "mae_pct": 9.038676696759131,
+      "n_pairs": 392,
+      "pred_p99": 71.43507969422554,
+      "pred_max": 100.0,
+      "gt_mean": 20.073075451258987,
+      "pred_mean": 19.435308470176885
+    },
+    {
+      "combine": "hungarian",
+      "protocol": "match_by_slot",
+      "icc": 0.7047665169637013,
+      "mae_pct": 6.422077667578255,
+      "n_pairs": 449,
+      "pred_p99": 81.44127346958076,
+      "pred_max": 100.0,
+      "gt_mean": 19.04102955823847,
+      "pred_mean": 19.17776959908451
+    },
+    {
+      "combine": "hungarian",
+      "protocol": "both_sides",
+      "icc": 0.68037608592309,
+      "mae_pct": 6.586183205481826,
+      "n_pairs": 454,
+      "pred_p99": 81.40592047722384,
+      "pred_max": 100.0,
+      "gt_mean": 19.138838412484326,
+      "pred_mean": 18.837304661312565
+    },
+    {
+      "combine": "hungarian",
+      "protocol": "one_per_tooth",
+      "icc": 0.5749491570534895,
+      "mae_pct": 9.137788466885958,
+      "n_pairs": 392,
+      "pred_p99": 71.43507969422554,
+      "pred_max": 100.0,
+      "gt_mean": 20.073075451258987,
+      "pred_mean": 19.469089352837468
+    },
+    {
+      "combine": "paper_x",
+      "protocol": "match_by_slot",
+      "icc": 0.6941291860013397,
+      "mae_pct": 6.631839292659013,
+      "n_pairs": 449,
+      "pred_p99": 81.44127346958076,
+      "pred_max": 100.0,
+      "gt_mean": 19.038798757454188,
+      "pred_mean": 19.307739514917106
+    },
+    {
+      "combine": "paper_x",
+      "protocol": "both_sides",
+      "icc": 0.6701346462700813,
+      "mae_pct": 6.769089939292844,
+      "n_pairs": 455,
+      "pred_p99": 81.39884987875247,
+      "pred_max": 100.0,
+      "gt_mean": 19.12830495819472,
+      "pred_mean": 19.10217486985925
+    },
+    {
+      "combine": "paper_x",
+      "protocol": "one_per_tooth",
+      "icc": 0.5819729647367784,
+      "mae_pct": 9.038676696759131,
+      "n_pairs": 392,
+      "pred_p99": 71.43507969422554,
+      "pred_max": 100.0,
+      "gt_mean": 20.073075451258987,
+      "pred_mean": 19.435308470176885
+    },
+    {
+      "combine": "mask_pca",
+      "protocol": "match_by_slot",
+      "icc": 0.5565619543813226,
+      "mae_pct": 9.525088548053457,
+      "n_pairs": 412,
+      "pred_p99": 77.29574385797812,
+      "pred_max": 100.0,
+      "gt_mean": 19.183306911872283,
+      "pred_mean": 19.485906039454214
+    },
+    {
+      "combine": "mask_pca",
+      "protocol": "both_sides",
+      "icc": 0.6815652416708691,
+      "mae_pct": 6.824841543351522,
+      "n_pairs": 430,
+      "pred_p99": 77.05839343490116,
+      "pred_max": 100.0,
+      "gt_mean": 19.264212223876072,
+      "pred_mean": 18.543270952515854
+    },
+    {
+      "combine": "mask_pca",
+      "protocol": "one_per_tooth",
+      "icc": 0.657514687891399,
+      "mae_pct": 7.528247166458044,
+      "n_pairs": 390,
+      "pred_p99": 77.65231768879644,
+      "pred_max": 100.0,
+      "gt_mean": 19.94925354951255,
+      "pred_mean": 18.948568628733998
+    }
+  ],
+  "test_sweep": [
+    {
+      "combine": "tensor",
+      "protocol": "match_by_slot",
+      "icc": 0.728277902544526,
+      "mae_pct": 7.218466035973669,
+      "n_pairs": 598,
+      "pred_p99": 81.86064944939591,
+      "pred_max": 100.0,
+      "gt_mean": 20.930849325128257,
+      "pred_mean": 20.652155246488775
+    },
+    {
+      "combine": "tensor",
+      "protocol": "both_sides",
+      "icc": 0.724724365498072,
+      "mae_pct": 7.25147808870148,
+      "n_pairs": 608,
+      "pred_p99": 81.72916257460682,
+      "pred_max": 100.0,
+      "gt_mean": 20.894027044687014,
+      "pred_mean": 20.288004604204694
+    },
+    {
+      "combine": "tensor",
+      "protocol": "one_per_tooth",
+      "icc": 0.5640281602729255,
+      "mae_pct": 10.288268853556984,
+      "n_pairs": 514,
+      "pred_p99": 73.53947886243034,
+      "pred_max": 87.3523308580246,
+      "gt_mean": 21.812872899828466,
+      "pred_mean": 19.17976806464126
+    },
+    {
+      "combine": "lr",
+      "protocol": "match_by_slot",
+      "icc": 0.7280836538207395,
+      "mae_pct": 7.242978696235403,
+      "n_pairs": 598,
+      "pred_p99": 81.8668997079373,
+      "pred_max": 100.0,
+      "gt_mean": 20.930849325128257,
+      "pred_mean": 20.631547171601156
+    },
+    {
+      "combine": "lr",
+      "protocol": "both_sides",
+      "icc": 0.7249645798256271,
+      "mae_pct": 7.272518891410885,
+      "n_pairs": 608,
+      "pred_p99": 81.72916257460682,
+      "pred_max": 100.0,
+      "gt_mean": 20.894027044687014,
+      "pred_mean": 20.324521383111282
+    },
+    {
+      "combine": "lr",
+      "protocol": "one_per_tooth",
+      "icc": 0.5661521944411891,
+      "mae_pct": 10.21174712597503,
+      "n_pairs": 514,
+      "pred_p99": 73.13204162727834,
+      "pred_max": 87.30921332267492,
+      "gt_mean": 21.812872899828466,
+      "pred_mean": 19.144418564653805
+    },
+    {
+      "combine": "hungarian",
+      "protocol": "match_by_slot",
+      "icc": 0.7004639637348143,
+      "mae_pct": 7.434564867978953,
+      "n_pairs": 597,
+      "pred_p99": 80.17913379342453,
+      "pred_max": 100.0,
+      "gt_mean": 20.90628441617544,
+      "pred_mean": 20.193004696367993
+    },
+    {
+      "combine": "hungarian",
+      "protocol": "both_sides",
+      "icc": 0.6973625676486065,
+      "mae_pct": 7.489675417550577,
+      "n_pairs": 607,
+      "pred_p99": 80.07419359578698,
+      "pred_max": 100.0,
+      "gt_mean": 20.86542169605448,
+      "pred_mean": 19.956989218005212
+    },
+    {
+      "combine": "hungarian",
+      "protocol": "one_per_tooth",
+      "icc": 0.5885282207179199,
+      "mae_pct": 10.262886977219496,
+      "n_pairs": 514,
+      "pred_p99": 75.4249487232618,
+      "pred_max": 87.30921332267492,
+      "gt_mean": 21.812872899828466,
+      "pred_mean": 19.72138527577462
+    },
+    {
+      "combine": "paper_x",
+      "protocol": "match_by_slot",
+      "icc": 0.7280836538207395,
+      "mae_pct": 7.242978696235403,
+      "n_pairs": 598,
+      "pred_p99": 81.8668997079373,
+      "pred_max": 100.0,
+      "gt_mean": 20.930849325128257,
+      "pred_mean": 20.631547171601156
+    },
+    {
+      "combine": "paper_x",
+      "protocol": "both_sides",
+      "icc": 0.7249645798256271,
+      "mae_pct": 7.272518891410885,
+      "n_pairs": 608,
+      "pred_p99": 81.72916257460682,
+      "pred_max": 100.0,
+      "gt_mean": 20.894027044687014,
+      "pred_mean": 20.324521383111282
+    },
+    {
+      "combine": "paper_x",
+      "protocol": "one_per_tooth",
+      "icc": 0.5661521944411891,
+      "mae_pct": 10.21174712597503,
+      "n_pairs": 514,
+      "pred_p99": 73.13204162727834,
+      "pred_max": 87.30921332267492,
+      "gt_mean": 21.812872899828466,
+      "pred_mean": 19.144418564653805
+    },
+    {
+      "combine": "mask_pca",
+      "protocol": "match_by_slot",
+      "icc": 0.5655273069146068,
+      "mae_pct": 10.247501802452561,
+      "n_pairs": 533,
+      "pred_p99": 73.97011607578634,
+      "pred_max": 87.10429971031517,
+      "gt_mean": 21.73795888063892,
+      "pred_mean": 19.160783631952707
+    },
+    {
+      "combine": "mask_pca",
+      "protocol": "both_sides",
+      "icc": 0.6464748178882512,
+      "mae_pct": 7.7450336819828225,
+      "n_pairs": 564,
+      "pred_p99": 73.31087912999186,
+      "pred_max": 87.10429971031517,
+      "gt_mean": 21.146364183730473,
+      "pred_mean": 18.647241315895126
+    },
+    {
+      "combine": "mask_pca",
+      "protocol": "one_per_tooth",
+      "icc": 0.6241227620819549,
+      "mae_pct": 8.327727623084533,
+      "n_pairs": 505,
+      "pred_p99": 73.3835928013198,
+      "pred_max": 87.10429971031517,
+      "gt_mean": 21.908760731835198,
+      "pred_mean": 19.217144005341957
+    }
+  ],
+  "locked_splits": {
+    "train": {
+      "icc": 0.8278985556937609,
+      "mae_pct": 4.704365791683373,
+      "n_pairs": 2002,
+      "pred_p99": 91.2858995664784,
+      "pred_max": 100.0,
+      "gt_mean": 21.362267235440303,
+      "pred_mean": 20.963909635143402
+    },
+    "val": {
+      "icc": 0.7047665169637013,
+      "mae_pct": 6.422077667578255,
+      "n_pairs": 449,
+      "pred_p99": 81.44127346958076,
+      "pred_max": 100.0,
+      "gt_mean": 19.04102955823847,
+      "pred_mean": 19.17776959908451
+    },
+    "test": {
+      "icc": 0.7004639637348143,
+      "mae_pct": 7.434564867978953,
+      "n_pairs": 597,
+      "pred_p99": 80.17913379342453,
+      "pred_max": 100.0,
+      "gt_mean": 20.90628441617544,
+      "pred_mean": 20.193004696367993
+    }
+  },
+  "notes": [
+    "GT = processed_v6 PCA slots.",
+    "both_sides pairs by nearest CEJ; match_by_slot uses slot index.",
+    "hungarian assigns INT/APEX to CEJs by min distance (no masks, no GT).",
+    "Winner chosen on VAL only.",
+    "Oracle 8-combo ~0.79 is a cheat ceiling, not a production method."
+  ]
+}
