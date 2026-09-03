@@ -41,12 +41,12 @@ GT severity from `processed_v6` keypoint JSON (**PCA slots**). Pred: YOLO → 3�
 
 Reports: `research_log/icc_parameter_sweep.json`, `research_log/point_assignment_report.json`
 
-## v7 (optional ICC)
+\subsection{Keypoint model in ICC pipeline}
+Severity is computed from three landmarks per root side: CEJ, bone intersection, and apex. **Intersection cannot be omitted** from ICC—it defines the crest position in the bone-loss ratio. What matters is the **checkpoint**:
 
-v7 weights complete; intersection OKS regressed. One-shot eval:
+| Checkpoint | Intersection test OKS | Use in ICC? |
+|------------|----------------------:|-------------|
+| **v6** | **0.894** | **Yes (production)** |
+| v7 | 0.882 | **No** — worse OKS, overfit training |
 
-```bash
-python scripts/run_icc_parameter_sweep.py --cej-weights runs/keypoints/v7_cej/best.pt \
-  --intersection-weights runs/keypoints/v7_intersection/best.pt \
-  --apex-weights runs/keypoints/v7_apex/best.pt --out research_log/icc_v7_report.json
-```
+All ICC scripts default to `runs/keypoints/v6_intersection/best.pt`.

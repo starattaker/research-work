@@ -1,21 +1,24 @@
 #!/usr/bin/env bash
-# Sync friend machine to remote branch (avoids "divergent branches" pull error).
-# Usage:
-#   bash scripts/sync_friend_repo.sh              # default: fetch + merge (keeps local commits/files)
-#   SYNC_MODE=reset bash scripts/sync_friend_repo.sh   # discard local commits, match remote exactly
+# Sync friend machine — merge pull (never hard-reset unless SYNC_MODE=reset).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 BRANCH="${BRANCH:-denpar-severity-replication}"
 SYNC_MODE="${SYNC_MODE:-merge}"
 
-git fetch origin
-git checkout "$BRANCH" 2>/dev/null || git checkout -b "$BRANCH" "origin/$BRANCH"
+git fetch origin "$BRANCH"
 
-if [ "$SYNC_MODE" = "reset" ]; then
+if ! git rev-parse --verify "$BRANCH" >/dev/null 2>&1; then
+  git checkout -b "$BRANCH" "origin/$BRANCH"
+elif [[ "$(git branch --show-current)" != "$BRANCH" ]]; then
+  git checkout "$BRANCH"
+fi
+
+if [[ "$SYNC_MODE" = "reset" ]]; then
   git reset --hard "origin/$BRANCH"
 else
-  git merge "origin/$BRANCH" --no-edit
+  # Avoid "Need to specify how to reconcile divergent branches" on modern git
+  git pull origin "$BRANCH" --no-rebase --no-edit
 fi
 
 echo "Synced to origin/$BRANCH ($(git rev-parse --short HEAD))"
