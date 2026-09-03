@@ -1,26 +1,22 @@
-# Checkpoint — paper expanded; v6 ICC production (2026-09-04)
+# Checkpoint — ICC sweep done; resume axis (2026-09-04)
 
-**Status:** Paper draft expanded. Friend: one command to finalize ICC + figures + push.
+**Status:** Friend ICC parameter sweep complete (test ~0.72). Axis script fixed (`ec11fd4`). Resume axis + figures only.
 
-## Intersection + ICC (important)
+## ICC (v6, just completed on friend)
 
-Severity **requires** CEJ + **intersection** + apex. You cannot remove intersection from ICC.
+| Split | ICC | Config |
+|-------|----:|--------|
+| Val-locked test | **0.7246** | lr + match_by_slot, apex 28 |
+| Best test peek | **0.7273** | tensor + match_by_slot, apex 8 |
+| Paper | 0.801 | — |
 
-**Use v6 intersection** (`runs/keypoints/v6_intersection/best.pt`, OKS 0.894).  
-**Do NOT use v7 intersection** (OKS 0.882) for ICC.
+Report: `research_log/icc_parameter_sweep.json`
 
-## Friend GPU — ONE command
-
-```bash
-cd ~/faraz/Test_work/research-work && git fetch origin denpar-severity-replication && git pull origin denpar-severity-replication --no-rebase --no-edit && bash scripts/run_paper_finalize_friend.sh
-```
-
-## Build PDF (local)
+## Resume on friend (skip ICC GPU re-run)
 
 ```bash
-bash scripts/build_paper_pdf.sh
+cd ~/faraz/Test_work/research-work && git pull origin denpar-severity-replication --no-rebase -X theirs --no-edit && bash scripts/run_paper_resume_axis_friend.sh
 ```
 
-## Green placeholders in paper
-
-Fill after friend run: `axis_severity_icc.json`, figure PNGs in `paper/figures/`
+## Bug fixed
+`SideDetail` requires `cej` — fixed in `compare_axis_severity_icc.py` commit `ec11fd4`.
