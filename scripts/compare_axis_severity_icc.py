@@ -38,15 +38,21 @@ METHODS = (
 
 
 def gt_details_axis(merged, tooth_idx: int, method: AxisSeverityMethod, mask, bbox) -> list[SideDetail]:
+    from src.severity.gt_labels import point_from_slot
+
+    cej_pts = merged["cej"][tooth_idx]
     sides = severities_both_sides(
-        merged["cej"][tooth_idx],
+        cej_pts,
         merged["intersection"][tooth_idx],
         merged["apex"][tooth_idx],
         method,
         mask=mask,
         bbox=bbox,
     )
-    return [SideDetail(slot=s, severity=sev) for s, sev in sides]
+    return [
+        SideDetail(slot=s, severity=sev, cej=point_from_slot(cej_pts, s))
+        for s, sev in sides
+    ]
 
 
 def pred_details_axis(kps: dict, method: AxisSeverityMethod, mask, bbox) -> list[SideDetail]:
@@ -74,15 +80,21 @@ def pred_details_axis(kps: dict, method: AxisSeverityMethod, mask, bbox) -> list
             rows.append([0.0, 0.0, 0])
         return rows
 
+    from src.severity.gt_labels import point_from_slot
+
+    cej_list = tensor_to_lists(cej_t)
     sides = severities_both_sides(
-        tensor_to_lists(cej_t),
+        cej_list,
         tensor_to_lists(int_t),
         tensor_to_lists(apex_t),
         method,
         mask=mask,
         bbox=bbox,
     )
-    return [SideDetail(slot=s, severity=sev) for s, sev in sides]
+    return [
+        SideDetail(slot=s, severity=sev, cej=point_from_slot(cej_list, s))
+        for s, sev in sides
+    ]
 
 
 def cache_predictions_split(
