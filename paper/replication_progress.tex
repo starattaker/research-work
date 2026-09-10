@@ -14,11 +14,17 @@
   \IfFileExists{#1}{%
     \includegraphics[width=#2]{#1}%
   }{%
+  \IfFileExists{figures/#1}{%
+    \includegraphics[width=#2]{figures/#1}%
+  }{%
+  \IfFileExists{../research_log/figures/#1}{%
+    \includegraphics[width=#2]{../research_log/figures/#1}%
+  }{%
     \fcolorbox{placeholdergreen}{white}{%
       \parbox[c][0.22\linewidth][c]{#2}{\centering\placeholder{Figure pending}}%
     }%
-  }%
-}
+  }}%
+}}
 
 \graphicspath{{figures/}{../research_log/figures/}}
 
