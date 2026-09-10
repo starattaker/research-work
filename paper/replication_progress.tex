@@ -157,7 +157,7 @@ Strategy & CEJ drop & Apex drop & CEJ kept & Apex kept \\
 v1 & 6.7 & 3.4 & 5708 & 4338 \\
 v3 & 1.9 & 23.7 & 6000 & 3424 \\
 v4 & 0.6 & 9.0 & 6085 & 4087 \\
-v7 & \placeholder{--} & \placeholder{--} & \placeholder{n/d} & \placeholder{n/d} \\
+v7 (12\,px + outlier) & -- & -- & n/r & n/r \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -236,14 +236,14 @@ S_{\mathrm{axis}} = 100 \cdot \frac{|t(\mathbf{i})-t(\mathbf{c})|}{|t(\mathbf{a}
 
 \begin{figure}[t]
 \centering
-\figfile{figures/axis_severity/431_tooth0.png}{0.95\linewidth}
+\figfile{axis_severity/431_tooth0.png}{0.95\linewidth}
 \caption{Severity geometry: paper Eq.~1 vs.\ axis methods (test image 431).}
 \label{fig:axis-sev}
 \end{figure}
 
 \begin{figure}[t]
 \centering
-\figfile{figures/axis_severity/622_tooth0.png}{0.95\linewidth}
+\figfile{axis_severity/622_tooth0.png}{0.95\linewidth}
 \caption{Additional axis-constrained severity example (test image 622, tooth 0).}
 \label{fig:axis-sev-extra}
 \end{figure}
@@ -266,6 +266,14 @@ A separate sweep on the full dataset measures the ring radius required to retain
 
 \subsection{Detection and keypoints}
 YOLO mAP gap ($\sim$0.09) contributes to ICC error via ROI shift. Apex OKS exceeds paper; CEJ and intersection remain $\sim$0.02--0.03 below paper targets.
+
+\begin{figure}[t]
+\centering
+\figfile{real_inset_test_431.jpg}{0.95\linewidth}\\[2pt]
+\figfile{grace_qa_test_431.jpg}{0.95\linewidth}
+\caption{Qualitative test example (image 431). Top: YOLO detection with per-tooth keypoint overlay at ROI inference. Bottom: grace-radius QA view showing expert clicks, their assigned tooth masks, and the region-growing ring that recovered out-of-mask clicks.}
+\label{fig:qualitative}
+\end{figure}
 
 \subsection{End-to-end severity ICC (v6 weights)}
 \begin{table}[t]
@@ -335,7 +343,7 @@ Double-root GT apex separation median 131\,px; inference merge radius 8--32\,px 
 
 We presented multipass region-growing for dental keypoint labels, PCA-axis slot assignment, and axis-constrained severity measurement, with full ablations v1--v7 and honest DenPAR ICC replication ($\sim$0.72; rising to 0.823 under mask-PCA axis severity). Production evaluation uses \textbf{v6 intersection} exclusively.
 
-\textbf{Future work:} (1) authorized evaluation on 214 clinician-annotated IOPAs; (2) YOLO refinement or GT-box distillation; (3) intersection-specific architecture or loss; (4) prospective comparison of axis methods in multi-center study; (5) \placeholder{clinical reader study}.
+\textbf{Future work:} (1) authorized evaluation on 214 clinician-annotated IOPAs; (2) YOLO refinement or GT-box distillation; (3) intersection-specific architecture or loss; (4) prospective comparison of axis methods in multi-center study; (5) a clinical reader study to score inter-reader agreement of the axis-constrained severity definitions.
 
 %==============================================================================
 \section*{Acknowledgment}
