@@ -178,16 +178,16 @@
         "run_dir": "runs/keypoints/v2_cej"
       },
       "intersection": {
-        "record_file": "research_log/experiments/records/20260912T181355Z_v6_intersection.json",
+        "record_file": "research_log/experiments/records/20260912T181356Z_v6_intersection.json",
         "keypoint_type": "intersection",
-        "test_oks": 0.8158931599091739,
-        "val_oks": 0.817666565378507,
-        "test_map_50": 0.833403468132019,
-        "best_epoch": 5,
-        "best_val_loss": 4.145585024915635,
-        "epochs_run": 35,
+        "test_oks": 0.8145487064123154,
+        "val_oks": 0.8094383592406909,
+        "test_map_50": 0.8008503913879395,
+        "best_epoch": 6,
+        "best_val_loss": 4.1527796243558015,
+        "epochs_run": 36,
         "paper_oks_target": 0.912,
-        "run_dir": "runs/keypoints/intersection"
+        "run_dir": "runs/keypoints/v2_intersection"
       }
     }
   },
@@ -292,6 +292,12 @@
       "file": "research_log/experiments/records/20260912T181356Z_v6_cej.json",
       "experiment_id": "v6",
       "keypoint_type": "cej",
+      "at": "2026-09-12 18:13 UTC"
+    },
+    {
+      "file": "research_log/experiments/records/20260912T181356Z_v6_intersection.json",
+      "experiment_id": "v6",
+      "keypoint_type": "intersection",
       "at": "2026-09-12 18:13 UTC"
     }
   ]
