@@ -1,6 +1,6 @@
 # Checkpoint — Axis ICC done; paper filled (2026-09-04, updated 2026-09-05)
 
-**Status:** Keypoint training **v6 complete** (2026-09-12 18:55 UTC).
+**Status:** Keypoint training **v1 complete** (2026-09-12 20:31 UTC).
 
 ## ICC (v6, completed on friend)
 
@@ -39,6 +39,6 @@ git push origin denpar-severity-replication
 
 ## Latest metrics (auto)
 
-- **v6:** cej OKS=0.926; intersection OKS=0.895; apex OKS=0.864
+- **v1:** cej OKS=0.820; intersection OKS=0.816; apex OKS=0.830
 - Registry: `research_log/experiments/paper_table.json`
 
