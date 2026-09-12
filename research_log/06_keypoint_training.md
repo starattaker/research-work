@@ -51,5 +51,5 @@ Recorded: 2026-09-12 18:44 UTC
 | Model | test_oks | Paper | best epoch | run_dir |
 |-------|----------:|------:|-----------:|---------|
 | cej | 0.842615787088871 | 0.954 | 8 | `runs/keypoints/v2_cej` |
-| intersection | 0.8158931599091739 | 0.912 | 5 | `runs/keypoints/intersection` |
+| intersection | 0.8145487064123154 | 0.912 | 6 | `runs/keypoints/v2_intersection` |
 | apex | 0.7811488563381136 | 0.815 | 5 | `runs/keypoints/v2_apex` |
