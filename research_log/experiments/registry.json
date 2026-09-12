@@ -180,14 +180,14 @@
       "intersection": {
         "record_file": "research_log/experiments/records/20260912T181356Z_v6_intersection.json",
         "keypoint_type": "intersection",
-        "test_oks": 0.8590703271329403,
-        "val_oks": 0.824147571772337,
-        "test_map_50": 0.8469692468643188,
-        "best_epoch": 5,
-        "best_val_loss": 3.9222244055879614,
-        "epochs_run": 35,
+        "test_oks": 0.8937907738983631,
+        "val_oks": 0.8828140287597974,
+        "test_map_50": 0.8472095131874084,
+        "best_epoch": 6,
+        "best_val_loss": 3.753041859002163,
+        "epochs_run": 36,
         "paper_oks_target": 0.912,
-        "run_dir": "runs/keypoints/v5_intersection"
+        "run_dir": "runs/keypoints/v6_intersection"
       }
     }
   },
@@ -352,6 +352,12 @@
       "file": "research_log/experiments/records/20260912T181356Z_v6_cej.json",
       "experiment_id": "v6",
       "keypoint_type": "cej",
+      "at": "2026-09-12 18:13 UTC"
+    },
+    {
+      "file": "research_log/experiments/records/20260912T181356Z_v6_intersection.json",
+      "experiment_id": "v6",
+      "keypoint_type": "intersection",
       "at": "2026-09-12 18:13 UTC"
     }
   ]
