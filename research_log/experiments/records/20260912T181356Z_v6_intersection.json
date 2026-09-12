@@ -2,12 +2,12 @@
   "recorded_at": "2026-09-12 18:13 UTC",
   "experiment_id": "v6",
   "keypoint_type": "intersection",
-  "run_dir": "runs/keypoints/v4_intersection",
-  "test_oks": 0.8222693479061127,
-  "val_oks": 0.8293585216999054,
-  "test_map_50": 0.8423252701759338,
+  "run_dir": "runs/keypoints/v5_intersection",
+  "test_oks": 0.8590703271329403,
+  "val_oks": 0.824147571772337,
+  "test_map_50": 0.8469692468643188,
   "best_epoch": 5,
-  "best_val_loss": 4.072149940958868,
+  "best_val_loss": 3.9222244055879614,
   "epochs_run": 35,
   "paper_oks_target": 0.912
 }
