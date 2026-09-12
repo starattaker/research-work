@@ -16,6 +16,7 @@ class AxisSeverityMethod(str, Enum):
     PAPER_EQ1 = "paper_eq1"
     MASK_PCA = "mask_pca"
     CEJ_INT_MIDPOINT = "cej_int_midpoint"
+    CEJ_WIDTH_NO_APEX = "cej_width_no_apex"
 
 
 def _mean_point(pts: list[tuple[float, float]]) -> tuple[float, float] | None:
@@ -74,6 +75,37 @@ def project_scalar_along_axis(
     ox, oy = origin
     dx, dy = direction
     return (pt[0] - ox) * dx + (pt[1] - oy) * dy
+
+
+def mask_axis_extent(
+    mask: np.ndarray,
+    origin: tuple[float, float],
+    direction: tuple[float, float],
+) -> tuple[float, float] | None:
+    """Min/max scalar coordinate of every foreground mask pixel along (origin, direction).
+
+    Used to draw the PCA axis spanning the *entire visible tooth*, not just the
+    three landmarks - a mask has thousands of pixels and gives a much more
+    honest "how long is this tooth" answer than the landmark span does.
+    """
+    ys, xs = np.where(mask > 0)
+    if len(xs) < 3:
+        return None
+    ox, oy = origin
+    dx, dy = direction
+    t = (xs.astype(np.float64) - ox) * dx + (ys.astype(np.float64) - oy) * dy
+    return float(t.min()), float(t.max())
+
+
+def crown_width(cej_pts: list) -> float | None:
+    """Distance between the mesial and distal CEJ points - apex-free by construction."""
+    from src.severity.gt_labels import point_from_slot
+
+    c0 = point_from_slot(cej_pts, 0)
+    c1 = point_from_slot(cej_pts, 1)
+    if c0 == (0.0, 0.0) or c1 == (0.0, 0.0):
+        return None
+    return math.hypot(c1[0] - c0[0], c1[1] - c0[1])
 
 
 def severity_on_axis(
@@ -139,6 +171,64 @@ def severity_for_side_slots(
         return None
     origin, direction = axis
     return severity_on_axis(c, t, a, origin, direction)
+
+
+def severity_apex_free_for_slot(
+    cej_pts: list,
+    inter_pts: list,
+    slot: int,
+    *,
+    bbox: list[float] | None = None,
+) -> float | None:
+    """Genuinely apex-free severity: crown-width-normalised CEJ-to-INT distance.
+
+    The axis direction (CEJ midpoint -> INT midpoint) still needs both CEJ
+    points and both intersection points, but neither the apex keypoint nor
+    the tooth mask is used anywhere in this computation - unlike MASK_PCA
+    and CEJ_INT_MIDPOINT, which use the apex as the root-length denominator.
+    The normaliser here is the crown width (mesial-to-distal CEJ distance),
+    which is intrinsic to the same annotation pass that produced the CEJ
+    points and requires no root-length landmark at all.
+    """
+    from src.severity.gt_labels import point_from_slot
+
+    c = point_from_slot(cej_pts, slot)
+    t = point_from_slot(inter_pts, slot)
+    if c == (0.0, 0.0) or t == (0.0, 0.0):
+        return None
+
+    visible_cej = [point_from_slot(cej_pts, i) for i in range(2)]
+    visible_cej = [p for p in visible_cej if p != (0.0, 0.0)]
+    visible_int = [point_from_slot(inter_pts, i) for i in range(2)]
+    visible_int = [p for p in visible_int if p != (0.0, 0.0)]
+
+    axis = axis_cej_int_midpoint(visible_cej, visible_int, bbox)
+    if axis is None:
+        return None
+    origin, direction = axis
+
+    w = crown_width(cej_pts)
+    if w is None or w < 1e-6:
+        return None
+
+    t_c = project_scalar_along_axis(c, origin, direction)
+    t_i = project_scalar_along_axis(t, origin, direction)
+    d = abs(t_i - t_c)
+    return (d / w) * 100.0
+
+
+def severities_apex_free_both_sides(
+    cej_pts: list,
+    inter_pts: list,
+    *,
+    bbox: list[float] | None = None,
+) -> list[tuple[int, float]]:
+    out: list[tuple[int, float]] = []
+    for slot in (0, 1):
+        sev = severity_apex_free_for_slot(cej_pts, inter_pts, slot, bbox=bbox)
+        if sev is not None:
+            out.append((slot, sev))
+    return out
 
 
 def severities_both_sides(

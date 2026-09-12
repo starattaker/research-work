@@ -172,14 +172,23 @@ fi
 
 # --------------------------------------------------------------- stage 1 ----
 stage1_v6_metrics() {
+  # NOTE: this stage ALWAYS re-evaluates, even if metrics.json already exists.
+  # A previous version skipped re-eval when metrics.json was present, which
+  # silently reused a stale file that had been left over in runs/keypoints/v6_*
+  # from an earlier v7 comparison run - the registry ended up recording v7's
+  # numbers under the v6 tag. eval-only is a single forward pass over the
+  # train/val/test loaders (a minute or two per head), so re-running it every
+  # time is cheap insurance against exactly that class of bug.
   local ok=1
   for kpt in cej intersection apex; do
     local out_dir="runs/keypoints/${EXP}_${kpt}"
-    if [[ -f "$out_dir/metrics.json" && "$FORCE" != "1" ]]; then
-      log "  metrics.json already present for $kpt (FORCE=1 to redo)"
+    local weights="$out_dir/best.pt"
+    if [[ ! -f "$weights" ]]; then
+      err "  no checkpoint at $weights - cannot evaluate $kpt"
+      ok=0
       continue
     fi
-    log "  evaluating $kpt ..."
+    log "  evaluating $kpt from $weights ..."
     if $PY -m src.keypoint.train \
         --data-root "$DATA_ROOT/keypoints/$kpt" \
         --keypoint-type "$kpt" \
@@ -187,7 +196,9 @@ stage1_v6_metrics() {
         --experiment-id "$EXP" \
         --device "$DEVICE" \
         --eval-only --no-auto-push >>"$RUN_LOG" 2>&1; then
-      log "  wrote $out_dir/metrics.json"
+      local test_oks
+      test_oks=$($PY -c "import json,sys; print(json.load(open('$out_dir/metrics.json')).get('test_oks'))" 2>/dev/null)
+      log "  wrote $out_dir/metrics.json  (test_oks=$test_oks)"
     else
       err "  eval failed for $kpt (see $RUN_LOG)"
       ok=0
@@ -197,6 +208,26 @@ stage1_v6_metrics() {
   log "  updating experiment registry ..."
   $PY scripts/collect_training_results.py --experiment-id "$EXP" --no-push >>"$RUN_LOG" 2>&1 \
     || warn "  registry backfill failed"
+
+  # Sanity check: the freshly written run_dir for each head must point at
+  # THIS experiment's own directory, not some other experiment's. Catches
+  # the exact stale-file bug described above if it ever recurs.
+  $PY - "$EXP" <<'PYCHECK' 2>&1 | tee -a "$RUN_LOG"
+import json, sys
+exp = sys.argv[1]
+try:
+    reg = json.load(open("research_log/experiments/registry.json"))
+except FileNotFoundError:
+    sys.exit(0)
+entry = reg.get("latest", {}).get(exp, {})
+bad = [k for k, v in entry.items() if v.get("run_dir") and exp not in v["run_dir"]]
+if bad:
+    print(f"SANITY-CHECK FAILED: {exp} registry entries {bad} point at a different experiment's run_dir!")
+    sys.exit(1)
+print(f"sanity check OK: all recorded {exp} run_dir values reference {exp}")
+PYCHECK
+  local sanity_rc=${PIPESTATUS[0]:-0}
+  [[ "$sanity_rc" -eq 0 ]] || { err "  registry sanity check failed - inspect research_log/experiments/registry.json before trusting these numbers"; ok=0; }
 
   push_stage "Add ${EXP} keypoint metrics.json + registry record (thesis audit trail)" \
     research_log/experiments runs/keypoints/*/metrics.json
@@ -234,10 +265,25 @@ stage3_agreement() {
     research_log/severity_agreement.json research_log/figures/agreement
 }
 
+# --------------------------------------------------------------- stage 4 ----
+stage4_axis_figures() {
+  local out_dir="paper/figures/axis_severity"
+  local stems=(431 5 100 240 622 18 358 530)
+  $PY scripts/visualize_axis_severity_paper.py \
+    --data-root "$DATA_ROOT" \
+    --split test \
+    --stems "${stems[@]}" \
+    --out-dir "$out_dir" 2>&1 | tee -a "$RUN_LOG"
+  [[ "${PIPESTATUS[0]}" -eq 0 ]] || { err "  figure regeneration failed"; return 1; }
+  push_stage "Regenerate axis-severity figures (proper PCA axis span, projections, apex-free panel)" \
+    "$out_dir"
+}
+
 # ------------------------------------------------------------------ run -----
 run_stage 1 "v6 keypoint metrics + registry"      stage1_v6_metrics
 run_stage 2 "dump per-tooth severity pairs"       stage2_dump_pairs
 run_stage 3 "ICC CIs + Bland-Altman"              stage3_agreement
+run_stage 4 "regenerate axis-severity figures"    stage4_axis_figures
 
 # Always push the run log itself so the Windows box can read what happened.
 push_stage "Add thesis-evidence run log" "$RUN_LOG"
@@ -255,7 +301,8 @@ for f in runs/keypoints/${EXP}_cej/metrics.json \
          research_log/experiments/registry.json \
          research_log/severity_pairs/severity_pairs_gtonly.csv \
          research_log/severity_pairs/severity_pairs_endtoend.csv \
-         research_log/severity_agreement.json; do
+         research_log/severity_agreement.json \
+         paper/figures/axis_severity/431_tooth0.png; do
   [[ -f "$f" ]] && log "  + $f" || log "  - $f (not produced)"
 done
 log ""
