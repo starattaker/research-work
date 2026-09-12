@@ -1,0 +1,45 @@
+{
+  "data_root": "data/processed_v6",
+  "raw_root": "data/DenPAR/Dataset",
+  "mask_available": {
+    "hits": 562,
+    "misses": 0
+  },
+  "pca_first_valid_side_neq_gt_slot_rate": 0.5670840787119857,
+  "oracle_slots_neq_aligned_gt_slot_rate": 0.7419928825622776,
+  "icc_by_method": {
+    "broken_tensor_slots": {
+      "icc": 0.059001560370777535,
+      "mae_pct": 21.664486277108942,
+      "n_pairs": 562
+    },
+    "mask_pca_first_valid": {
+      "icc": 0.0789250121203129,
+      "mae_pct": 17.996258658215556,
+      "n_pairs": 559
+    },
+    "mask_pca_gt_side": {
+      "icc": 0.04147630138750463,
+      "mae_pct": 22.045419917730563,
+      "n_pairs": 514
+    },
+    "mask_pca_flipped_axis": {
+      "icc": 0.053081654974650117,
+      "mae_pct": 20.533513201346594,
+      "n_pairs": 559
+    },
+    "tensor_gt_slot": {
+      "icc": 0.5454905714418995,
+      "mae_pct": 19.533770509093735,
+      "n_pairs": 562
+    },
+    "oracle_8combo": {
+      "icc": 0.7194007348766833,
+      "mae_pct": 9.755223895735815,
+      "n_pairs": 562
+    }
+  },
+  "interpretation": [
+    "Oracle >> mask_pca_gt_side \u2192 models need independent per-model slot pairing (8-combo logic without GT cheat)."
+  ]
+}
