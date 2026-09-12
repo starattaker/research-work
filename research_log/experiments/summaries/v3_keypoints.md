@@ -1,6 +1,6 @@
 # Keypoint results — v3
 
-Updated: 2026-09-12 18:13 UTC
+Updated: 2026-09-12 18:41 UTC
 
 | Model | test_oks | Paper | best epoch | run_dir |
 |-------|---------:|------:|-----------:|---------|
