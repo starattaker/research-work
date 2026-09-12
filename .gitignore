@@ -19,8 +19,13 @@ runs/
 .cursor/projects/
 .cursor/*.json
 
-# Papers (keep locally)
+# Papers (keep locally); reference PDFs at repo root, built paper output, etc.
 *.pdf
+# ...but figure PDFs under paper/figures/ are source assets the thesis
+# \includegraphics's directly - they must be tracked, not treated as a
+# downloaded paper. (Caught the TikZ diagram PDFs silently for two commits
+# before this was noticed - see commit history.)
+!paper/figures/**/*.pdf
 
 # OS
 .DS_Store
