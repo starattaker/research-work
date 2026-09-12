@@ -1,0 +1,602 @@
+[4.5G]  .
+├── [8.0K]  artifacts
+│   └── [4.0K]  local_viz
+├── [135M]  data
+│   ├── [ 46K]  DenPAR
+│   │   └── [ 42K]  Dataset
+│   │       ├── [ 26K]  Characteristics of radiographs included.xlsx
+│   │       ├── [4.0K]  Testing
+│   │       ├── [4.0K]  Training
+│   │       └── [4.0K]  Validation
+│   ├── [134M]  DenPAR_Radiographs_Dataset.zip
+│   ├── [ 36K]  processed
+│   │   ├── [ 16K]  keypoints
+│   │   │   ├── [4.0K]  apex
+│   │   │   ├── [4.0K]  cej
+│   │   │   └── [4.0K]  intersection
+│   │   ├── [ 244]  preprocess_summary.json
+│   │   └── [ 16K]  yolo_detection
+│   │       ├── [ 122]  data.yaml
+│   │       ├── [4.0K]  test
+│   │       ├── [4.0K]  train
+│   │       └── [4.0K]  val
+│   ├── [ 36K]  processed_v2
+│   │   ├── [ 16K]  keypoints
+│   │   │   ├── [4.0K]  apex
+│   │   │   ├── [4.0K]  cej
+│   │   │   └── [4.0K]  intersection
+│   │   ├── [ 244]  preprocess_summary.json
+│   │   └── [ 16K]  yolo_detection
+│   │       ├── [ 125]  data.yaml
+│   │       ├── [4.0K]  test
+│   │       ├── [4.0K]  train
+│   │       └── [4.0K]  val
+│   ├── [ 36K]  processed_v3
+│   │   ├── [ 16K]  keypoints
+│   │   │   ├── [4.0K]  apex
+│   │   │   ├── [4.0K]  cej
+│   │   │   └── [4.0K]  intersection
+│   │   ├── [ 244]  preprocess_summary.json
+│   │   └── [ 16K]  yolo_detection
+│   │       ├── [ 125]  data.yaml
+│   │       ├── [4.0K]  test
+│   │       ├── [4.0K]  train
+│   │       └── [4.0K]  val
+│   ├── [ 36K]  processed_v4
+│   │   ├── [ 16K]  keypoints
+│   │   │   ├── [4.0K]  apex
+│   │   │   ├── [4.0K]  cej
+│   │   │   └── [4.0K]  intersection
+│   │   ├── [ 244]  preprocess_summary.json
+│   │   └── [ 16K]  yolo_detection
+│   │       ├── [ 125]  data.yaml
+│   │       ├── [4.0K]  test
+│   │       ├── [4.0K]  train
+│   │       └── [4.0K]  val
+│   ├── [ 36K]  processed_v5
+│   │   ├── [ 16K]  keypoints
+│   │   │   ├── [4.0K]  apex
+│   │   │   ├── [4.0K]  cej
+│   │   │   └── [4.0K]  intersection
+│   │   ├── [ 244]  preprocess_summary.json
+│   │   └── [ 16K]  yolo_detection
+│   │       ├── [ 125]  data.yaml
+│   │       ├── [4.0K]  test
+│   │       ├── [4.0K]  train
+│   │       └── [4.0K]  val
+│   ├── [ 36K]  processed_v6
+│   │   ├── [ 16K]  keypoints
+│   │   │   ├── [4.0K]  apex
+│   │   │   ├── [4.0K]  cej
+│   │   │   └── [4.0K]  intersection
+│   │   ├── [ 340]  preprocess_summary.json
+│   │   └── [ 16K]  yolo_detection
+│   │       ├── [ 125]  data.yaml
+│   │       ├── [4.0K]  test
+│   │       ├── [4.0K]  train
+│   │       └── [4.0K]  val
+│   └── [ 36K]  processed_v7
+│       ├── [ 16K]  keypoints
+│       │   ├── [4.0K]  apex
+│       │   ├── [4.0K]  cej
+│       │   └── [4.0K]  intersection
+│       ├── [ 340]  preprocess_summary.json
+│       └── [ 16K]  yolo_detection
+│           ├── [ 125]  data.yaml
+│           ├── [4.0K]  test
+│           ├── [4.0K]  train
+│           └── [4.0K]  val
+├── [ 81K]  debug-89697e.log
+├── [5.6K]  docs
+│   └── [1.6K]  CLONE_AND_TRAIN.md
+├── [ 65M]  paper
+│   ├── [ 65M]  figures
+│   │   ├── [ 78K]  apex_distance_hist_cdf.png
+│   │   ├── [ 14M]  axis_severity
+│   │   │   ├── [569K]  100_tooth0.png
+│   │   │   ├── [569K]  100_tooth0_slot1.png
+│   │   │   ├── [620K]  100_tooth1.png
+│   │   │   ├── [620K]  100_tooth1_slot0.png
+│   │   │   ├── [636K]  100_tooth1_slot1.png
+│   │   │   ├── [375K]  18_tooth0.png
+│   │   │   ├── [375K]  18_tooth0_slot1.png
+│   │   │   ├── [371K]  18_tooth1.png
+│   │   │   ├── [371K]  18_tooth1_slot1.png
+│   │   │   ├── [404K]  240_tooth0.png
+│   │   │   ├── [404K]  240_tooth0_slot1.png
+│   │   │   ├── [137K]  240_tooth1.png
+│   │   │   ├── [553K]  358_tooth0.png
+│   │   │   ├── [553K]  358_tooth0_slot1.png
+│   │   │   ├── [418K]  358_tooth1.png
+│   │   │   ├── [418K]  358_tooth1_slot1.png
+│   │   │   ├── [416K]  431_tooth0.png
+│   │   │   ├── [416K]  431_tooth0_slot1.png
+│   │   │   ├── [455K]  431_tooth1.png
+│   │   │   ├── [455K]  431_tooth1_slot1.png
+│   │   │   ├── [506K]  530_tooth0.png
+│   │   │   ├── [506K]  530_tooth0_slot1.png
+│   │   │   ├── [584K]  530_tooth1.png
+│   │   │   ├── [584K]  530_tooth1_slot0.png
+│   │   │   ├── [591K]  530_tooth1_slot1.png
+│   │   │   ├── [135K]  5_tooth0.png
+│   │   │   ├── [519K]  5_tooth1.png
+│   │   │   ├── [519K]  5_tooth1_slot1.png
+│   │   │   ├── [579K]  622_tooth0.png
+│   │   │   ├── [579K]  622_tooth0_slot1.png
+│   │   │   ├── [185K]  622_tooth1.png
+│   │   │   └── [1.4K]  manifest.json
+│   │   ├── [690K]  grace_qa_test_431.jpg
+│   │   ├── [148K]  grace_radius_sweep.png
+│   │   ├── [170K]  point_assignment_full.png
+│   │   ├── [220K]  real_inset_test_431.jpg
+│   │   ├── [ 23M]  region_growing_flow.png
+│   │   ├── [2.6M]  region_growing_paper_single.png
+│   │   ├── [ 16M]  region_growing_schematic_grid.png
+│   │   ├── [5.1M]  region_growing_steps.gif
+│   │   ├── [168K]  test_1065.jpg
+│   │   ├── [170K]  test_1082.jpg
+│   │   ├── [142K]  test_1084.jpg
+│   │   ├── [185K]  test_1112.jpg
+│   │   ├── [143K]  test_1113.jpg
+│   │   ├── [225K]  test_1194.jpg
+│   │   ├── [179K]  test_1227.jpg
+│   │   ├── [152K]  test_139.jpg
+│   │   ├── [197K]  test_270.jpg
+│   │   ├── [184K]  test_361.jpg
+│   │   ├── [190K]  test_431.jpg
+│   │   ├── [198K]  test_558.jpg
+│   │   ├── [165K]  test_5.jpg
+│   │   ├── [207K]  test_622.jpg
+│   │   ├── [181K]  test_657.jpg
+│   │   ├── [178K]  test_682.jpg
+│   │   ├── [155K]  test_808.jpg
+│   │   └── [154K]  test_993.jpg
+│   ├── [ 339]  generated_keypoint_table.tex
+│   ├── [5.1K]  references.bib
+│   └── [ 23K]  replication_progress.tex
+├── [2.8M]  public
+│   └── [2.8M]  fonts
+│       ├── [130K]  fa-brands-400.eot
+│       ├── [699K]  fa-brands-400.svg
+│       ├── [130K]  fa-brands-400.ttf
+│       ├── [ 88K]  fa-brands-400.woff
+│       ├── [ 75K]  fa-brands-400.woff2
+│       ├── [ 34K]  fa-regular-400.eot
+│       ├── [141K]  fa-regular-400.svg
+│       ├── [ 33K]  fa-regular-400.ttf
+│       ├── [ 16K]  fa-regular-400.woff
+│       ├── [ 13K]  fa-regular-400.woff2
+│       ├── [7.4K]  fa-solid-500.woff2
+│       ├── [198K]  fa-solid-900.eot
+│       ├── [876K]  fa-solid-900.svg
+│       ├── [198K]  fa-solid-900.ttf
+│       ├── [101K]  fa-solid-900.woff
+│       ├── [ 78K]  fa-solid-900.woff2
+│       └── [ 787]  README.md
+├── [3.1K]  README.md
+├── [ 338]  requirements.txt
+├── [9.3M]  research_log
+│   ├── [ 617]  01_environment.md
+│   ├── [ 839]  02_dataset.md
+│   ├── [ 10K]  03_preprocessing.md
+│   ├── [2.9K]  04_hyperparameters.md
+│   ├── [1.7K]  05_detection_training.md
+│   ├── [1.8K]  06_keypoint_training.md
+│   ├── [2.1K]  07_severity_icc.md
+│   ├── [1.6K]  08_axis_severity.md
+│   ├── [2.1K]  AGENT_HANDOFF.md
+│   ├── [2.6K]  axis_severity_icc.json
+│   ├── [2.6K]  axis_severity_icc_v7weights.json
+│   ├── [1.3K]  CHECKPOINT.md
+│   ├── [ 47K]  experiments
+│   │   ├── [3.5K]  paper_table.json
+│   │   ├── [ 792]  README.md
+│   │   ├── [ 15K]  records
+│   │   │   ├── [ 341]  20260819T213013Z_v2_cej.json
+│   │   │   ├── [ 361]  20260819T222841Z_v2_intersection.json
+│   │   │   ├── [ 343]  20260819T232427Z_v2_apex.json
+│   │   │   ├── [ 342]  20260820T022058Z_v3_cej.json
+│   │   │   ├── [ 358]  20260820T031609Z_v3_intersection.json
+│   │   │   ├── [ 344]  20260820T041336Z_v3_apex.json
+│   │   │   ├── [ 342]  20260820T050841Z_v4_cej.json
+│   │   │   ├── [ 360]  20260820T060550Z_v4_intersection.json
+│   │   │   ├── [ 344]  20260820T070340Z_v4_apex.json
+│   │   │   ├── [ 340]  20260901T115748Z_v7_cej.json
+│   │   │   ├── [ 361]  20260901T125424Z_v7_intersection.json
+│   │   │   ├── [ 344]  20260902T012953Z_v7_apex.json
+│   │   │   ├── [ 340]  20260912T181355Z_v6_apex.json
+│   │   │   ├── [ 327]  20260912T181355Z_v6_cej.json
+│   │   │   ├── [ 355]  20260912T181355Z_v6_intersection.json
+│   │   │   ├── [ 344]  20260912T181356Z_v6_apex.json
+│   │   │   ├── [ 340]  20260912T181356Z_v6_cej.json
+│   │   │   ├── [ 361]  20260912T181356Z_v6_intersection.json
+│   │   │   ├── [ 342]  20260912T184149Z_v6_cej.json
+│   │   │   ├── [ 359]  20260912T184319Z_v6_intersection.json
+│   │   │   ├── [ 344]  20260912T184452Z_v6_apex.json
+│   │   │   ├── [ 344]  20260912T184453Z_v6_apex.json
+│   │   │   ├── [ 342]  20260912T184453Z_v6_cej.json
+│   │   │   ├── [ 359]  20260912T184453Z_v6_intersection.json
+│   │   │   ├── [ 340]  20260912T184454Z_v6_cej.json
+│   │   │   ├── [ 361]  20260912T184454Z_v6_intersection.json
+│   │   │   ├── [ 342]  20260912T185248Z_v6_cej.json
+│   │   │   ├── [ 360]  20260912T185418Z_v6_intersection.json
+│   │   │   ├── [ 344]  20260912T185551Z_v6_apex.json
+│   │   │   ├── [ 344]  20260912T185552Z_v6_apex.json
+│   │   │   ├── [ 342]  20260912T185552Z_v6_cej.json
+│   │   │   └── [ 360]  20260912T185552Z_v6_intersection.json
+│   │   ├── [ 18K]  registry.json
+│   │   └── [6.2K]  summaries
+│   │       ├── [ 579]  paper_table.md
+│   │       ├── [ 344]  v2_keypoints.md
+│   │       ├── [ 344]  v3_keypoints.md
+│   │       ├── [ 344]  v4_keypoints.md
+│   │       ├── [ 344]  v6_keypoints.md
+│   │       └── [ 344]  v7_keypoints.md
+│   ├── [7.8M]  figures
+│   │   ├── [256K]  agreement
+│   │   │   ├── [ 85K]  bland_altman_cej_int_midpoint_test.png
+│   │   │   ├── [ 84K]  bland_altman_mask_pca_test.png
+│   │   │   └── [ 83K]  bland_altman_paper_eq1_test.png
+│   │   ├── [ 87K]  apex_merge_analysis
+│   │   │   ├── [ 78K]  apex_distance_hist_cdf.png
+│   │   │   └── [5.1K]  apex_distance_report.json
+│   │   ├── [158K]  grace_radius_sweep
+│   │   │   ├── [5.7K]  grace_radius_report.json
+│   │   │   └── [148K]  grace_radius_sweep.png
+│   │   ├── [ 32K]  intersection_logic
+│   │   │   └── [ 28K]  summary_test.json
+│   │   ├── [568K]  intersection_plane_compare
+│   │   │   └── [564K]  summary.json
+│   │   ├── [1.8M]  intersection_qa
+│   │   │   ├── [1.3K]  summary_test.json
+│   │   │   ├── [168K]  test_1065.jpg
+│   │   │   ├── [170K]  test_1082.jpg
+│   │   │   ├── [185K]  test_1112.jpg
+│   │   │   ├── [179K]  test_1227.jpg
+│   │   │   ├── [197K]  test_270.jpg
+│   │   │   ├── [184K]  test_361.jpg
+│   │   │   ├── [190K]  test_431.jpg
+│   │   │   ├── [207K]  test_622.jpg
+│   │   │   ├── [178K]  test_682.jpg
+│   │   │   └── [155K]  test_808.jpg
+│   │   ├── [577K]  keypoint_anomalies
+│   │   │   └── [573K]  summary_all_splits.json
+│   │   ├── [ 12K]  keypoint_inference
+│   │   │   ├── [4.0K]  cej
+│   │   │   └── [4.0K]  intersection
+│   │   ├── [153K]  noise_sensitivity_v5.png
+│   │   ├── [162K]  noise_sensitivity_v6.png
+│   │   ├── [243K]  overloaded_teeth
+│   │   │   └── [239K]  summary_test.json
+│   │   ├── [180K]  point_assignment_full
+│   │   │   ├── [170K]  point_assignment_full.png
+│   │   │   └── [6.2K]  point_assignment_report.json
+│   │   ├── [491K]  slot_axis_methods
+│   │   │   ├── [125K]  1036_tooth0.jpg
+│   │   │   ├── [112K]  1140_tooth0.jpg
+│   │   │   ├── [117K]  201_tooth0.jpg
+│   │   │   ├── [ 76K]  797_tooth0.jpg
+│   │   │   └── [ 56K]  944_tooth0.jpg
+│   │   ├── [ 32K]  slot_axis_steps
+│   │   │   ├── [4.0K]  step1_raw_predictions
+│   │   │   ├── [4.0K]  step2_gt_keypoints
+│   │   │   ├── [4.0K]  step3_mask_pca
+│   │   │   ├── [4.0K]  step4_points_axis
+│   │   │   ├── [4.0K]  step5_lr_position
+│   │   │   ├── [4.0K]  step6_oracle_summary
+│   │   │   └── [4.0K]  summaries
+│   │   ├── [ 58K]  training
+│   │   │   └── [ 54K]  cej_loss_curve.png
+│   │   ├── [1.7M]  yolo_inference
+│   │   │   ├── [1.9K]  summary_test.json
+│   │   │   ├── [154K]  test_1065.jpg
+│   │   │   ├── [153K]  test_1082.jpg
+│   │   │   ├── [166K]  test_1112.jpg
+│   │   │   ├── [188K]  test_1227.jpg
+│   │   │   ├── [188K]  test_270.jpg
+│   │   │   ├── [179K]  test_361.jpg
+│   │   │   ├── [194K]  test_431.jpg
+│   │   │   ├── [210K]  test_622.jpg
+│   │   │   ├── [169K]  test_682.jpg
+│   │   │   └── [142K]  test_808.jpg
+│   │   └── [1.3M]  yolo_qa
+│   │       ├── [ 651]  summary_test.json
+│   │       ├── [142K]  test_1084.jpg
+│   │       ├── [143K]  test_1113.jpg
+│   │       ├── [225K]  test_1194.jpg
+│   │       ├── [152K]  test_139.jpg
+│   │       ├── [198K]  test_558.jpg
+│   │       ├── [165K]  test_5.jpg
+│   │       ├── [181K]  test_657.jpg
+│   │       └── [154K]  test_993.jpg
+│   ├── [   0]  friend_system_tree.txt
+│   ├── [8.1K]  icc_combine_sweep.json
+│   ├── [ 672]  ICC_CONTEXT.md
+│   ├── [ 10K]  icc_final_report.json
+│   ├── [ 259]  icc_gt_sanity_test.json
+│   ├── [ 85K]  icc_parameter_sweep.json
+│   ├── [4.0K]  icc_sweep_cache
+│   ├── [3.7K]  intersection_logic_analysis.md
+│   ├── [7.6K]  noise_sensitivity_v5.json
+│   ├── [7.6K]  noise_sensitivity_v6.json
+│   ├── [388K]  oracle_slot_eda
+│   │   ├── [ 46K]  error_scatter_mask_vs_oracle.png
+│   │   ├── [ 49K]  icc_by_method.png
+│   │   ├── [1.2K]  oracle_slot_eda.json
+│   │   └── [288K]  per_tooth_records.json
+│   ├── [ 142]  point_assignment_report.json
+│   ├── [7.4K]  preprocessing_comparison.json
+│   ├── [2.9K]  preprocessing_comparison.md
+│   ├── [1.6K]  README.md
+│   ├── [159K]  run_logs
+│   │   ├── [102K]  thesis_evidence_20260912T181351Z.log
+│   │   ├── [ 26K]  thesis_evidence_20260912T184014Z.log
+│   │   ├── [ 21K]  thesis_evidence_20260912T185113Z.log
+│   │   └── [5.8K]  thesis_evidence_20260912T194029Z.log
+│   ├── [9.9K]  severity_agreement.json
+│   ├── [1.4K]  severity_icc_diagnosis.json
+│   ├── [ 960]  severity_icc_end_to_end.json
+│   ├── [ 958]  severity_icc_gt_proposals_full.json
+│   ├── [ 930]  severity_icc_gt_proposals.json
+│   ├── [ 993]  severity_icc_test.json
+│   ├── [ 989]  severity_icc_test_lr.json
+│   ├── [1000]  severity_icc_train.json
+│   ├── [ 992]  severity_icc_val.json
+│   ├── [799K]  severity_pairs
+│   │   ├── [574K]  severity_pairs_endtoend.csv
+│   │   └── [221K]  severity_pairs_gtonly.csv
+│   ├── [1.1K]  slot_axis_icc_comparison.json
+│   └── [ 38K]  VIVA_QA.md
+├── [4.2G]  runs
+│   ├── [1.7M]  detect
+│   │   ├── [8.0K]  runs
+│   │   │   └── [4.0K]  detection
+│   │   └── [1.7M]  val
+│   │       ├── [128K]  BoxF1_curve.png
+│   │       ├── [120K]  BoxP_curve.png
+│   │       ├── [117K]  BoxPR_curve.png
+│   │       ├── [124K]  BoxR_curve.png
+│   │       ├── [118K]  confusion_matrix_normalized.png
+│   │       ├── [105K]  confusion_matrix.png
+│   │       ├── [155K]  val_batch0_labels.jpg
+│   │       ├── [157K]  val_batch0_pred.jpg
+│   │       ├── [168K]  val_batch1_labels.jpg
+│   │       ├── [171K]  val_batch1_pred.jpg
+│   │       ├── [185K]  val_batch2_labels.jpg
+│   │       └── [190K]  val_batch2_pred.jpg
+│   └── [4.2G]  keypoints
+│       ├── [226M]  apex
+│       │   ├── [226M]  best.pt
+│       │   ├── [3.3K]  history.json
+│       │   ├── [ 55K]  loss_curve.png
+│       │   ├── [5.3K]  metrics.json
+│       │   └── [4.0K]  tensorboard
+│       ├── [226M]  cej
+│       │   ├── [226M]  best.pt
+│       │   ├── [1.9K]  history.json
+│       │   ├── [1.7K]  metrics.json
+│       │   └── [4.0K]  tensorboard
+│       ├── [226M]  intersection
+│       │   ├── [226M]  best.pt
+│       │   ├── [3.3K]  history.json
+│       │   ├── [ 52K]  loss_curve.png
+│       │   ├── [5.3K]  metrics.json
+│       │   └── [4.0K]  tensorboard
+│       ├── [226M]  v2_apex
+│       │   ├── [226M]  best.pt
+│       │   ├── [3.3K]  history.json
+│       │   ├── [ 54K]  loss_curve.png
+│       │   ├── [5.3K]  metrics.json
+│       │   └── [4.0K]  tensorboard
+│       ├── [226M]  v2_cej
+│       │   ├── [226M]  best.pt
+│       │   ├── [3.6K]  history.json
+│       │   ├── [ 54K]  loss_curve.png
+│       │   ├── [5.7K]  metrics.json
+│       │   └── [4.0K]  tensorboard
+│       ├── [226M]  v2_intersection
+│       │   ├── [226M]  best.pt
+│       │   ├── [3.4K]  history.json
+│       │   ├── [ 51K]  loss_curve.png
+│       │   ├── [5.4K]  metrics.json
+│       │   └── [4.0K]  tensorboard
+│       ├── [226M]  v3_apex
+│       │   ├── [226M]  best.pt
+│       │   ├── [3.4K]  history.json
+│       │   ├── [ 53K]  loss_curve.png
+│       │   ├── [5.4K]  metrics.json
+│       │   └── [4.0K]  tensorboard
+│       ├── [226M]  v3_cej
+│       │   ├── [226M]  best.pt
+│       │   ├── [3.2K]  history.json
+│       │   ├── [ 54K]  loss_curve.png
+│       │   ├── [5.2K]  metrics.json
+│       │   └── [4.0K]  tensorboard
+│       ├── [226M]  v3_intersection
+│       │   ├── [226M]  best.pt
+│       │   ├── [3.3K]  history.json
+│       │   ├── [ 54K]  loss_curve.png
+│       │   ├── [5.3K]  metrics.json
+│       │   └── [4.0K]  tensorboard
+│       ├── [226M]  v4_apex
+│       │   ├── [226M]  best.pt
+│       │   ├── [3.4K]  history.json
+│       │   ├── [ 52K]  loss_curve.png
+│       │   ├── [5.4K]  metrics.json
+│       │   └── [4.0K]  tensorboard
+│       ├── [226M]  v4_cej
+│       │   ├── [226M]  best.pt
+│       │   ├── [3.3K]  history.json
+│       │   ├── [ 53K]  loss_curve.png
+│       │   ├── [5.3K]  metrics.json
+│       │   └── [4.0K]  tensorboard
+│       ├── [226M]  v4_intersection
+│       │   ├── [226M]  best.pt
+│       │   ├── [3.3K]  history.json
+│       │   ├── [ 53K]  loss_curve.png
+│       │   ├── [5.3K]  metrics.json
+│       │   └── [4.0K]  tensorboard
+│       ├── [226M]  v5_intersection
+│       │   ├── [226M]  best.pt
+│       │   ├── [3.3K]  history.json
+│       │   ├── [ 50K]  loss_curve.png
+│       │   ├── [5.3K]  metrics.json
+│       │   └── [4.0K]  tensorboard
+│       ├── [226M]  v6_apex
+│       │   ├── [226M]  best.pt
+│       │   ├── [3.3K]  history.json
+│       │   ├── [ 53K]  loss_curve.png
+│       │   ├── [5.3K]  metrics.json
+│       │   └── [4.0K]  tensorboard
+│       ├── [226M]  v6_cej
+│       │   ├── [226M]  best.pt
+│       │   ├── [3.3K]  history.json
+│       │   ├── [ 53K]  loss_curve.png
+│       │   ├── [5.3K]  metrics.json
+│       │   └── [4.0K]  tensorboard
+│       ├── [226M]  v6_intersection
+│       │   ├── [226M]  best.pt
+│       │   ├── [3.4K]  history.json
+│       │   ├── [ 53K]  loss_curve.png
+│       │   ├── [5.4K]  metrics.json
+│       │   └── [4.0K]  tensorboard
+│       ├── [226M]  v7_apex
+│       │   ├── [226M]  best.pt
+│       │   ├── [3.3K]  history.json
+│       │   ├── [ 51K]  loss_curve.png
+│       │   ├── [5.3K]  metrics.json
+│       │   └── [4.0K]  tensorboard
+│       ├── [226M]  v7_cej
+│       │   ├── [226M]  best.pt
+│       │   ├── [3.3K]  history.json
+│       │   ├── [ 53K]  loss_curve.png
+│       │   ├── [5.3K]  metrics.json
+│       │   └── [4.0K]  tensorboard
+│       └── [226M]  v7_intersection
+│           ├── [226M]  best.pt
+│           ├── [3.4K]  history.json
+│           ├── [ 52K]  loss_curve.png
+│           ├── [5.4K]  metrics.json
+│           └── [4.0K]  tensorboard
+├── [357K]  scripts
+│   ├── [8.5K]  analyze_agreement.py
+│   ├── [5.8K]  analyze_apex_merge_radius.py
+│   ├── [ 11K]  analyze_grace_radius_sweep.py
+│   ├── [ 11K]  analyze_point_assignment_full.py
+│   ├── [2.9K]  benchmark_yolo_speed.py
+│   ├── [ 249]  _bootstrap.py
+│   ├── [ 477]  build_paper_pdf.sh
+│   ├── [2.7K]  collect_training_results.py
+│   ├── [9.1K]  compare_axis_severity_icc.py
+│   ├── [8.1K]  compare_intersection_plane.py
+│   ├── [ 10K]  compare_preprocessing.py
+│   ├── [8.1K]  compare_slot_axis_icc.py
+│   ├── [4.1K]  compute_label_severity_icc.py
+│   ├── [9.2K]  debug_intersection_cases.py
+│   ├── [1.7K]  debug_keypoint_eval_probe.py
+│   ├── [6.0K]  diagnose_severity_icc.py
+│   ├── [ 12K]  draw_region_growing_diagram.py
+│   ├── [7.2K]  dump_severity_pairs.py
+│   ├── [3.3K]  find_keypoint_anomalies.py
+│   ├── [ 327]  git_unstage_weights.sh
+│   ├── [3.3K]  icc_gt_as_pred_ceiling.py
+│   ├── [2.1K]  icc_gt_sanity.py
+│   ├── [1.0K]  launch_tensorboard.py
+│   ├── [10.0K]  noise_sensitivity_severity.py
+│   ├── [9.7K]  oracle_slot_eda.py
+│   ├── [1.4K]  plot_training.py
+│   ├── [1009]  push_research_figures.sh
+│   ├── [ 922]  push_to_github.ps1
+│   ├── [2.7K]  rebuild_preprocess_v3_v4.sh
+│   ├── [ 663]  register_v1_results.sh
+│   ├── [ 676]  run_diagnose_severity_icc_friend.sh
+│   ├── [3.1K]  run_experiment_v2.sh
+│   ├── [1.6K]  run_experiment_v3.ps1
+│   ├── [2.7K]  run_experiment_v3.sh
+│   ├── [2.5K]  run_experiment_v4.sh
+│   ├── [2.5K]  run_experiment_v5.sh
+│   ├── [1.3K]  run_icc_all_splits.sh
+│   ├── [ 316]  run_icc_friend_full.sh
+│   ├── [7.5K]  run_icc_friend_pipeline.py
+│   ├── [ 611]  run_icc_optimize_friend.sh
+│   ├── [9.5K]  run_icc_parameter_sweep.py
+│   ├── [ 916]  run_improvement_friend.sh
+│   ├── [1.3K]  run_oracle_eda_and_steps_friend.sh
+│   ├── [1.0K]  run_paper_figures_friend.sh
+│   ├── [2.1K]  run_paper_finalize_friend.sh
+│   ├── [1.3K]  run_paper_resume_axis_friend.sh
+│   ├── [1.4K]  run_parameter_analysis_friend.sh
+│   ├── [1.6K]  run_point_inclusion_friend.sh
+│   ├── [6.9K]  run_severity_icc.py
+│   ├── [ 796]  run_severity_viz_friend.sh
+│   ├── [1.4K]  run_slot_axis_compare_friend.sh
+│   ├── [ 15K]  run_thesis_evidence_friend.sh
+│   ├── [2.5K]  run_train_v7_from_sweep_friend.sh
+│   ├── [2.5K]  run_v5_intersection.sh
+│   ├── [2.8K]  run_v6_experiment.sh
+│   ├── [1.8K]  run_visualize_severity_steps.sh
+│   ├── [3.9K]  sweep_icc_combine.py
+│   ├── [1009]  sync_friend_repo.sh
+│   ├── [6.8K]  test_keypoint_detection.py
+│   ├── [9.0K]  test_yolo_detection.py
+│   ├── [2.2K]  train_detection.py
+│   ├── [1.6K]  train_keypoints.py
+│   ├── [1.4K]  validate_preprocessed.py
+│   ├── [ 18K]  visualize_axis_severity_paper.py
+│   ├── [3.3K]  visualize_cej_issues.py
+│   ├── [ 11K]  visualize_intersection_logic.py
+│   ├── [3.4K]  visualize_intersections_all_versions.py
+│   ├── [   1]  visualize_intersections.py
+│   ├── [4.1K]  visualize_overloaded_teeth.py
+│   ├── [ 24K]  visualize_severity_pipeline_steps.py
+│   ├── [7.3K]  visualize_slot_axis_methods.py
+│   ├── [9.2K]  visualize_slot_axis_steps.py
+│   ├── [ 11K]  visualize_v3_v4_grace.py
+│   └── [5.4K]  visualize_yolo_labels.py
+├── [157K]  src
+│   ├── [2.2K]  denpar_paths.py
+│   ├── [ 16K]  experiment
+│   │   ├── [  34]  __init__.py
+│   │   └── [ 12K]  registry.py
+│   ├── [   0]  __init__.py
+│   ├── [ 37K]  keypoint
+│   │   ├── [3.0K]  dataset.py
+│   │   ├── [ 817]  debug_log.py
+│   │   ├── [5.8K]  inference_utils.py
+│   │   ├── [   0]  __init__.py
+│   │   ├── [ 467]  model.py
+│   │   ├── [8.4K]  training_viz.py
+│   │   ├── [ 11K]  train.py
+│   │   └── [4.2K]  train_utils.py
+│   ├── [ 35K]  preprocess
+│   │   ├── [   0]  __init__.py
+│   │   └── [ 31K]  prepare_dataset.py
+│   └── [ 63K]  severity
+│       ├── [8.1K]  axis_severity.py
+│       ├── [2.2K]  bone_loss.py
+│       ├── [3.0K]  gt_labels.py
+│       ├── [2.9K]  hungarian_assign.py
+│       ├── [1.2K]  icc_pairs.py
+│       ├── [ 799]  icc.py
+│       ├── [9.6K]  inference_pipeline.py
+│       ├── [   0]  __init__.py
+│       ├── [8.1K]  paper_combine.py
+│       ├── [5.6K]  pred_combine.py
+│       ├── [2.8K]  side_details.py
+│       └── [ 15K]  slot_matching.py
+├── [ 52K]  train_v3_v4.log
+├── [5.3M]  yolo26n.pt
+└── [131M]  yolov8x.pt
+
+ 4.5G used in 160 directories, 428 files
+267M	runs/detect
+4.5G	runs/keypoints
+221M	data/DenPAR
+135M	data/DenPAR_Radiographs_Dataset.zip
+495M	data/processed
+495M	data/processed_v2
+495M	data/processed_v3
+495M	data/processed_v4
+495M	data/processed_v5
+495M	data/processed_v6
+495M	data/processed_v7
