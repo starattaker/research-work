@@ -235,7 +235,7 @@ What we report instead, all of which genuinely bear on stability:
    formula's intrinsic reproducibility from error contributed by the learned components.
 3. A **126-configuration sensitivity analysis** (test-ICC SD 0.062).
 4. A **controlled noise-injection study** (below) that measures degradation as a function of
-   injected localisation error.
+   injected localisation error — 200 images x 10 noise levels x 10 realisations.
 
 > This is a strong answer. It converts "promised and not delivered" into "considered, found
 > inapplicable, replaced with four things that are better." Deliver it in that order.
@@ -255,24 +255,56 @@ known σ, and measure how far each formula drifts from its **own** clean value. 
 same masks, same pairing. The only variable is injected localisation error.
 
 <!-- NOISE_TABLE_START -->
-*(Full-study numbers are inserted here by `scripts/noise_sensitivity_severity.py`; see
-`research_log/noise_sensitivity_v5.json`. Prototype run, v5 test split:)*
+**Full study: v5 test split, 200 images, 10 noise realisations per σ.**
+ICC(2,1) of noisy severity against each formula's own clean (σ=0) value.
+Source: `research_log/noise_sensitivity_v5.json`, figure
+`research_log/figures/noise_sensitivity_v5.png`.
 
-| σ (px) | 0 | 4 | 8 | 12 | 16 |
-|---|---|---|---|---|---|
-| Reference Eq.1 | 1.000 | 0.982 | 0.983 | 0.925 | **0.873** |
-| Mask PCA | 1.000 | 0.997 | 0.990 | 0.976 | **0.962** |
-| CEJ→INT midpoint | 1.000 | 0.992 | 0.978 | 0.958 | 0.888 |
-| Crown-width (no apex) | 1.000 | 0.997 | 0.987 | 0.981 | 0.955 |
+| σ (px) | Reference Eq.1 | **Mask PCA** | CEJ→INT midpoint | Crown-width (no apex) |
+|---|---|---|---|---|
+| 0 | 1.000 | **1.000** | 1.000 | 1.000 |
+| 1 | 0.998 | **1.000** | 0.999 | 0.997 |
+| 2 | 0.996 | **0.999** | 0.998 | 0.993 |
+| 3 | 0.996 | **0.998** | 0.995 | 0.985 |
+| 4 | 0.992 | **0.997** | 0.989 | 0.980 |
+| 6 | 0.976 | **0.994** | 0.982 | 0.940 |
+| 8 | 0.965 | **0.989** | 0.970 | 0.925 |
+| 12 | 0.944 | **0.976** | 0.939 | 0.896 |
+| 16 | 0.897 | **0.958** | 0.909 | 0.887 |
+| 24 | 0.851 | **0.914** | 0.825 | 0.784 |
 <!-- NOISE_TABLE_END -->
 
-**The predicted ordering holds and the gap widens monotonically with σ** — which is what the
-mechanism predicts and what coincidence would not produce. Script:
-`scripts/noise_sensitivity_severity.py`. Needs no GPU.
+**Mask-PCA is the most robust definition at every non-zero noise level**, and the margin over
+the reference formula widens monotonically — 0.005 at σ=4, 0.024 at σ=8, 0.061 at σ=16, 0.063
+at σ=24. That is exactly the signature the axis-rotation mechanism predicts, and it is not
+something a coincidence of one checkpoint would produce.
 
-> **Caveat to volunteer:** in the MAE panel of that figure the crown-width index shows the
-> *largest* drift, purely because it normalises by a smaller denominator. ICC is scale-free
-> and is the fair comparison across methods. Say this before someone catches it.
+### The crown-width index degrades fastest — and why that is interesting, not embarrassing
+
+The genuinely apex-free crown-width index is the **least** noise-robust of the four (0.784 at
+σ=24). Report this; it is a real finding with a clean explanation:
+
+1. **Noise enters twice.** Its denominator is the distance between the two CEJ points — both of
+   which are themselves noisy. The reference formulas have a denominator anchored partly on the
+   apex, which is a *different* landmark from the numerator's endpoints, so errors partially
+   decorrelate. Here the same noisy CEJ points drive numerator *and* denominator.
+2. **The denominator is small.** Crown width is roughly 100–250px; root length is roughly
+   400–500px. The same absolute perturbation is a much larger *relative* perturbation.
+
+**The honest conclusion to state:** removing the apex is not free. It buys independence from an
+unreliable landmark but pays for it with a smaller, noisier normaliser. The mask-PCA axis is
+the better engineering trade — it removes the apex from the *axis* (where it does the most
+damage, by rotating the measurement direction) while keeping root length as a large, stable
+denominator.
+
+> **This is a strong thing to have found.** It shows you tested your own new idea honestly
+> rather than only reporting what flattered it. If asked "did anything you tried not work?",
+> this is your answer.
+
+> **Caveat on the MAE panel of the figure:** crown-width shows the largest absolute drift there
+> partly for the scale reason above (smaller denominator ⇒ larger percentage for the same
+> displacement). ICC is scale-free and is the fair cross-method comparison. Say this before
+> someone catches it.
 
 ### Q: Why chi-square for the preprocessing comparison?
 
@@ -679,6 +711,7 @@ detection/NMS. Both runs are in the repository.
 | Date | Change |
 |---|---|
 | 2026-09-13 | Created. Covers cross-validation, ICC, Bland–Altman, bootstrap, CV-withdrawal, Hungarian, combine modes, pairing protocols, apex merge, OKS-vs-AP, noise-injection mechanism study, and known limits. |
+| 2026-09-13 | Full noise study (v5 test, 200 images, 10 trials/σ) replaces the 60-image prototype table. **Corrects an earlier reading:** at full scale the crown-width apex-free index is the LEAST noise-robust of the four, not the second-most. Added the explanation (noise enters both numerator and denominator; small denominator) and the resulting conclusion that mask-PCA is the better trade. |
 
 ### How to extend this document
 
