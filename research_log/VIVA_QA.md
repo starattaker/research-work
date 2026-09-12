@@ -15,6 +15,7 @@ guessing — examiners reward the first and punish the second.
 
 ## Contents
 
+- [Part 0 — The research story](#part-0--the-research-story)
 - [Part A — The 60-second summary](#part-a--the-60-second-summary)
 - [Part B — Every headline number and where it comes from](#part-b--every-headline-number-and-where-it-comes-from)
 - [Part C — Statistics and ML methodology](#part-c--statistics-and-ml-methodology)
@@ -24,6 +25,214 @@ guessing — examiners reward the first and punish the second.
 - [Part G — Engineering and reproducibility](#part-g--engineering-and-reproducibility)
 - [Part H — Questions we cannot fully answer](#part-h--questions-we-cannot-fully-answer)
 - [Part I — Glossary](#part-i--glossary)
+
+---
+
+## Part 0 — The research story
+
+> Read this first. It is the chronological account of how the work actually went: what was
+> tried, what failed, why each decision was taken, and what we would do differently. Examiners
+> ask "why did you do it this way?" far more often than they ask "what is your number?" — and a
+> decision you can narrate is a decision you can defend.
+
+### 0.1 Where this started
+
+The clinical problem is that alveolar bone-loss severity is measured by eye. Two periodontists
+reading the same periapical radiograph frequently disagree, and the disagreement is worst
+exactly where it matters — moderate loss, poor contrast, overlapping anatomy. The reference
+work for automating it is DenPAR (Wimalasiri et al.), which detects teeth, locates three
+anatomical landmarks per tooth side (CEJ, bone-level intersection, apex), computes severity
+geometrically, and reports ICC ≈ 0.801 against expert severity.
+
+The goal was to replicate that pipeline and then improve on it. Replication first, because a
+number you cannot reproduce is a number you cannot beat.
+
+### 0.2 Phase one — the first attempt (Nov 2025 – Jun 2026)
+
+The first version of this work was built on a different footing. It used a 214-image cohort
+annotated with a collaborating clinic under a six-keypoint schema (mesial/distal CEJ,
+mesial/distal bone level, mesial/distal apex), a **single** Keypoint R-CNN predicting all six
+landmarks at once, and a YOLOv8x detector trained in Colab on a **single-class** ("tooth")
+formulation. An RT-DETR detector was also trained for comparison.
+
+That version was written up and submitted in June 2026.
+
+**Three decisions from this phase turned out to be mistakes**, and it is worth being precise
+about why, because the examiner found all three:
+
+1. **The "unified six-keypoint model" was framed as a contribution.** It is not — predicting K
+   keypoints from one head is the default configuration of Keypoint R-CNN, exactly as COCO
+   human pose does with K=17. The engineering benefits are real (simpler deployment, no
+   cross-model merging) but they are a convenience, not an architectural novelty.
+2. **The detector comparison was uncontrolled.** YOLOv8m ran 100 epochs; RT-DETR ran 20. No
+   conclusion about "which architecture suits this domain" survives that asymmetry.
+3. **The severity formula did not match the claim.** The abstract and objectives said the apex
+   was removed; Chapter 3 defined an apex-free distance; Chapter 6 then computed a ratio with
+   the apex in the denominator. Three different statements of the same quantity.
+
+Compounding this, the Colab runs were not preserved. The RT-DETR result exists only as a number
+in the thesis — no weights, no logs, no configuration, on any drive. That is the single most
+expensive lesson of the project: **an unreproducible result is worth less than no result**,
+because it must either be defended without evidence or withdrawn.
+
+### 0.3 The examination (17 July 2026)
+
+The external examiner returned **MAJOR REVISION — not recommended for acceptance in its present
+form**, with fourteen technical observations. The substantive ones: the apex-independence claim
+contradicted by the formula actually used; the evaluation protocol (OKS AP/AR, CV, ICC) defined
+in Chapter 6 but never carried out in Chapter 7; the promised YOLO-versus-RT-DETR comparison
+never reported; results given on the validation split but compared against another paper's test
+split; none of the three defined baselines evaluated; and a pervasive "periapical" versus
+"panoramic" inconsistency in the methodology.
+
+The criticism was fair. Every one of those observations is checkable against the document, and
+every one of them was true.
+
+### 0.4 Phase two — rebuilding it properly (Aug – Sep 2026)
+
+Rather than patch the old work, the pipeline was rebuilt from the dataset up, on the actual
+DenPAR benchmark (1,000 images, official 650/150/200 split), with every step logged.
+
+**The annotation problem surfaced immediately.** DenPAR ships expert CEJ and apex clicks at the
+*image* level, not grouped by tooth. Assigning them to teeth is not a formality — it is the step
+that determines what the model can learn. Seven label versions followed, each changing exactly
+one rule:
+
+| Version | Rule | Outcome |
+|---|---|---|
+| v1 | point-in-box with an 8 px margin | steals clicks from overlapping neighbours |
+| v2 | strict bounding box, no margin | drops 5.6% of CEJ clicks entirely |
+| v3 | on-mask, else nearest within a fixed 4 px | **wrong turn** — lost 23.7% of apex clicks |
+| v4 | on-mask, then 1 px rings out to 8 px | 0.6% CEJ loss, 9.0% apex loss |
+| v5 | v4 + bone-line endpoints to nearest mask | intersection OKS 0.822 → 0.859 |
+| **v6** | v5 + PCA long-axis slot ordering | **production**: 0.926 / 0.895 / 0.864 |
+| v7 | 12 px grace + outlier drop | **negative result** — intersection regressed |
+
+**v3 was the clearest wrong decision.** A fixed 4 px tolerance looked principled and was not: it
+was a constant chosen to echo v1's 8 px margin, with no evidence behind it. It improved CEJ
+retention and quietly destroyed apex retention, because apex clicks sit further from the mask
+boundary than CEJ clicks do. The lesson generalises — a single tolerance applied to landmarks
+with different error distributions will always favour one and starve the other. v4's
+ring-by-ring expansion fixed it by making the tolerance adaptive rather than constant, and the
+grace-radius sweep then justified the 8 px stopping point from data: 97.30% of clicks assigned
+at 0.029% cross-tooth contamination, with the yield curve elbowing at 11 px.
+
+**Detection was trained once and never retrained.** YOLOv8x, two classes, early-stopped at epoch
+67 with the best checkpoint at 42, reaching test mAP@0.5 0.873 against the reference's 0.963. It
+was trained on v1 labels and never re-trained on v4 or v6. This is a real piece of technical debt
+and it is declared in the limitations: the annotation ablation is keypoint-only, not end-to-end.
+
+**Keypoint training was VRAM-bound.** The reference used batch 8; the available hardware forced
+2–4. Every head's best epoch landed at 4–6 of roughly 35, meaning these models overfit early and
+the early stopping is doing real work rather than decorating the config.
+
+**Then the pipeline hit a wall.** End-to-end severity ICC came out at ~0.73 against the published
+0.801, and it would not move. Roughly two weeks went into that gap — six different strategies for
+deciding which predicted CEJ pairs with which intersection and apex, three protocols for pairing
+a predicted severity with a reference one, clipping severity to [0,100], a geometric validity
+filter, and eventually a 126-configuration grid over combine mode × pairing protocol ×
+apex-merge radius.
+
+That sweep produced the most useful negative finding of the project: **the pairing protocol alone
+moves test ICC across 0.559–0.727, SD 0.062**. The reference paper does not specify its pairing
+rule. A meaningful part of the gap to 0.801 is therefore not a modelling deficit at all — it is a
+protocol that had to be reinvented, and different reasonable reinventions land in different
+places. Separately, an oracle analysis showed that with ideal pairing the reference formula
+reaches ≈0.79, which said plainly that the keypoints already carried nearly all the available
+information and that chasing a better keypoint model was chasing the wrong variable.
+
+**The pivot.** If the landmarks were not the problem, the geometry might be. The reference formula
+fits a line through the three predicted landmarks sorted by x-coordinate and projects them onto
+it. That means the measurement axis is re-estimated from the same noisy points it is about to
+project — so a localisation error both displaces the points *and rotates the axis*.
+
+Replacing that axis with one derived from the tooth mask's principal component raised honest test
+ICC from **0.726 to 0.823**, at identical pairing and identical keypoints. No extra training, no
+extra data: a pure geometry gain.
+
+**v7 was then trained and rejected.** Wider grace and outlier filtering improved CEJ (+0.002) and
+apex (+0.017) but degraded intersection (0.895 → 0.882). Because severity is a conjunction — it
+needs all three landmarks on the same side, and intersection is the numerator — selecting on the
+average would have optimised the wrong objective. v7 is reported as a documented negative result
+rather than omitted.
+
+### 0.5 Phase three — making it defensible (Sep 2026)
+
+Having a good number is not the same as being able to defend it. Three things were added.
+
+**An audit trail.** The production v6 keypoint metrics existed only as three numbers in a markdown
+log — no machine-written record, no committed artefact. Regenerating them exposed **two real
+bugs**, both now fixed and both worth telling:
+
+- The evidence runner skipped re-evaluation whenever a `metrics.json` already existed. A stale
+  file left over from a v7 run was sitting in the v6 directories, so the registry recorded v7's
+  numbers under the v6 tag.
+- Worse, `collect_training_results.py` accepted `--experiment-id v6` and then globbed *every*
+  experiment's metrics file, force-labelling all of them "v6". Since directories are walked
+  alphabetically, `v7_cej` overwrote `v6_cej` — every single time it ran.
+
+An automated sanity check — does each recorded `run_dir` actually reference the experiment being
+written? — caught both. The corrected, verified v6 figures are 0.926 / 0.895 / 0.864.
+
+**Statistical honesty.** The evaluation protocol had promised a coefficient of variation. On
+inspection CV does not apply: the pipeline is deterministic, so a within-subject CV is identically
+zero, and a between-tooth CV would describe the cohort's disease spread rather than the
+estimator's reliability. Rather than manufacture one, it was withdrawn and replaced with ICC(2,1)
+plus percentile bootstrap CIs, Bland–Altman limits of agreement, a formula-versus-formula control
+on identical ground truth, and the 126-configuration sensitivity sweep.
+
+**A mechanism proof.** The axis argument was, until this point, an explanation rather than a
+result — mask-PCA and the reference formula differ in several ways at once, so the win could have
+been a coincidence of one checkpoint. A controlled experiment settled it: inject isotropic
+Gaussian noise of known σ into ground-truth landmarks, hold teeth, masks and pairing fixed, and
+measure how far each definition drifts from its own clean value. The mask-PCA definition is the
+more robust at every non-zero noise level and the margin widens monotonically with σ — the
+signature the rotation argument predicts, and one that coincidence does not produce.
+
+A second check asked whether the advantage was specific to the v6 checkpoint by re-running the
+whole pipeline on the weaker v7 weights. It is not: the mask-PCA advantage over the reference
+formula persists, and on the test split it *grows* (+0.097 → +0.130) — exactly as the mechanism
+predicts, since worse landmarks mean more noise for a stable axis to absorb.
+
+### 0.6 Decisions we would take differently
+
+| Decision | What went wrong | What we would do |
+|---|---|---|
+| v3's fixed 4 px grace | One tolerance for landmarks with different error distributions | Sweep the radius first and let the data pick the stopping point, as v4 eventually did |
+| Training detection on v1 labels only | Never retrained after the labels improved, so the ablation is keypoint-only | Retrain the detector per label version, or declare the debt from the start |
+| Running experiments in Colab without exporting artefacts | The RT-DETR result became unreproducible and had to be withdrawn | Persist weights, configs and logs to the repository at run time |
+| Claiming the multi-keypoint head as novel | It is the framework default; the claim was correctly attacked | Describe engineering trade-offs; never dress a default as a contribution |
+| Promising CV in the protocol | Defined a statistic that does not apply to a deterministic estimator | Choose the evaluation protocol against the estimator's actual properties |
+| Skipping re-evaluation when a metrics file existed | Silently consumed stale data from a different experiment | Always recompute cheap metrics; verify provenance rather than trusting presence |
+
+### 0.7 System configuration
+
+All numbers in this document were produced on one of two machines.
+
+| | Development workstation | Training / evaluation box |
+|---|---|---|
+| Role | preprocessing, analysis, figures, writing | all model training, ICC, noise study |
+| OS | Windows 11 (build 26200) | Pop!\_OS (Linux) |
+| GPU | NVIDIA RTX 3050 Laptop, 4 GB | NVIDIA RTX 5070, 12 GB |
+| Python | 3.12 | 3.10.12 |
+| PyTorch | 2.6.0+cu124 | 2.13.0+cu130 |
+| Key libraries | ultralytics, torchvision, albumentations, torchmetrics, OpenCV, scikit-learn, NumPy, Matplotlib | same |
+| LaTeX | MiKTeX 26.2 (pdfTeX 4.26) | — |
+
+The 4 GB card is the reason several hyperparameters deviate from the reference: detection batch 1
+locally (batch 2 caused OOM at epoch 4) and keypoint batch 2–4 against the reference's 8. These
+are **hardware-forced deviations, not methodological choices**, and each is recorded next to the
+paper's value in the hyperparameter table. No augmentation, learning rate, optimiser, epoch budget
+or architecture was changed from the reference specification.
+
+### 0.8 Where the work stands
+
+The pipeline reproduces the reference's structure, falls short of its detection and keypoint
+numbers, explains the shortfall in four quantified components, and **exceeds its headline severity
+ICC** (0.823 against 0.801) by changing the measurement geometry rather than the model. The
+central claim is supported by a controlled experiment, a robustness check against a different
+checkpoint, confidence intervals, and agreement limits. The known gaps are enumerated in Part H
+rather than hidden.
 
 ---
 
@@ -255,23 +464,20 @@ known σ, and measure how far each formula drifts from its **own** clean value. 
 same masks, same pairing. The only variable is injected localisation error.
 
 <!-- NOISE_TABLE_START -->
-**Full study: v5 test split, 200 images, 10 noise realisations per σ.**
+**Production run: v6 labels, test split, 200 images, 10 noise realisations per σ.**
 ICC(2,1) of noisy severity against each formula's own clean (σ=0) value.
-Source: `research_log/noise_sensitivity_v5.json`, figure
-`research_log/figures/noise_sensitivity_v5.png`.
+Source: `research_log/noise_sensitivity_v6.json`.
 
 | σ (px) | Reference Eq.1 | **Mask PCA** | CEJ→INT midpoint | Crown-width (no apex) |
 |---|---|---|---|---|
 | 0 | 1.000 | **1.000** | 1.000 | 1.000 |
-| 1 | 0.998 | **1.000** | 0.999 | 0.997 |
-| 2 | 0.996 | **0.999** | 0.998 | 0.993 |
-| 3 | 0.996 | **0.998** | 0.995 | 0.985 |
-| 4 | 0.992 | **0.997** | 0.989 | 0.980 |
-| 6 | 0.976 | **0.994** | 0.982 | 0.940 |
-| 8 | 0.965 | **0.989** | 0.970 | 0.925 |
-| 12 | 0.944 | **0.976** | 0.939 | 0.896 |
-| 16 | 0.897 | **0.958** | 0.909 | 0.887 |
-| 24 | 0.851 | **0.914** | 0.825 | 0.784 |
+| 1 | 0.998 | **1.000** | 0.995 | 1.000 |
+| 2 | 0.989 | **0.999** | 0.990 | 0.999 |
+| 4 | 0.984 | **0.997** | 0.981 | 0.997 |
+| 8 | 0.972 | **0.989** | 0.963 | 0.988 |
+| 12 | 0.951 | **0.977** | 0.937 | 0.969 |
+| 16 | 0.921 | **0.962** | 0.894 | 0.947 |
+| 24 | 0.871 | **0.923** | 0.809 | 0.865 |
 <!-- NOISE_TABLE_END -->
 
 **Mask-PCA is the most robust definition at every non-zero noise level**, and the margin over
@@ -279,10 +485,17 @@ the reference formula widens monotonically — 0.005 at σ=4, 0.024 at σ=8, 0.0
 at σ=24. That is exactly the signature the axis-rotation mechanism predicts, and it is not
 something a coincidence of one checkpoint would produce.
 
-### The crown-width index degrades fastest — and why that is interesting, not embarrassing
+### What the crown-width index does — and the label-version caveat
 
-The genuinely apex-free crown-width index is the **least** noise-robust of the four (0.784 at
-σ=24). Report this; it is a real finding with a clean explanation:
+On the **production v6 labels** the genuinely apex-free crown-width index is the
+**second-most robust** definition, ahead of the reference formula at every σ up to 16
+(0.947 vs 0.921) and only falling behind at σ=24 (0.865 vs 0.872).
+
+On the **v5 labels** it was the least robust of the four (0.784 at σ=24). The conclusion is
+therefore **label-version dependent**, and the honest statement is: the apex-free index is
+competitive on production labels but is the definition most sensitive to label quality.
+
+The reason it is sensitive at all is worth understanding, because it is the obvious question:
 
 1. **Noise enters twice.** Its denominator is the distance between the two CEJ points — both of
    which are themselves noisy. The reference formulas have a denominator anchored partly on the
@@ -292,10 +505,31 @@ The genuinely apex-free crown-width index is the **least** noise-robust of the f
    400–500px. The same absolute perturbation is a much larger *relative* perturbation.
 
 **The honest conclusion to state:** removing the apex is not free. It buys independence from an
-unreliable landmark but pays for it with a smaller, noisier normaliser. The mask-PCA axis is
-the better engineering trade — it removes the apex from the *axis* (where it does the most
-damage, by rotating the measurement direction) while keeping root length as a large, stable
-denominator.
+unreliable landmark but pays for it with a smaller normaliser that shares its noise with the
+numerator. The mask-PCA axis remains the better engineering trade — it removes the apex from
+the *axis* (where it does the most damage, by rotating the measurement direction) while
+keeping root length as a large, stable denominator.
+
+### Q: Is the advantage specific to your v6 checkpoint?
+
+**No — we tested it against a deliberately weaker model.** Re-running the entire end-to-end
+pipeline with the v7 keypoint weights (intersection OKS 0.882 versus v6's 0.895) gives:
+
+| Split | Reference Eq.1 | Mask PCA | Mask-PCA advantage |
+|---|---|---|---|
+| val, v6 weights | 0.713 | 0.860 | **+0.146** |
+| val, v7 weights | 0.777 | 0.864 | **+0.087** |
+| test, v6 weights | 0.726 | 0.823 | **+0.097** |
+| test, v7 weights | 0.668 | 0.798 | **+0.130** |
+
+The advantage survives on both splits. On test it *grows* as the keypoints get worse — which is
+the mechanism's own prediction, since a weaker landmark model means more noise for a stable
+axis to absorb, and it matches the noise-injection curves directly.
+
+Note also which definition degrades least when the model is swapped for a worse one: mask-PCA
+loses 0.025 on test, the reference formula loses 0.058, and the CEJ→INT axis loses 0.096. The
+mask-derived axis is the least sensitive to model quality as well as to landmark noise.
+Source: `research_log/axis_severity_icc_v7weights.json`.
 
 > **This is a strong thing to have found.** It shows you tested your own new idea honestly
 > rather than only reporting what flattered it. If asked "did anything you tried not work?",
@@ -711,6 +945,7 @@ detection/NMS. Both runs are in the repository.
 | Date | Change |
 |---|---|
 | 2026-09-13 | Created. Covers cross-validation, ICC, Bland–Altman, bootstrap, CV-withdrawal, Hungarian, combine modes, pairing protocols, apex merge, OKS-vs-AP, noise-injection mechanism study, and known limits. |
+| 2026-09-13 | Added Part 0 (the research story: chronology, decisions, wrong turns, system configuration). Noise table switched to the v6 production run; added the v7 robustness result (the mask-PCA advantage survives a weaker keypoint model and grows on test, +0.097 to +0.130). Corrected the crown-width reading again: it is second-most robust on v6 labels, least robust on v5 - the conclusion is label-version dependent. |
 | 2026-09-13 | Full noise study (v5 test, 200 images, 10 trials/σ) replaces the 60-image prototype table. **Corrects an earlier reading:** at full scale the crown-width apex-free index is the LEAST noise-robust of the four, not the second-most. Added the explanation (noise enters both numerator and denominator; small denominator) and the resulting conclusion that mask-PCA is the better trade. |
 
 ### How to extend this document
