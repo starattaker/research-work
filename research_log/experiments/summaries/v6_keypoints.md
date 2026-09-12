@@ -6,4 +6,4 @@ Updated: 2026-09-12 18:44 UTC
 |-------|---------:|------:|-----------:|---------|
 | cej | 0.921 | 0.954 | 5 | `runs/keypoints/v4_cej` |
 | intersection | 0.859 | 0.912 | 5 | `runs/keypoints/v5_intersection` |
-| apex | 0.853 | 0.815 | 6 | `runs/keypoints/v4_apex` |
+| apex | 0.867 | 0.815 | 5 | `runs/keypoints/v6_apex` |
