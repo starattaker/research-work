@@ -1,0 +1,93 @@
+
+==============================================================
+ENVIRONMENT
+==============================================================
+repo:    /home/sr23/faraz/Test_work/research-work
+branch:  denpar-severity-replication
+data:    data/processed_v6
+device:  cuda
+log:     research_log/run_logs/thesis_evidence_20260912T194029Z.log
+venv:    activated
+python:  Python 3.10.12
+torch:   2.13.0+cu130  cuda_available=True
+gpu:     NVIDIA GeForce RTX 5070
+
+==============================================================
+STAGE 0 - sync with GitHub
+==============================================================
+From https://github.com/starattaker/research-work
+ * branch            denpar-severity-replication -> FETCH_HEAD
+From https://github.com/starattaker/research-work
+ * branch            denpar-severity-replication -> FETCH_HEAD
+Already up to date.
+at commit: 0668b40
+
+==============================================================
+PREFLIGHT - checking prerequisites
+==============================================================
+  OK      runs/keypoints/v6_cej/best.pt
+  OK      runs/keypoints/v6_intersection/best.pt
+  OK      runs/keypoints/v6_apex/best.pt
+  OK      data/processed_v6
+  OK      YOLO detection weights
+-- stage 1 (v6 keypoint metrics + registry) skipped by SKIP_STAGES
+-- stage 2 (dump per-tooth severity pairs) skipped by SKIP_STAGES
+-- stage 3 (ICC CIs + Bland-Altman) skipped by SKIP_STAGES
+-- stage 4 (regenerate axis-severity figures) skipped by SKIP_STAGES
+
+==============================================================
+STAGE 5 - noise-injection mechanism study
+==============================================================
+sigma=  0.0px   paper_eq1=1.000  mask_pca=1.000  cej_int_midpoint=1.000  cej_width_no_apex=1.000
+sigma=  1.0px   paper_eq1=0.998  mask_pca=1.000  cej_int_midpoint=0.995  cej_width_no_apex=1.000
+sigma=  2.0px   paper_eq1=0.989  mask_pca=0.999  cej_int_midpoint=0.990  cej_width_no_apex=0.999
+sigma=  3.0px   paper_eq1=0.988  mask_pca=0.998  cej_int_midpoint=0.987  cej_width_no_apex=0.998
+sigma=  4.0px   paper_eq1=0.984  mask_pca=0.997  cej_int_midpoint=0.981  cej_width_no_apex=0.997
+sigma=  6.0px   paper_eq1=0.979  mask_pca=0.994  cej_int_midpoint=0.971  cej_width_no_apex=0.993
+sigma=  8.0px   paper_eq1=0.972  mask_pca=0.989  cej_int_midpoint=0.963  cej_width_no_apex=0.988
+sigma= 12.0px   paper_eq1=0.951  mask_pca=0.977  cej_int_midpoint=0.937  cej_width_no_apex=0.969
+sigma= 16.0px   paper_eq1=0.921  mask_pca=0.962  cej_int_midpoint=0.894  cej_width_no_apex=0.947
+sigma= 24.0px   paper_eq1=0.871  mask_pca=0.923  cej_int_midpoint=0.809  cej_width_no_apex=0.865
+
+Wrote research_log/noise_sensitivity_v6.json
+Wrote research_log/figures/noise_sensitivity_v6.png
+[denpar-severity-replication be9f01a] Add noise-injection sensitivity study on v6 (mechanism isolation)
+ 2 files changed, 297 insertions(+)
+ create mode 100644 research_log/figures/noise_sensitivity_v6.png
+ create mode 100644 research_log/noise_sensitivity_v6.json
+To https://github.com/starattaker/research-work.git
+   0668b40..be9f01a  denpar-severity-replication -> denpar-severity-replication
+pushed: Add noise-injection sensitivity study on v6 (mechanism isolation)
+
+==============================================================
+STAGE 6 - v7 robustness check
+==============================================================
+============================================================
+AXIS-CONSTRAINED SEVERITY ICC
+============================================================
+
+[train] end-to-end (GT method = pred method, match_by_slot)
+  paper_eq1             ICC=0.8424  n=2009
+  mask_pca              ICC=0.9163  n=2095
+  cej_int_midpoint      ICC=0.8520  n=2003
+  GT consistency (paper vs PCA): {'icc': 0.8073562354315369, 'n_pairs': 2080, 'mae_pct': 3.116943104727876}
+
+[val] end-to-end (GT method = pred method, match_by_slot)
+  paper_eq1             ICC=0.7774  n=445
+  mask_pca              ICC=0.8640  n=476
+  cej_int_midpoint      ICC=0.7181  n=445
+  GT consistency (paper vs PCA): {'icc': 0.9310655092855933, 'n_pairs': 478, 'mae_pct': 1.606690761585428}
+
+[test] end-to-end (GT method = pred method, match_by_slot)
+  paper_eq1             ICC=0.6679  n=595
+  mask_pca              ICC=0.7975  n=635
+  cej_int_midpoint      ICC=0.6556  n=594
+  GT consistency (paper vs PCA): {'icc': 0.8384385025524365, 'n_pairs': 630, 'mae_pct': 2.4591125637979214}
+
+Wrote research_log/axis_severity_icc_v7weights.json
+[denpar-severity-replication c1cc21d] Add v7-weights axis ICC (robustness of the axis gain to keypoint model)
+ 1 file changed, 110 insertions(+)
+ create mode 100644 research_log/axis_severity_icc_v7weights.json
+To https://github.com/starattaker/research-work.git
+   be9f01a..c1cc21d  denpar-severity-replication -> denpar-severity-replication
+pushed: Add v7-weights axis ICC (robustness of the axis gain to keypoint model)
