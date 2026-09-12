@@ -27,12 +27,27 @@ def main():
     parser.add_argument("--no-push", action="store_true")
     args = parser.parse_args()
 
+    # When --experiment-id is given, scope the glob to that experiment's own
+    # directories only ("{exp}_*/metrics.json"). Globbing everything under
+    # runs-root and then force-labelling every match with the same id is a
+    # bug: it silently re-tags every OTHER experiment's metrics.json as this
+    # one too, and since sorted() walks alphabetically, whichever directory
+    # sorts last for a given keypoint (e.g. v7_cej after v6_cej) clobbers the
+    # correct entry in the registry's "latest" pointer. This exact bug
+    # corrupted the v6 registry entry with v7's numbers on 2026-09-12.
+    pattern = f"{args.experiment_id}_*/metrics.json" if args.experiment_id else "**/metrics.json"
     found = 0
-    for metrics in sorted(args.runs_root.glob("**/metrics.json")):
+    for metrics in sorted(args.runs_root.glob(pattern)):
         run_dir = metrics.parent
         if run_dir.name.startswith("_"):
             continue
         exp = args.experiment_id or infer_experiment_id(run_dir)
+        if args.experiment_id and infer_experiment_id(run_dir) != args.experiment_id:
+            print(
+                f"skip {run_dir}: directory name does not match --experiment-id {args.experiment_id}",
+                file=sys.stderr,
+            )
+            continue
         kpt = json.loads(metrics.read_text(encoding="utf-8")).get("keypoint_type")
         if not kpt:
             kpt = run_dir.name.split("_")[-1]
