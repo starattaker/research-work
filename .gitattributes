@@ -1,0 +1,23 @@
+# Shell scripts MUST keep LF endings: they are executed on the Linux GPU box.
+# A CRLF .sh file fails there with: $'\r': command not found
+*.sh text eol=lf
+
+# Python is run on both Windows and Linux; normalise to LF in the repo.
+*.py text eol=lf
+
+# Keep data/report files normalised too.
+*.json text eol=lf
+*.md   text eol=lf
+*.tex  text eol=lf
+*.yaml text eol=lf
+*.yml  text eol=lf
+*.csv  text eol=lf
+
+# Never touch binaries.
+*.pt    binary
+*.pth   binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.pdf   binary
