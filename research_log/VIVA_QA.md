@@ -290,6 +290,7 @@ Source: `research_log/05_detection_training.md`.
 
 | Version | CEJ | Intersection | Apex |
 |---|---|---|---|
+| v1 (8px bbox margin) | 0.820 | 0.816 | 0.830 |
 | v2 (strict bbox) | 0.843 | 0.815 | 0.781 |
 | v3 (mask + 4px) | 0.911 | 0.817 | 0.836 |
 | v4 (region grow) | 0.921 | 0.822 | 0.853 |
@@ -297,7 +298,13 @@ Source: `research_log/05_detection_training.md`.
 | v7 (wider grace) | 0.928 | 0.882 | 0.881 |
 | Reference (COCO AP) | 0.954 | 0.912 | 0.815 |
 
-Source: `research_log/experiments/registry.json` (v6 audited 2026-09-12, `run_dir` verified).
+Source: `research_log/experiments/registry.json` (v1 backfilled and v6 audited 2026-09-12,
+`run_dir` verified for every row against `infer_experiment_id`).
+
+**Note on v1→v2:** intersection barely moves (0.816→0.815) while CEJ improves. v1 used an 8px
+bounding-box margin, which is looser than v2's strict box — it isn't a strictly worse
+baseline on every landmark, only on the annotation-quality dimensions reported in Part B's
+label-retention table (contamination, apex loss). Don't claim v1 is uniformly worst on OKS.
 
 ### Severity ICC — the headline
 
