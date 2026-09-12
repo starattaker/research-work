@@ -1,0 +1,801 @@
+
+==============================================================
+ENVIRONMENT
+==============================================================
+repo:    /home/sr23/faraz/Test_work/research-work
+branch:  denpar-severity-replication
+data:    data/processed_v6
+device:  cuda
+log:     research_log/run_logs/thesis_evidence_20260912T185113Z.log
+venv:    activated
+python:  Python 3.10.12
+torch:   2.13.0+cu130  cuda_available=True
+gpu:     NVIDIA GeForce RTX 5070
+
+==============================================================
+STAGE 0 - sync with GitHub
+==============================================================
+From https://github.com/starattaker/research-work
+ * branch            denpar-severity-replication -> FETCH_HEAD
+From https://github.com/starattaker/research-work
+ * branch            denpar-severity-replication -> FETCH_HEAD
+Already up to date.
+at commit: 28feca6
+
+==============================================================
+PREFLIGHT - checking prerequisites
+==============================================================
+  OK      runs/keypoints/v6_cej/best.pt
+  OK      runs/keypoints/v6_intersection/best.pt
+  OK      runs/keypoints/v6_apex/best.pt
+  OK      data/processed_v6
+  OK      YOLO detection weights
+
+==============================================================
+STAGE 1 - v6 keypoint metrics + registry
+==============================================================
+  evaluating cej from runs/keypoints/v6_cej/best.pt ...
+/home/sr23/faraz/Test_work/research-work/venv/lib/python3.10/site-packages/albumentations/core/composition.py:331: UserWarning: Got processor for bboxes, but no transform to process it.
+  self._set_keys()
+/home/sr23/faraz/Test_work/research-work/venv/lib/python3.10/site-packages/albumentations/core/composition.py:331: UserWarning: Got processor for keypoints, but no transform to process it.
+  self._set_keys()
+{
+  "keypoint_type": "cej",
+  "train_map": {
+    "map": 0.6065669059753418,
+    "map_50": 0.8748804330825806,
+    "map_75": 0.7258485555648804,
+    "map_small": 0.0,
+    "map_medium": 0.18214471638202667,
+    "map_large": 0.6088637113571167,
+    "mar_1": 0.33323994278907776,
+    "mar_10": 0.7434927821159363,
+    "mar_100": 0.7464014887809753,
+    "mar_small": 0.0,
+    "mar_medium": 0.3545454442501068,
+    "mar_large": 0.7483102679252625,
+    "map_per_class": -1.0,
+    "mar_100_per_class": -1.0,
+    "classes": [
+      1,
+      2
+    ]
+  },
+  "val_map": {
+    "map": 0.5505231022834778,
+    "map_50": 0.830614447593689,
+    "map_75": 0.6380432844161987,
+    "map_small": 0.0,
+    "map_medium": 0.08676040172576904,
+    "map_large": 0.5541247725486755,
+    "mar_1": 0.31339260935783386,
+    "mar_10": 0.6950405240058899,
+    "mar_100": 0.7024375796318054,
+    "mar_small": 0.0,
+    "mar_medium": 0.3285714387893677,
+    "mar_large": 0.705215573310852,
+    "map_per_class": -1.0,
+    "mar_100_per_class": -1.0,
+    "classes": [
+      1,
+      2
+    ]
+  },
+  "test_map": {
+    "map": 0.5578451752662659,
+    "map_50": 0.8393345475196838,
+    "map_75": 0.6545640230178833,
+    "map_small": 0.0,
+    "map_medium": 0.006741444114595652,
+    "map_large": 0.5608400106430054,
+    "mar_1": 0.3078996241092682,
+    "mar_10": 0.7095300555229187,
+    "mar_100": 0.7125447392463684,
+    "mar_small": 0.0,
+    "mar_medium": 0.1666666716337204,
+    "mar_large": 0.7153183221817017,
+    "map_per_class": -1.0,
+    "mar_100_per_class": -1.0,
+    "classes": [
+      1,
+      2
+    ]
+  },
+  "train_oks": 0.9637928937948667,
+  "val_oks": 0.9085345851133267,
+  "test_oks": 0.9260674445331096,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 5.209647451701683,
+      "val_loss": 4.159947807329396
+    },
+    {
+      "epoch": 2,
+      "train_loss": 3.845597688328658,
+      "val_loss": 3.72673441807429
+    },
+    {
+      "epoch": 3,
+      "train_loss": 3.485050404158655,
+      "val_loss": 3.6995070314221086
+    },
+    {
+      "epoch": 4,
+      "train_loss": 3.2637295778012305,
+      "val_loss": 3.7366674399375914
+    },
+    {
+      "epoch": 5,
+      "train_loss": 2.994632483005775,
+      "val_loss": 3.485242572283993
+    },
+    {
+      "epoch": 6,
+      "train_loss": 2.803953398042644,
+      "val_loss": 3.661539983963594
+    },
+    {
+      "epoch": 7,
+      "train_loss": 2.6883569181728193,
+      "val_loss": 3.7811611811226853
+    },
+    {
+      "epoch": 8,
+      "train_loss": 2.5651273024139893,
+      "val_loss": 3.7814434991016364
+    },
+    {
+      "epoch": 9,
+      "train_loss": 2.340967482602955,
+      "val_loss": 3.97650665517586
+    },
+    {
+      "epoch": 10,
+      "train_loss": 2.202021917238963,
+      "val_loss": 3.7614378073066472
+    },
+    {
+      "epoch": 11,
+      "train_loss": 2.146544768034689,
+      "val_loss": 4.1970726804047205
+    },
+    {
+      "epoch": 12,
+      "train_loss": 2.0279368317044666,
+      "val_loss": 4.069377216860109
+    },
+    {
+      "epoch": 13,
+      "train_loss": 1.8599164402383763,
+      "val_loss": 4.543381544003108
+    },
+    {
+      "epoch": 14,
+      "train_loss": 1.774212224674311,
+      "val_loss": 4.643317512716942
+    },
+    {
+      "epoch": 15,
+      "train_loss": 1.7071037940670981,
+      "val_loss": 5.0473337455218035
+    },
+    {
+      "epoch": 16,
+      "train_loss": 1.6576328925292745,
+      "val_loss": 4.983472099653445
+    },
+    {
+      "epoch": 17,
+      "train_loss": 1.5291812060967922,
+      "val_loss": 5.5111230704075815
+    },
+    {
+      "epoch": 18,
+      "train_loss": 1.4334262752322697,
+      "val_loss": 5.6724882086063735
+    },
+    {
+      "epoch": 19,
+      "train_loss": 1.4178181332444981,
+      "val_loss": 5.882128033643821
+    },
+    {
+      "epoch": 20,
+      "train_loss": 1.3726283044577863,
+      "val_loss": 5.966893196292221
+    },
+    {
+      "epoch": 21,
+      "train_loss": 1.322216133644913,
+      "val_loss": 6.086336649099055
+    },
+    {
+      "epoch": 22,
+      "train_loss": 1.2833281965214585,
+      "val_loss": 6.695182951822256
+    },
+    {
+      "epoch": 23,
+      "train_loss": 1.2605904439614908,
+      "val_loss": 6.509113896738272
+    },
+    {
+      "epoch": 24,
+      "train_loss": 1.2233508862217566,
+      "val_loss": 6.721840680290673
+    },
+    {
+      "epoch": 25,
+      "train_loss": 1.1718307848576246,
+      "val_loss": 6.9763555341082
+    },
+    {
+      "epoch": 26,
+      "train_loss": 1.1627418483317147,
+      "val_loss": 6.935302062614356
+    },
+    {
+      "epoch": 27,
+      "train_loss": 1.1554971253526172,
+      "val_loss": 7.053585620455851
+    },
+    {
+      "epoch": 28,
+      "train_loss": 1.1341500717898734,
+      "val_loss": 7.017290055762084
+    },
+    {
+      "epoch": 29,
+      "train_loss": 1.1133836041903837,
+      "val_loss": 7.529952394390712
+    },
+    {
+      "epoch": 30,
+      "train_loss": 1.077063950208627,
+      "val_loss": 7.562213367281365
+    },
+    {
+      "epoch": 31,
+      "train_loss": 1.090365858108628,
+      "val_loss": 7.788408114081249
+    },
+    {
+      "epoch": 32,
+      "train_loss": 1.0713377140256708,
+      "val_loss": 7.769731992107699
+    },
+    {
+      "epoch": 33,
+      "train_loss": 1.0586643210730795,
+      "val_loss": 7.918832547957621
+    },
+    {
+      "epoch": 34,
+      "train_loss": 1.052077031950752,
+      "val_loss": 7.9568623678469645
+    },
+    {
+      "epoch": 35,
+      "train_loss": 1.0584650245635125,
+      "val_loss": 7.848711545101833
+    }
+  ]
+}
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+  wrote runs/keypoints/v6_cej/metrics.json  (test_oks=0.9260674445331096)
+  evaluating intersection from runs/keypoints/v6_intersection/best.pt ...
+/home/sr23/faraz/Test_work/research-work/venv/lib/python3.10/site-packages/albumentations/core/composition.py:331: UserWarning: Got processor for bboxes, but no transform to process it.
+  self._set_keys()
+/home/sr23/faraz/Test_work/research-work/venv/lib/python3.10/site-packages/albumentations/core/composition.py:331: UserWarning: Got processor for keypoints, but no transform to process it.
+  self._set_keys()
+{
+  "keypoint_type": "intersection",
+  "train_map": {
+    "map": 0.6210126876831055,
+    "map_50": 0.8889080286026001,
+    "map_75": 0.745566189289093,
+    "map_small": 0.0,
+    "map_medium": 0.11759867519140244,
+    "map_large": 0.623848557472229,
+    "mar_1": 0.3361088037490845,
+    "mar_10": 0.7564961910247803,
+    "mar_100": 0.7590439915657043,
+    "mar_small": 0.0,
+    "mar_medium": 0.34090909361839294,
+    "mar_large": 0.761021077632904,
+    "map_per_class": -1.0,
+    "mar_100_per_class": -1.0,
+    "classes": [
+      1,
+      2
+    ]
+  },
+  "val_map": {
+    "map": 0.5455192923545837,
+    "map_50": 0.8196187019348145,
+    "map_75": 0.6676972508430481,
+    "map_small": 0.0,
+    "map_medium": 0.051579829305410385,
+    "map_large": 0.5489761829376221,
+    "mar_1": 0.30000850558280945,
+    "mar_10": 0.7045972943305969,
+    "mar_100": 0.7100279927253723,
+    "mar_small": 0.0,
+    "mar_medium": 0.30000001192092896,
+    "mar_large": 0.7130801677703857,
+    "map_per_class": -1.0,
+    "mar_100_per_class": -1.0,
+    "classes": [
+      1,
+      2
+    ]
+  },
+  "test_map": {
+    "map": 0.5686313509941101,
+    "map_50": 0.8500257134437561,
+    "map_75": 0.6861596703529358,
+    "map_small": 0.0,
+    "map_medium": 0.0028052804991602898,
+    "map_large": 0.5717520713806152,
+    "mar_1": 0.3177269697189331,
+    "mar_10": 0.715968668460846,
+    "mar_100": 0.720380425453186,
+    "mar_small": 0.0,
+    "mar_medium": 0.01666666753590107,
+    "mar_large": 0.7238815426826477,
+    "map_per_class": -1.0,
+    "mar_100_per_class": -1.0,
+    "classes": [
+      1,
+      2
+    ]
+  },
+  "train_oks": 0.9549555957317353,
+  "val_oks": 0.8852992403507233,
+  "test_oks": 0.8947856390476226,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 5.285328182240411,
+      "val_loss": 4.347306401915848
+    },
+    {
+      "epoch": 2,
+      "train_loss": 4.002556412640753,
+      "val_loss": 4.265935794810454
+    },
+    {
+      "epoch": 3,
+      "train_loss": 3.696527573617141,
+      "val_loss": 4.119246454884609
+    },
+    {
+      "epoch": 4,
+      "train_loss": 3.4796690565999597,
+      "val_loss": 3.7905364394405234
+    },
+    {
+      "epoch": 5,
+      "train_loss": 3.0908412848830658,
+      "val_loss": 3.915072084219816
+    },
+    {
+      "epoch": 6,
+      "train_loss": 2.891463890154646,
+      "val_loss": 3.753041859002163
+    },
+    {
+      "epoch": 7,
+      "train_loss": 2.7962052516390687,
+      "val_loss": 3.9109013455485306
+    },
+    {
+      "epoch": 8,
+      "train_loss": 2.70843336165117,
+      "val_loss": 3.855218702638522
+    },
+    {
+      "epoch": 9,
+      "train_loss": 2.3913564713196145,
+      "val_loss": 4.202228074464947
+    },
+    {
+      "epoch": 10,
+      "train_loss": 2.2429335669084436,
+      "val_loss": 4.302343021642883
+    },
+    {
+      "epoch": 11,
+      "train_loss": 2.1646616516864796,
+      "val_loss": 4.656023149300988
+    },
+    {
+      "epoch": 12,
+      "train_loss": 2.0728894062790206,
+      "val_loss": 4.581556100539553
+    },
+    {
+      "epoch": 13,
+      "train_loss": 1.8775509132837958,
+      "val_loss": 5.326842891045381
+    },
+    {
+      "epoch": 14,
+      "train_loss": 1.7531487065434537,
+      "val_loss": 5.377680346894389
+    },
+    {
+      "epoch": 15,
+      "train_loss": 1.694303174731336,
+      "val_loss": 5.851884543967123
+    },
+    {
+      "epoch": 16,
+      "train_loss": 1.6357837532860502,
+      "val_loss": 5.842155050440536
+    },
+    {
+      "epoch": 17,
+      "train_loss": 1.5360837176226456,
+      "val_loss": 6.332190532765429
+    },
+    {
+      "epoch": 18,
+      "train_loss": 1.4895240925041748,
+      "val_loss": 6.183627881047626
+    },
+    {
+      "epoch": 19,
+      "train_loss": 1.459890394709773,
+      "val_loss": 6.594577276214647
+    },
+    {
+      "epoch": 20,
+      "train_loss": 1.4089520701033669,
+      "val_loss": 6.112783429535726
+    },
+    {
+      "epoch": 21,
+      "train_loss": 1.324575143787143,
+      "val_loss": 7.17997017862314
+    },
+    {
+      "epoch": 22,
+      "train_loss": 1.2931071786274932,
+      "val_loss": 7.158037951171864
+    },
+    {
+      "epoch": 23,
+      "train_loss": 1.2675330942518799,
+      "val_loss": 7.494333891239949
+    },
+    {
+      "epoch": 24,
+      "train_loss": 1.2380808966555361,
+      "val_loss": 7.448714899336531
+    },
+    {
+      "epoch": 25,
+      "train_loss": 1.1908310229070143,
+      "val_loss": 7.8741938927618325
+    },
+    {
+      "epoch": 26,
+      "train_loss": 1.1972879368968614,
+      "val_loss": 7.630458330910187
+    },
+    {
+      "epoch": 27,
+      "train_loss": 1.1628805825996007,
+      "val_loss": 7.893148363670334
+    },
+    {
+      "epoch": 28,
+      "train_loss": 1.1424767637655333,
+      "val_loss": 7.872301334936638
+    },
+    {
+      "epoch": 29,
+      "train_loss": 1.1098761024684545,
+      "val_loss": 8.401098038052053
+    },
+    {
+      "epoch": 30,
+      "train_loss": 1.0969379367235408,
+      "val_loss": 8.503584011369773
+    },
+    {
+      "epoch": 31,
+      "train_loss": 1.0971539771734977,
+      "val_loss": 8.548274000580422
+    },
+    {
+      "epoch": 32,
+      "train_loss": 1.0891777693307916,
+      "val_loss": 8.681392666266378
+    },
+    {
+      "epoch": 33,
+      "train_loss": 1.096908481908745,
+      "val_loss": 8.428997177286073
+    },
+    {
+      "epoch": 34,
+      "train_loss": 1.066614228823905,
+      "val_loss": 8.791219077703426
+    },
+    {
+      "epoch": 35,
+      "train_loss": 1.060953864098371,
+      "val_loss": 8.89584888639239
+    },
+    {
+      "epoch": 36,
+      "train_loss": 1.060127244452536,
+      "val_loss": 9.0924548889976
+    }
+  ]
+}
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+  wrote runs/keypoints/v6_intersection/metrics.json  (test_oks=0.8947856390476226)
+  evaluating apex from runs/keypoints/v6_apex/best.pt ...
+/home/sr23/faraz/Test_work/research-work/venv/lib/python3.10/site-packages/albumentations/core/composition.py:331: UserWarning: Got processor for bboxes, but no transform to process it.
+  self._set_keys()
+/home/sr23/faraz/Test_work/research-work/venv/lib/python3.10/site-packages/albumentations/core/composition.py:331: UserWarning: Got processor for keypoints, but no transform to process it.
+  self._set_keys()
+{
+  "keypoint_type": "apex",
+  "train_map": {
+    "map": 0.6114626526832581,
+    "map_50": 0.8738870620727539,
+    "map_75": 0.737572193145752,
+    "map_small": 0.0,
+    "map_medium": 0.14033344388008118,
+    "map_large": 0.6137267351150513,
+    "mar_1": 0.33631983399391174,
+    "mar_10": 0.7431803345680237,
+    "mar_100": 0.7458767294883728,
+    "mar_small": 0.0,
+    "mar_medium": 0.24090908467769623,
+    "mar_large": 0.7483397126197815,
+    "map_per_class": -1.0,
+    "mar_100_per_class": -1.0,
+    "classes": [
+      1,
+      2
+    ]
+  },
+  "val_map": {
+    "map": 0.5524423122406006,
+    "map_50": 0.8401844501495361,
+    "map_75": 0.6375910043716431,
+    "map_small": 0.0,
+    "map_medium": 0.1269153356552124,
+    "map_large": 0.5558451414108276,
+    "mar_1": 0.3025141656398773,
+    "mar_10": 0.6971283555030823,
+    "mar_100": 0.7005927562713623,
+    "mar_small": 0.0,
+    "mar_medium": 0.22857142984867096,
+    "mar_large": 0.7042469382286072,
+    "map_per_class": -1.0,
+    "mar_100_per_class": -1.0,
+    "classes": [
+      1,
+      2
+    ]
+  },
+  "test_map": {
+    "map": 0.5759717226028442,
+    "map_50": 0.8479359745979309,
+    "map_75": 0.685968279838562,
+    "map_small": 0.0,
+    "map_medium": 0.004675467498600483,
+    "map_large": 0.5789396166801453,
+    "mar_1": 0.31648018956184387,
+    "mar_10": 0.7181457877159119,
+    "mar_100": 0.7231745719909668,
+    "mar_small": 0.0,
+    "mar_medium": 0.0833333358168602,
+    "mar_large": 0.726407527923584,
+    "map_per_class": -1.0,
+    "mar_100_per_class": -1.0,
+    "classes": [
+      1,
+      2
+    ]
+  },
+  "train_oks": 0.8924176997175584,
+  "val_oks": 0.8250636687176303,
+  "test_oks": 0.8639782121777535,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 7.190054231578987,
+      "val_loss": 6.150729324432711
+    },
+    {
+      "epoch": 2,
+      "train_loss": 5.402132889090186,
+      "val_loss": 4.99504209379976
+    },
+    {
+      "epoch": 3,
+      "train_loss": 4.6597572952463215,
+      "val_loss": 4.984646322124948
+    },
+    {
+      "epoch": 4,
+      "train_loss": 4.243578347137507,
+      "val_loss": 4.893114520600066
+    },
+    {
+      "epoch": 5,
+      "train_loss": 3.854221882090041,
+      "val_loss": 4.415014217294131
+    },
+    {
+      "epoch": 6,
+      "train_loss": 3.5711247224612106,
+      "val_loss": 4.607400652222956
+    },
+    {
+      "epoch": 7,
+      "train_loss": 3.3981991928724993,
+      "val_loss": 4.4652896504631885
+    },
+    {
+      "epoch": 8,
+      "train_loss": 3.2371010169653975,
+      "val_loss": 4.748536096724371
+    },
+    {
+      "epoch": 9,
+      "train_loss": 2.918410231292882,
+      "val_loss": 4.46203648965961
+    },
+    {
+      "epoch": 10,
+      "train_loss": 2.728796727720368,
+      "val_loss": 4.643189596983914
+    },
+    {
+      "epoch": 11,
+      "train_loss": 2.6217869490197936,
+      "val_loss": 4.933124830274222
+    },
+    {
+      "epoch": 12,
+      "train_loss": 2.525815960576192,
+      "val_loss": 5.523836281751283
+    },
+    {
+      "epoch": 13,
+      "train_loss": 2.2985224966207976,
+      "val_loss": 5.548511220410776
+    },
+    {
+      "epoch": 14,
+      "train_loss": 2.1892685718267324,
+      "val_loss": 5.6469363850696634
+    },
+    {
+      "epoch": 15,
+      "train_loss": 2.0792401171049413,
+      "val_loss": 6.1332595042636
+    },
+    {
+      "epoch": 16,
+      "train_loss": 2.058314731629191,
+      "val_loss": 6.514949380319255
+    },
+    {
+      "epoch": 17,
+      "train_loss": 1.8863561402724562,
+      "val_loss": 6.4075654222051766
+    },
+    {
+      "epoch": 18,
+      "train_loss": 1.823530045308157,
+      "val_loss": 7.12465201914
+    },
+    {
+      "epoch": 19,
+      "train_loss": 1.7957284008268841,
+      "val_loss": 6.830600530518762
+    },
+    {
+      "epoch": 20,
+      "train_loss": 1.7725100951037867,
+      "val_loss": 7.3815946233870156
+    },
+    {
+      "epoch": 21,
+      "train_loss": 1.6695335263538493,
+      "val_loss": 7.431495368836525
+    },
+    {
+      "epoch": 22,
+      "train_loss": 1.6057474699858405,
+      "val_loss": 7.942011854217854
+    },
+    {
+      "epoch": 23,
+      "train_loss": 1.5764269661151182,
+      "val_loss": 8.056213074841848
+    },
+    {
+      "epoch": 24,
+      "train_loss": 1.5726849331141612,
+      "val_loss": 8.040335525625851
+    },
+    {
+      "epoch": 25,
+      "train_loss": 1.490755908194418,
+      "val_loss": 8.883183022944916
+    },
+    {
+      "epoch": 26,
+      "train_loss": 1.4550183985381961,
+      "val_loss": 8.87908209165597
+    },
+    {
+      "epoch": 27,
+      "train_loss": 1.45969104385282,
+      "val_loss": 8.775943377998969
+    },
+    {
+      "epoch": 28,
+      "train_loss": 1.4623893001520338,
+      "val_loss": 8.887307767177699
+    },
+    {
+      "epoch": 29,
+      "train_loss": 1.4200901305988614,
+      "val_loss": 9.197562358309126
+    },
+    {
+      "epoch": 30,
+      "train_loss": 1.4065258442336748,
+      "val_loss": 9.496166278505116
+    },
+    {
+      "epoch": 31,
+      "train_loss": 1.3775299320729846,
+      "val_loss": 9.249853600230999
+    },
+    {
+      "epoch": 32,
+      "train_loss": 1.3848919467234546,
+      "val_loss": 9.483923549813529
+    },
+    {
+      "epoch": 33,
+      "train_loss": 1.3458266564094221,
+      "val_loss": 9.565775295812248
+    },
+    {
+      "epoch": 34,
+      "train_loss": 1.333945081469623,
+      "val_loss": 9.60642014603053
+    },
+    {
+      "epoch": 35,
+      "train_loss": 1.3412161595218435,
+      "val_loss": 9.557335990676075
+    }
+  ]
+}
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+  wrote runs/keypoints/v6_apex/metrics.json  (test_oks=0.8639782121777535)
+  updating experiment registry ...
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+Registry updated: 59 records
+sanity check OK: all recorded v6 run_dir values reference v6
+push: no changes to commit for 'Add v6 keypoint metrics.json + registry record (thesis audit trail)'
+-- stage 2 (dump per-tooth severity pairs) skipped by SKIP_STAGES
+-- stage 3 (ICC CIs + Bland-Altman) skipped by SKIP_STAGES
+-- stage 4 (regenerate axis-severity figures) skipped by SKIP_STAGES
