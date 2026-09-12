@@ -279,11 +279,56 @@ stage4_axis_figures() {
     "$out_dir"
 }
 
+# --------------------------------------------------------------- stage 5 ----
+stage5_noise_study() {
+  # Controlled noise injection on GT keypoints. No model, no GPU - isolates
+  # the axis-stability mechanism by holding everything fixed except injected
+  # localisation error.
+  $PY scripts/noise_sensitivity_severity.py \
+    --data-root "$DATA_ROOT" \
+    --split test \
+    --sigmas 0 1 2 3 4 6 8 12 16 24 \
+    --trials 10 \
+    --out research_log/noise_sensitivity_v6.json \
+    --fig research_log/figures/noise_sensitivity_v6.png 2>&1 | grep -v "it/s" | tee -a "$RUN_LOG"
+  [[ "${PIPESTATUS[0]}" -eq 0 ]] || { err "  noise study failed"; return 1; }
+  push_stage "Add noise-injection sensitivity study on ${EXP} (mechanism isolation)" \
+    research_log/noise_sensitivity_v6.json research_log/figures/noise_sensitivity_v6.png
+}
+
+# --------------------------------------------------------------- stage 6 ----
+stage6_v7_robustness() {
+  # Robustness / generalisation check: does the axis-constrained advantage
+  # survive a DIFFERENT (and measurably weaker) keypoint model? v7 has worse
+  # intersection OKS than v6 (0.882 vs 0.895). If mask-PCA still beats the
+  # reference formula under v7, the geometric gain is a property of the
+  # geometry, not an artefact of one checkpoint.
+  for w in cej intersection apex; do
+    if [[ ! -f "runs/keypoints/v7_${w}/best.pt" ]]; then
+      warn "  runs/keypoints/v7_${w}/best.pt missing - skipping v7 robustness check"
+      return 0
+    fi
+  done
+  $PY scripts/compare_axis_severity_icc.py \
+    --data-root "$DATA_ROOT" \
+    --split all \
+    --device "$DEVICE" \
+    --cej-weights runs/keypoints/v7_cej/best.pt \
+    --intersection-weights runs/keypoints/v7_intersection/best.pt \
+    --apex-weights runs/keypoints/v7_apex/best.pt \
+    --out research_log/axis_severity_icc_v7weights.json 2>&1 | grep -v "it/s" | tee -a "$RUN_LOG"
+  [[ "${PIPESTATUS[0]}" -eq 0 ]] || { err "  v7 robustness check failed"; return 1; }
+  push_stage "Add v7-weights axis ICC (robustness of the axis gain to keypoint model)" \
+    research_log/axis_severity_icc_v7weights.json
+}
+
 # ------------------------------------------------------------------ run -----
 run_stage 1 "v6 keypoint metrics + registry"      stage1_v6_metrics
 run_stage 2 "dump per-tooth severity pairs"       stage2_dump_pairs
 run_stage 3 "ICC CIs + Bland-Altman"              stage3_agreement
 run_stage 4 "regenerate axis-severity figures"    stage4_axis_figures
+run_stage 5 "noise-injection mechanism study"     stage5_noise_study
+run_stage 6 "v7 robustness check"                 stage6_v7_robustness
 
 # Always push the run log itself so the Windows box can read what happened.
 push_stage "Add thesis-evidence run log" "$RUN_LOG"
