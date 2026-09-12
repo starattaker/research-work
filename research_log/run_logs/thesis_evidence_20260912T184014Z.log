@@ -1,0 +1,883 @@
+
+==============================================================
+ENVIRONMENT
+==============================================================
+repo:    /home/sr23/faraz/Test_work/research-work
+branch:  denpar-severity-replication
+data:    data/processed_v6
+device:  cuda
+log:     research_log/run_logs/thesis_evidence_20260912T184014Z.log
+venv:    activated
+python:  Python 3.10.12
+torch:   2.13.0+cu130  cuda_available=True
+gpu:     NVIDIA GeForce RTX 5070
+
+==============================================================
+STAGE 0 - sync with GitHub
+==============================================================
+From https://github.com/starattaker/research-work
+ * branch            denpar-severity-replication -> FETCH_HEAD
+From https://github.com/starattaker/research-work
+ * branch            denpar-severity-replication -> FETCH_HEAD
+Already up to date.
+at commit: 2bbea7e
+
+==============================================================
+PREFLIGHT - checking prerequisites
+==============================================================
+  OK      runs/keypoints/v6_cej/best.pt
+  OK      runs/keypoints/v6_intersection/best.pt
+  OK      runs/keypoints/v6_apex/best.pt
+  OK      data/processed_v6
+  OK      YOLO detection weights
+
+==============================================================
+STAGE 1 - v6 keypoint metrics + registry
+==============================================================
+  evaluating cej from runs/keypoints/v6_cej/best.pt ...
+/home/sr23/faraz/Test_work/research-work/venv/lib/python3.10/site-packages/albumentations/core/composition.py:331: UserWarning: Got processor for bboxes, but no transform to process it.
+  self._set_keys()
+/home/sr23/faraz/Test_work/research-work/venv/lib/python3.10/site-packages/albumentations/core/composition.py:331: UserWarning: Got processor for keypoints, but no transform to process it.
+  self._set_keys()
+{
+  "keypoint_type": "cej",
+  "train_map": {
+    "map": 0.6031331419944763,
+    "map_50": 0.876945436000824,
+    "map_75": 0.7238381505012512,
+    "map_small": 0.0,
+    "map_medium": 0.1558443307876587,
+    "map_large": 0.6054702401161194,
+    "mar_1": 0.33098745346069336,
+    "mar_10": 0.7398370504379272,
+    "mar_100": 0.7428519129753113,
+    "mar_small": 0.0,
+    "mar_medium": 0.38181817531585693,
+    "mar_large": 0.7446213364601135,
+    "map_per_class": -1.0,
+    "mar_100_per_class": -1.0,
+    "classes": [
+      1,
+      2
+    ]
+  },
+  "val_map": {
+    "map": 0.5484938025474548,
+    "map_50": 0.8265185952186584,
+    "map_75": 0.6297085881233215,
+    "map_small": 0.0,
+    "map_medium": 0.12554582953453064,
+    "map_large": 0.5520138144493103,
+    "mar_1": 0.31181710958480835,
+    "mar_10": 0.6982240676879883,
+    "mar_100": 0.7045910954475403,
+    "mar_small": 0.0,
+    "mar_medium": 0.3857142925262451,
+    "mar_large": 0.7070216536521912,
+    "map_per_class": -1.0,
+    "mar_100_per_class": -1.0,
+    "classes": [
+      1,
+      2
+    ]
+  },
+  "test_map": {
+    "map": 0.5472044348716736,
+    "map_50": 0.8299025893211365,
+    "map_75": 0.644905686378479,
+    "map_small": 0.0,
+    "map_medium": 0.007013358641415834,
+    "map_large": 0.5499569773674011,
+    "mar_1": 0.30814898014068604,
+    "mar_10": 0.702720582485199,
+    "mar_100": 0.707058846950531,
+    "mar_small": 0.0,
+    "mar_medium": 0.1666666716337204,
+    "mar_large": 0.7098346948623657,
+    "map_per_class": -1.0,
+    "mar_100_per_class": -1.0,
+    "classes": [
+      1,
+      2
+    ]
+  },
+  "train_oks": 0.9643843470169948,
+  "val_oks": 0.9120919510722161,
+  "test_oks": 0.9256253150105477,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 5.209647451701683,
+      "val_loss": 4.159947807329396
+    },
+    {
+      "epoch": 2,
+      "train_loss": 3.845597688328658,
+      "val_loss": 3.72673441807429
+    },
+    {
+      "epoch": 3,
+      "train_loss": 3.485050404158655,
+      "val_loss": 3.6995070314221086
+    },
+    {
+      "epoch": 4,
+      "train_loss": 3.2637295778012305,
+      "val_loss": 3.7366674399375914
+    },
+    {
+      "epoch": 5,
+      "train_loss": 2.994632483005775,
+      "val_loss": 3.485242572283993
+    },
+    {
+      "epoch": 6,
+      "train_loss": 2.803953398042644,
+      "val_loss": 3.661539983963594
+    },
+    {
+      "epoch": 7,
+      "train_loss": 2.6883569181728193,
+      "val_loss": 3.7811611811226853
+    },
+    {
+      "epoch": 8,
+      "train_loss": 2.5651273024139893,
+      "val_loss": 3.7814434991016364
+    },
+    {
+      "epoch": 9,
+      "train_loss": 2.340967482602955,
+      "val_loss": 3.97650665517586
+    },
+    {
+      "epoch": 10,
+      "train_loss": 2.202021917238963,
+      "val_loss": 3.7614378073066472
+    },
+    {
+      "epoch": 11,
+      "train_loss": 2.146544768034689,
+      "val_loss": 4.1970726804047205
+    },
+    {
+      "epoch": 12,
+      "train_loss": 2.0279368317044666,
+      "val_loss": 4.069377216860109
+    },
+    {
+      "epoch": 13,
+      "train_loss": 1.8599164402383763,
+      "val_loss": 4.543381544003108
+    },
+    {
+      "epoch": 14,
+      "train_loss": 1.774212224674311,
+      "val_loss": 4.643317512716942
+    },
+    {
+      "epoch": 15,
+      "train_loss": 1.7071037940670981,
+      "val_loss": 5.0473337455218035
+    },
+    {
+      "epoch": 16,
+      "train_loss": 1.6576328925292745,
+      "val_loss": 4.983472099653445
+    },
+    {
+      "epoch": 17,
+      "train_loss": 1.5291812060967922,
+      "val_loss": 5.5111230704075815
+    },
+    {
+      "epoch": 18,
+      "train_loss": 1.4334262752322697,
+      "val_loss": 5.6724882086063735
+    },
+    {
+      "epoch": 19,
+      "train_loss": 1.4178181332444981,
+      "val_loss": 5.882128033643821
+    },
+    {
+      "epoch": 20,
+      "train_loss": 1.3726283044577863,
+      "val_loss": 5.966893196292221
+    },
+    {
+      "epoch": 21,
+      "train_loss": 1.322216133644913,
+      "val_loss": 6.086336649099055
+    },
+    {
+      "epoch": 22,
+      "train_loss": 1.2833281965214585,
+      "val_loss": 6.695182951822256
+    },
+    {
+      "epoch": 23,
+      "train_loss": 1.2605904439614908,
+      "val_loss": 6.509113896738272
+    },
+    {
+      "epoch": 24,
+      "train_loss": 1.2233508862217566,
+      "val_loss": 6.721840680290673
+    },
+    {
+      "epoch": 25,
+      "train_loss": 1.1718307848576246,
+      "val_loss": 6.9763555341082
+    },
+    {
+      "epoch": 26,
+      "train_loss": 1.1627418483317147,
+      "val_loss": 6.935302062614356
+    },
+    {
+      "epoch": 27,
+      "train_loss": 1.1554971253526172,
+      "val_loss": 7.053585620455851
+    },
+    {
+      "epoch": 28,
+      "train_loss": 1.1341500717898734,
+      "val_loss": 7.017290055762084
+    },
+    {
+      "epoch": 29,
+      "train_loss": 1.1133836041903837,
+      "val_loss": 7.529952394390712
+    },
+    {
+      "epoch": 30,
+      "train_loss": 1.077063950208627,
+      "val_loss": 7.562213367281365
+    },
+    {
+      "epoch": 31,
+      "train_loss": 1.090365858108628,
+      "val_loss": 7.788408114081249
+    },
+    {
+      "epoch": 32,
+      "train_loss": 1.0713377140256708,
+      "val_loss": 7.769731992107699
+    },
+    {
+      "epoch": 33,
+      "train_loss": 1.0586643210730795,
+      "val_loss": 7.918832547957621
+    },
+    {
+      "epoch": 34,
+      "train_loss": 1.052077031950752,
+      "val_loss": 7.9568623678469645
+    },
+    {
+      "epoch": 35,
+      "train_loss": 1.0584650245635125,
+      "val_loss": 7.848711545101833
+    }
+  ]
+}
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+  wrote runs/keypoints/v6_cej/metrics.json  (test_oks=0.9256253150105477)
+  evaluating intersection from runs/keypoints/v6_intersection/best.pt ...
+/home/sr23/faraz/Test_work/research-work/venv/lib/python3.10/site-packages/albumentations/core/composition.py:331: UserWarning: Got processor for bboxes, but no transform to process it.
+  self._set_keys()
+/home/sr23/faraz/Test_work/research-work/venv/lib/python3.10/site-packages/albumentations/core/composition.py:331: UserWarning: Got processor for keypoints, but no transform to process it.
+  self._set_keys()
+{
+  "keypoint_type": "intersection",
+  "train_map": {
+    "map": 0.6217036247253418,
+    "map_50": 0.8874664902687073,
+    "map_75": 0.7474221587181091,
+    "map_small": 0.0,
+    "map_medium": 0.12486101686954498,
+    "map_large": 0.6244298815727234,
+    "mar_1": 0.3343373239040375,
+    "mar_10": 0.7575312256813049,
+    "mar_100": 0.7607583999633789,
+    "mar_small": 0.0,
+    "mar_medium": 0.3545454442501068,
+    "mar_large": 0.7626805901527405,
+    "map_per_class": -1.0,
+    "mar_100_per_class": -1.0,
+    "classes": [
+      1,
+      2
+    ]
+  },
+  "val_map": {
+    "map": 0.5530999898910522,
+    "map_50": 0.8246377110481262,
+    "map_75": 0.6646186709403992,
+    "map_small": 0.0,
+    "map_medium": 0.05926128476858139,
+    "map_large": 0.5568531155586243,
+    "mar_1": 0.3018324077129364,
+    "mar_10": 0.707896888256073,
+    "mar_100": 0.7128594517707825,
+    "mar_small": 0.0,
+    "mar_medium": 0.2857142984867096,
+    "mar_large": 0.7160308361053467,
+    "map_per_class": -1.0,
+    "mar_100_per_class": -1.0,
+    "classes": [
+      1,
+      2
+    ]
+  },
+  "test_map": {
+    "map": 0.5644760131835938,
+    "map_50": 0.8487586379051208,
+    "map_75": 0.6638468503952026,
+    "map_small": 0.0,
+    "map_medium": 0.0018701869994401932,
+    "map_large": 0.567716121673584,
+    "mar_1": 0.309648334980011,
+    "mar_10": 0.7124935984611511,
+    "mar_100": 0.716978907585144,
+    "mar_small": 0.0,
+    "mar_medium": 0.01666666753590107,
+    "mar_large": 0.7204700708389282,
+    "map_per_class": -1.0,
+    "mar_100_per_class": -1.0,
+    "classes": [
+      1,
+      2
+    ]
+  },
+  "train_oks": 0.9518505241320684,
+  "val_oks": 0.887582714955012,
+  "test_oks": 0.8956967785954475,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 5.285328182240411,
+      "val_loss": 4.347306401915848
+    },
+    {
+      "epoch": 2,
+      "train_loss": 4.002556412640753,
+      "val_loss": 4.265935794810454
+    },
+    {
+      "epoch": 3,
+      "train_loss": 3.696527573617141,
+      "val_loss": 4.119246454884609
+    },
+    {
+      "epoch": 4,
+      "train_loss": 3.4796690565999597,
+      "val_loss": 3.7905364394405234
+    },
+    {
+      "epoch": 5,
+      "train_loss": 3.0908412848830658,
+      "val_loss": 3.915072084219816
+    },
+    {
+      "epoch": 6,
+      "train_loss": 2.891463890154646,
+      "val_loss": 3.753041859002163
+    },
+    {
+      "epoch": 7,
+      "train_loss": 2.7962052516390687,
+      "val_loss": 3.9109013455485306
+    },
+    {
+      "epoch": 8,
+      "train_loss": 2.70843336165117,
+      "val_loss": 3.855218702638522
+    },
+    {
+      "epoch": 9,
+      "train_loss": 2.3913564713196145,
+      "val_loss": 4.202228074464947
+    },
+    {
+      "epoch": 10,
+      "train_loss": 2.2429335669084436,
+      "val_loss": 4.302343021642883
+    },
+    {
+      "epoch": 11,
+      "train_loss": 2.1646616516864796,
+      "val_loss": 4.656023149300988
+    },
+    {
+      "epoch": 12,
+      "train_loss": 2.0728894062790206,
+      "val_loss": 4.581556100539553
+    },
+    {
+      "epoch": 13,
+      "train_loss": 1.8775509132837958,
+      "val_loss": 5.326842891045381
+    },
+    {
+      "epoch": 14,
+      "train_loss": 1.7531487065434537,
+      "val_loss": 5.377680346894389
+    },
+    {
+      "epoch": 15,
+      "train_loss": 1.694303174731336,
+      "val_loss": 5.851884543967123
+    },
+    {
+      "epoch": 16,
+      "train_loss": 1.6357837532860502,
+      "val_loss": 5.842155050440536
+    },
+    {
+      "epoch": 17,
+      "train_loss": 1.5360837176226456,
+      "val_loss": 6.332190532765429
+    },
+    {
+      "epoch": 18,
+      "train_loss": 1.4895240925041748,
+      "val_loss": 6.183627881047626
+    },
+    {
+      "epoch": 19,
+      "train_loss": 1.459890394709773,
+      "val_loss": 6.594577276214647
+    },
+    {
+      "epoch": 20,
+      "train_loss": 1.4089520701033669,
+      "val_loss": 6.112783429535726
+    },
+    {
+      "epoch": 21,
+      "train_loss": 1.324575143787143,
+      "val_loss": 7.17997017862314
+    },
+    {
+      "epoch": 22,
+      "train_loss": 1.2931071786274932,
+      "val_loss": 7.158037951171864
+    },
+    {
+      "epoch": 23,
+      "train_loss": 1.2675330942518799,
+      "val_loss": 7.494333891239949
+    },
+    {
+      "epoch": 24,
+      "train_loss": 1.2380808966555361,
+      "val_loss": 7.448714899336531
+    },
+    {
+      "epoch": 25,
+      "train_loss": 1.1908310229070143,
+      "val_loss": 7.8741938927618325
+    },
+    {
+      "epoch": 26,
+      "train_loss": 1.1972879368968614,
+      "val_loss": 7.630458330910187
+    },
+    {
+      "epoch": 27,
+      "train_loss": 1.1628805825996007,
+      "val_loss": 7.893148363670334
+    },
+    {
+      "epoch": 28,
+      "train_loss": 1.1424767637655333,
+      "val_loss": 7.872301334936638
+    },
+    {
+      "epoch": 29,
+      "train_loss": 1.1098761024684545,
+      "val_loss": 8.401098038052053
+    },
+    {
+      "epoch": 30,
+      "train_loss": 1.0969379367235408,
+      "val_loss": 8.503584011369773
+    },
+    {
+      "epoch": 31,
+      "train_loss": 1.0971539771734977,
+      "val_loss": 8.548274000580422
+    },
+    {
+      "epoch": 32,
+      "train_loss": 1.0891777693307916,
+      "val_loss": 8.681392666266378
+    },
+    {
+      "epoch": 33,
+      "train_loss": 1.096908481908745,
+      "val_loss": 8.428997177286073
+    },
+    {
+      "epoch": 34,
+      "train_loss": 1.066614228823905,
+      "val_loss": 8.791219077703426
+    },
+    {
+      "epoch": 35,
+      "train_loss": 1.060953864098371,
+      "val_loss": 8.89584888639239
+    },
+    {
+      "epoch": 36,
+      "train_loss": 1.060127244452536,
+      "val_loss": 9.0924548889976
+    }
+  ]
+}
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+  wrote runs/keypoints/v6_intersection/metrics.json  (test_oks=0.8956967785954475)
+  evaluating apex from runs/keypoints/v6_apex/best.pt ...
+/home/sr23/faraz/Test_work/research-work/venv/lib/python3.10/site-packages/albumentations/core/composition.py:331: UserWarning: Got processor for bboxes, but no transform to process it.
+  self._set_keys()
+/home/sr23/faraz/Test_work/research-work/venv/lib/python3.10/site-packages/albumentations/core/composition.py:331: UserWarning: Got processor for keypoints, but no transform to process it.
+  self._set_keys()
+{
+  "keypoint_type": "apex",
+  "train_map": {
+    "map": 0.611205518245697,
+    "map_50": 0.8726655840873718,
+    "map_75": 0.7358224391937256,
+    "map_small": 0.0,
+    "map_medium": 0.11098974943161011,
+    "map_large": 0.6136140823364258,
+    "mar_1": 0.33375948667526245,
+    "mar_10": 0.7441741824150085,
+    "mar_100": 0.7473164796829224,
+    "mar_small": 0.0,
+    "mar_medium": 0.20000000298023224,
+    "mar_large": 0.7499810457229614,
+    "map_per_class": -1.0,
+    "mar_100_per_class": -1.0,
+    "classes": [
+      1,
+      2
+    ]
+  },
+  "val_map": {
+    "map": 0.5583028197288513,
+    "map_50": 0.8434315323829651,
+    "map_75": 0.6476135849952698,
+    "map_small": 0.0,
+    "map_medium": 0.09339933842420578,
+    "map_large": 0.5619891881942749,
+    "mar_1": 0.3103654086589813,
+    "mar_10": 0.6990458965301514,
+    "mar_100": 0.7039147615432739,
+    "mar_small": 0.0,
+    "mar_medium": 0.2142857164144516,
+    "mar_large": 0.7076768279075623,
+    "map_per_class": -1.0,
+    "mar_100_per_class": -1.0,
+    "classes": [
+      1,
+      2
+    ]
+  },
+  "test_map": {
+    "map": 0.5698937177658081,
+    "map_50": 0.8445820808410645,
+    "map_75": 0.6809680461883545,
+    "map_small": 0.0,
+    "map_medium": 0.0076759872026741505,
+    "map_large": 0.5728005766868591,
+    "mar_1": 0.31520140171051025,
+    "mar_10": 0.7194916605949402,
+    "mar_100": 0.7230498790740967,
+    "mar_small": 0.0,
+    "mar_medium": 0.10000000149011612,
+    "mar_large": 0.7262101173400879,
+    "map_per_class": -1.0,
+    "mar_100_per_class": -1.0,
+    "classes": [
+      1,
+      2
+    ]
+  },
+  "train_oks": 0.8932053613433472,
+  "val_oks": 0.8249052671940686,
+  "test_oks": 0.8666152447462082,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 7.190054231578987,
+      "val_loss": 6.150729324432711
+    },
+    {
+      "epoch": 2,
+      "train_loss": 5.402132889090186,
+      "val_loss": 4.99504209379976
+    },
+    {
+      "epoch": 3,
+      "train_loss": 4.6597572952463215,
+      "val_loss": 4.984646322124948
+    },
+    {
+      "epoch": 4,
+      "train_loss": 4.243578347137507,
+      "val_loss": 4.893114520600066
+    },
+    {
+      "epoch": 5,
+      "train_loss": 3.854221882090041,
+      "val_loss": 4.415014217294131
+    },
+    {
+      "epoch": 6,
+      "train_loss": 3.5711247224612106,
+      "val_loss": 4.607400652222956
+    },
+    {
+      "epoch": 7,
+      "train_loss": 3.3981991928724993,
+      "val_loss": 4.4652896504631885
+    },
+    {
+      "epoch": 8,
+      "train_loss": 3.2371010169653975,
+      "val_loss": 4.748536096724371
+    },
+    {
+      "epoch": 9,
+      "train_loss": 2.918410231292882,
+      "val_loss": 4.46203648965961
+    },
+    {
+      "epoch": 10,
+      "train_loss": 2.728796727720368,
+      "val_loss": 4.643189596983914
+    },
+    {
+      "epoch": 11,
+      "train_loss": 2.6217869490197936,
+      "val_loss": 4.933124830274222
+    },
+    {
+      "epoch": 12,
+      "train_loss": 2.525815960576192,
+      "val_loss": 5.523836281751283
+    },
+    {
+      "epoch": 13,
+      "train_loss": 2.2985224966207976,
+      "val_loss": 5.548511220410776
+    },
+    {
+      "epoch": 14,
+      "train_loss": 2.1892685718267324,
+      "val_loss": 5.6469363850696634
+    },
+    {
+      "epoch": 15,
+      "train_loss": 2.0792401171049413,
+      "val_loss": 6.1332595042636
+    },
+    {
+      "epoch": 16,
+      "train_loss": 2.058314731629191,
+      "val_loss": 6.514949380319255
+    },
+    {
+      "epoch": 17,
+      "train_loss": 1.8863561402724562,
+      "val_loss": 6.4075654222051766
+    },
+    {
+      "epoch": 18,
+      "train_loss": 1.823530045308157,
+      "val_loss": 7.12465201914
+    },
+    {
+      "epoch": 19,
+      "train_loss": 1.7957284008268841,
+      "val_loss": 6.830600530518762
+    },
+    {
+      "epoch": 20,
+      "train_loss": 1.7725100951037867,
+      "val_loss": 7.3815946233870156
+    },
+    {
+      "epoch": 21,
+      "train_loss": 1.6695335263538493,
+      "val_loss": 7.431495368836525
+    },
+    {
+      "epoch": 22,
+      "train_loss": 1.6057474699858405,
+      "val_loss": 7.942011854217854
+    },
+    {
+      "epoch": 23,
+      "train_loss": 1.5764269661151182,
+      "val_loss": 8.056213074841848
+    },
+    {
+      "epoch": 24,
+      "train_loss": 1.5726849331141612,
+      "val_loss": 8.040335525625851
+    },
+    {
+      "epoch": 25,
+      "train_loss": 1.490755908194418,
+      "val_loss": 8.883183022944916
+    },
+    {
+      "epoch": 26,
+      "train_loss": 1.4550183985381961,
+      "val_loss": 8.87908209165597
+    },
+    {
+      "epoch": 27,
+      "train_loss": 1.45969104385282,
+      "val_loss": 8.775943377998969
+    },
+    {
+      "epoch": 28,
+      "train_loss": 1.4623893001520338,
+      "val_loss": 8.887307767177699
+    },
+    {
+      "epoch": 29,
+      "train_loss": 1.4200901305988614,
+      "val_loss": 9.197562358309126
+    },
+    {
+      "epoch": 30,
+      "train_loss": 1.4065258442336748,
+      "val_loss": 9.496166278505116
+    },
+    {
+      "epoch": 31,
+      "train_loss": 1.3775299320729846,
+      "val_loss": 9.249853600230999
+    },
+    {
+      "epoch": 32,
+      "train_loss": 1.3848919467234546,
+      "val_loss": 9.483923549813529
+    },
+    {
+      "epoch": 33,
+      "train_loss": 1.3458266564094221,
+      "val_loss": 9.565775295812248
+    },
+    {
+      "epoch": 34,
+      "train_loss": 1.333945081469623,
+      "val_loss": 9.60642014603053
+    },
+    {
+      "epoch": 35,
+      "train_loss": 1.3412161595218435,
+      "val_loss": 9.557335990676075
+    }
+  ]
+}
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+  wrote runs/keypoints/v6_apex/metrics.json  (test_oks=0.8666152447462082)
+  updating experiment registry ...
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+Experiment v6 finalized (registry + checkpoint + paper fragment).
+Registry updated: 53 records
+SANITY-CHECK FAILED: v6 registry entries ['apex', 'cej', 'intersection'] point at a different experiment's run_dir!
+[31mFAIL[0m   registry sanity check failed - inspect research_log/experiments/registry.json before trusting these numbers
+push: no changes to commit for 'Add v6 keypoint metrics.json + registry record (thesis audit trail)'
+[31mFAIL[0m stage 1 (v6 keypoint metrics + registry) did not complete
+-- stage 2 (dump per-tooth severity pairs) skipped by SKIP_STAGES
+-- stage 3 (ICC CIs + Bland-Altman) skipped by SKIP_STAGES
+
+==============================================================
+STAGE 4 - regenerate axis-severity figures
+==============================================================
+Wrote paper/figures/axis_severity/431_tooth0_slot1.png
+Wrote paper/figures/axis_severity/431_tooth0.png (legacy alias of 431_tooth0_slot1.png)
+Wrote paper/figures/axis_severity/431_tooth1_slot1.png
+Wrote paper/figures/axis_severity/431_tooth1.png (legacy alias of 431_tooth1_slot1.png)
+Wrote paper/figures/axis_severity/5_tooth1_slot1.png
+Wrote paper/figures/axis_severity/5_tooth1.png (legacy alias of 5_tooth1_slot1.png)
+Wrote paper/figures/axis_severity/100_tooth0_slot1.png
+Wrote paper/figures/axis_severity/100_tooth0.png (legacy alias of 100_tooth0_slot1.png)
+Wrote paper/figures/axis_severity/100_tooth1_slot0.png
+Wrote paper/figures/axis_severity/100_tooth1_slot1.png
+Wrote paper/figures/axis_severity/100_tooth1.png (legacy alias of 100_tooth1_slot0.png)
+Wrote paper/figures/axis_severity/240_tooth0_slot1.png
+Wrote paper/figures/axis_severity/240_tooth0.png (legacy alias of 240_tooth0_slot1.png)
+Wrote paper/figures/axis_severity/622_tooth0_slot1.png
+Wrote paper/figures/axis_severity/622_tooth0.png (legacy alias of 622_tooth0_slot1.png)
+Wrote paper/figures/axis_severity/18_tooth0_slot1.png
+Wrote paper/figures/axis_severity/18_tooth0.png (legacy alias of 18_tooth0_slot1.png)
+Wrote paper/figures/axis_severity/18_tooth1_slot1.png
+Wrote paper/figures/axis_severity/18_tooth1.png (legacy alias of 18_tooth1_slot1.png)
+Wrote paper/figures/axis_severity/358_tooth0_slot1.png
+Wrote paper/figures/axis_severity/358_tooth0.png (legacy alias of 358_tooth0_slot1.png)
+Wrote paper/figures/axis_severity/358_tooth1_slot1.png
+Wrote paper/figures/axis_severity/358_tooth1.png (legacy alias of 358_tooth1_slot1.png)
+Wrote paper/figures/axis_severity/530_tooth0_slot1.png
+Wrote paper/figures/axis_severity/530_tooth0.png (legacy alias of 530_tooth0_slot1.png)
+Wrote paper/figures/axis_severity/530_tooth1_slot0.png
+Wrote paper/figures/axis_severity/530_tooth1_slot1.png
+Wrote paper/figures/axis_severity/530_tooth1.png (legacy alias of 530_tooth1_slot0.png)
+[denpar-severity-replication ed52e6c] Regenerate axis-severity figures (proper PCA axis span, projections, apex-free panel)
+ 29 files changed, 15 insertions(+), 3 deletions(-)
+ rewrite paper/figures/axis_severity/100_tooth0.png (92%)
+ create mode 100644 paper/figures/axis_severity/100_tooth0_slot1.png
+ rewrite paper/figures/axis_severity/100_tooth1.png (90%)
+ create mode 100644 paper/figures/axis_severity/100_tooth1_slot0.png
+ create mode 100644 paper/figures/axis_severity/100_tooth1_slot1.png
+ rewrite paper/figures/axis_severity/18_tooth0.png (95%)
+ create mode 100644 paper/figures/axis_severity/18_tooth0_slot1.png
+ rewrite paper/figures/axis_severity/18_tooth1.png (95%)
+ create mode 100644 paper/figures/axis_severity/18_tooth1_slot1.png
+ rewrite paper/figures/axis_severity/240_tooth0.png (94%)
+ create mode 100644 paper/figures/axis_severity/240_tooth0_slot1.png
+ rewrite paper/figures/axis_severity/358_tooth0.png (92%)
+ create mode 100644 paper/figures/axis_severity/358_tooth0_slot1.png
+ rewrite paper/figures/axis_severity/358_tooth1.png (94%)
+ create mode 100644 paper/figures/axis_severity/358_tooth1_slot1.png
+ rewrite paper/figures/axis_severity/431_tooth0.png (93%)
+ create mode 100644 paper/figures/axis_severity/431_tooth0_slot1.png
+ rewrite paper/figures/axis_severity/431_tooth1.png (92%)
+ create mode 100644 paper/figures/axis_severity/431_tooth1_slot1.png
+ rewrite paper/figures/axis_severity/530_tooth0.png (92%)
+ create mode 100644 paper/figures/axis_severity/530_tooth0_slot1.png
+ rewrite paper/figures/axis_severity/530_tooth1.png (91%)
+ create mode 100644 paper/figures/axis_severity/530_tooth1_slot0.png
+ create mode 100644 paper/figures/axis_severity/530_tooth1_slot1.png
+ rewrite paper/figures/axis_severity/5_tooth1.png (93%)
+ create mode 100644 paper/figures/axis_severity/5_tooth1_slot1.png
+ rewrite paper/figures/axis_severity/622_tooth0.png (92%)
+ create mode 100644 paper/figures/axis_severity/622_tooth0_slot1.png
+To https://github.com/starattaker/research-work.git
+   2bbea7e..ed52e6c  denpar-severity-replication -> denpar-severity-replication
+pushed: Regenerate axis-severity figures (proper PCA axis span, projections, apex-free panel)
