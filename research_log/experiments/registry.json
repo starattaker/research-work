@@ -168,14 +168,14 @@
       "cej": {
         "record_file": "research_log/experiments/records/20260912T184453Z_v6_cej.json",
         "keypoint_type": "cej",
-        "test_oks": 0.9109338833391667,
-        "val_oks": 0.9078024067481358,
-        "test_map_50": 0.715131938457489,
-        "best_epoch": 4,
-        "best_val_loss": 3.6161489050711193,
-        "epochs_run": 34,
+        "test_oks": 0.9210635432600975,
+        "val_oks": 0.9051179915666581,
+        "test_map_50": 0.8633781671524048,
+        "best_epoch": 5,
+        "best_val_loss": 3.502550929651285,
+        "epochs_run": 35,
         "paper_oks_target": 0.954,
-        "run_dir": "runs/keypoints/v3_cej"
+        "run_dir": "runs/keypoints/v4_cej"
       },
       "intersection": {
         "record_file": "research_log/experiments/records/20260912T184453Z_v6_intersection.json",
@@ -454,6 +454,12 @@
       "file": "research_log/experiments/records/20260912T184453Z_v6_apex.json",
       "experiment_id": "v6",
       "keypoint_type": "apex",
+      "at": "2026-09-12 18:44 UTC"
+    },
+    {
+      "file": "research_log/experiments/records/20260912T184453Z_v6_cej.json",
+      "experiment_id": "v6",
+      "keypoint_type": "cej",
       "at": "2026-09-12 18:44 UTC"
     }
   ]
