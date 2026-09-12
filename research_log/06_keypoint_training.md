@@ -46,10 +46,10 @@ All three heads complete. Overfit pattern same as v6 runs (best ~epoch 4–5).
 
 ## v6 keypoints (auto)
 
-Recorded: 2026-09-12 18:43 UTC
+Recorded: 2026-09-12 18:44 UTC
 
 | Model | test_oks | Paper | best epoch | run_dir |
 |-------|----------:|------:|-----------:|---------|
 | cej | 0.9256253150105477 | 0.954 | 5 | `runs/keypoints/v6_cej` |
 | intersection | 0.8956967785954475 | 0.912 | 6 | `runs/keypoints/v6_intersection` |
-| apex | 0.8809459374845028 | 0.815 | 5 | `runs/keypoints/v7_apex` |
+| apex | 0.8666152447462082 | 0.815 | 5 | `runs/keypoints/v6_apex` |
