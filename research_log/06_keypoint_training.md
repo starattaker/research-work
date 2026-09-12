@@ -43,3 +43,13 @@ All three heads complete. Overfit pattern same as v6 runs (best ~epoch 4–5).
 
 - Training uses **GT bboxes**; ICC uses **YOLO** at inference.
 - Registry: `research_log/experiments/paper_table.json`
+
+## v6 keypoints (auto)
+
+Recorded: 2026-09-12 18:13 UTC
+
+| Model | test_oks | Paper | best epoch | run_dir |
+|-------|----------:|------:|-----------:|---------|
+| cej | 0.8202921310067177 | 0.954 | 5 | `runs/keypoints/cej` |
+| intersection | 0.8158931599091739 | 0.912 | 5 | `runs/keypoints/intersection` |
+| apex | 0.8295238763093948 | 0.815 | 5 | `runs/keypoints/apex` |

@@ -151,6 +151,44 @@
         "paper_oks_target": 0.815,
         "run_dir": "runs/keypoints/v7_apex"
       }
+    },
+    "v6": {
+      "apex": {
+        "record_file": "research_log/experiments/records/20260912T181355Z_v6_apex.json",
+        "keypoint_type": "apex",
+        "test_oks": 0.8295238763093948,
+        "val_oks": 0.7905785556385915,
+        "test_map_50": 0.838118851184845,
+        "best_epoch": 5,
+        "best_val_loss": 4.415325986829897,
+        "epochs_run": 35,
+        "paper_oks_target": 0.815,
+        "run_dir": "runs/keypoints/apex"
+      },
+      "cej": {
+        "record_file": "research_log/experiments/records/20260912T181355Z_v6_cej.json",
+        "keypoint_type": "cej",
+        "test_oks": 0.8202921310067177,
+        "val_oks": 0.8250388719638189,
+        "test_map_50": 0.8253624439239502,
+        "best_epoch": 5,
+        "best_val_loss": 3.848,
+        "epochs_run": 35,
+        "paper_oks_target": 0.954,
+        "run_dir": "runs/keypoints/cej"
+      },
+      "intersection": {
+        "record_file": "research_log/experiments/records/20260912T181355Z_v6_intersection.json",
+        "keypoint_type": "intersection",
+        "test_oks": 0.8158931599091739,
+        "val_oks": 0.817666565378507,
+        "test_map_50": 0.833403468132019,
+        "best_epoch": 5,
+        "best_val_loss": 4.145585024915635,
+        "epochs_run": 35,
+        "paper_oks_target": 0.912,
+        "run_dir": "runs/keypoints/intersection"
+      }
     }
   },
   "record_index": [
@@ -225,6 +263,24 @@
       "experiment_id": "v7",
       "keypoint_type": "apex",
       "at": "2026-09-02 01:29 UTC"
+    },
+    {
+      "file": "research_log/experiments/records/20260912T181355Z_v6_apex.json",
+      "experiment_id": "v6",
+      "keypoint_type": "apex",
+      "at": "2026-09-12 18:13 UTC"
+    },
+    {
+      "file": "research_log/experiments/records/20260912T181355Z_v6_cej.json",
+      "experiment_id": "v6",
+      "keypoint_type": "cej",
+      "at": "2026-09-12 18:13 UTC"
+    },
+    {
+      "file": "research_log/experiments/records/20260912T181355Z_v6_intersection.json",
+      "experiment_id": "v6",
+      "keypoint_type": "intersection",
+      "at": "2026-09-12 18:13 UTC"
     }
   ]
 }

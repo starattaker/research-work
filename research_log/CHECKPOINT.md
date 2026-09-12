@@ -1,6 +1,6 @@
 # Checkpoint — Axis ICC done; paper filled (2026-09-04, updated 2026-09-05)
 
-**Status:** Axis severity ICC completed on friend (test: paper 0.726 / PCA **0.823** / midpoint 0.751). Paper updated + PDF builds clean (~5 pp). **Push of figures was resolved** — commit `d141c67` (Add research figures from GPU runs) is now on `origin/denpar-severity-replication` and present locally.
+**Status:** Keypoint training **v6 complete** (2026-09-12 18:13 UTC).
 
 ## ICC (v6, completed on friend)
 
@@ -36,3 +36,9 @@ Fix GitHub auth then push:
 git remote set-url origin https://USERNAME:TOKEN@github.com/starattaker/research-work.git
 git push origin denpar-severity-replication
 ```
+
+## Latest metrics (auto)
+
+- **v6:** cej OKS=0.820; intersection OKS=0.816; apex OKS=0.830
+- Registry: `research_log/experiments/paper_table.json`
+
