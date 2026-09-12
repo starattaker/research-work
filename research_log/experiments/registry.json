@@ -166,7 +166,7 @@
         "run_dir": "runs/keypoints/v6_apex"
       },
       "cej": {
-        "record_file": "research_log/experiments/records/20260912T185248Z_v6_cej.json",
+        "record_file": "research_log/experiments/records/20260912T185552Z_v6_cej.json",
         "keypoint_type": "cej",
         "test_oks": 0.9260674445331096,
         "val_oks": 0.9085345851133267,
@@ -532,6 +532,12 @@
       "file": "research_log/experiments/records/20260912T185552Z_v6_apex.json",
       "experiment_id": "v6",
       "keypoint_type": "apex",
+      "at": "2026-09-12 18:55 UTC"
+    },
+    {
+      "file": "research_log/experiments/records/20260912T185552Z_v6_cej.json",
+      "experiment_id": "v6",
+      "keypoint_type": "cej",
       "at": "2026-09-12 18:55 UTC"
     }
   ]
