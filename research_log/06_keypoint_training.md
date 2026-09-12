@@ -52,4 +52,4 @@ Recorded: 2026-09-12 18:44 UTC
 |-------|----------:|------:|-----------:|---------|
 | cej | 0.9109338833391667 | 0.954 | 4 | `runs/keypoints/v3_cej` |
 | intersection | 0.817021611481905 | 0.912 | 5 | `runs/keypoints/v3_intersection` |
-| apex | 0.8355489329248666 | 0.815 | 6 | `runs/keypoints/v3_apex` |
+| apex | 0.8530984434485436 | 0.815 | 6 | `runs/keypoints/v4_apex` |
