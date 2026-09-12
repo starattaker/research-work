@@ -178,7 +178,7 @@
         "run_dir": "runs/keypoints/v6_cej"
       },
       "intersection": {
-        "record_file": "research_log/experiments/records/20260912T185418Z_v6_intersection.json",
+        "record_file": "research_log/experiments/records/20260912T185552Z_v6_intersection.json",
         "keypoint_type": "intersection",
         "test_oks": 0.8947856390476226,
         "val_oks": 0.8852992403507233,
@@ -538,6 +538,12 @@
       "file": "research_log/experiments/records/20260912T185552Z_v6_cej.json",
       "experiment_id": "v6",
       "keypoint_type": "cej",
+      "at": "2026-09-12 18:55 UTC"
+    },
+    {
+      "file": "research_log/experiments/records/20260912T185552Z_v6_intersection.json",
+      "experiment_id": "v6",
+      "keypoint_type": "intersection",
       "at": "2026-09-12 18:55 UTC"
     }
   ]
