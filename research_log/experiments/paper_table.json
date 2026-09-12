@@ -90,11 +90,11 @@
           "run_dir": "runs/keypoints/v7_cej"
         },
         "intersection": {
-          "test_oks": 0.8956967785954475,
+          "test_oks": 0.8824105253815651,
           "paper_target": 0.912,
           "best_epoch": 6,
           "epochs_run": 36,
-          "run_dir": "runs/keypoints/v6_intersection"
+          "run_dir": "runs/keypoints/v7_intersection"
         },
         "apex": {
           "test_oks": 0.8809459374845028,
