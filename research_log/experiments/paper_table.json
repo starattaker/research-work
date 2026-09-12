@@ -83,11 +83,11 @@
       "experiment_id": "v6",
       "models": {
         "cej": {
-          "test_oks": 0.8202921310067177,
+          "test_oks": 0.842615787088871,
           "paper_target": 0.954,
-          "best_epoch": 5,
-          "epochs_run": 35,
-          "run_dir": "runs/keypoints/cej"
+          "best_epoch": 8,
+          "epochs_run": 38,
+          "run_dir": "runs/keypoints/v2_cej"
         },
         "intersection": {
           "test_oks": 0.8158931599091739,
