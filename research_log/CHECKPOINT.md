@@ -39,6 +39,6 @@ git push origin denpar-severity-replication
 
 ## Latest metrics (auto)
 
-- **v6:** cej OKS=0.820; intersection OKS=0.816; apex OKS=0.830
+- **v6:** cej OKS=0.820; intersection OKS=0.816; apex OKS=0.781
 - Registry: `research_log/experiments/paper_table.json`
 
