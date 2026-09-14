@@ -41,3 +41,5 @@ temp_interactive_push.bat
 *.log
 *.out
 *.synctex.gz
+config.bat
+node_modules
